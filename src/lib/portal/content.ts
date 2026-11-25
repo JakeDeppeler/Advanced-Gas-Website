@@ -227,7 +227,7 @@ export const TOOLS: ToolLink[] = [
   { title: "Running-cost calculator", description: "Heat pump vs gas running costs for the quote.", href: "/tools/running-cost-calculator" },
   { title: "Fault-code finder", description: "Look up a brand + code on site.", href: "/tools/fault-codes" },
   { title: "System comparison", description: "Compare system types side by side.", href: "/tools/system-comparison" },
-  { title: "Full price list", description: "Every model, installed price, VEU applied.", href: "/pricing" },
+  { title: "Products & prices", description: "Every option with its from price, on the main site.", href: "/#find" },
 ];
 
 /* -------------------------------------------------------------- Info --- */
@@ -245,7 +245,7 @@ export const INFO: InfoBlock[] = [
       { k: "Compliance cert", v: "Emailed within 24 hours of install" },
       { k: "After-hours call-out", v: "$380 call-out, then $260/hr after" },
       { k: "Standard split service", v: "$220 (or $140 ea for 3+ at one address)" },
-      { k: "Service area", v: "Pakenham + 75 km" },
+      { k: "Service area", v: "Pakenham + 50 km (we still go out to 75 km)" },
     ],
   },
   {
@@ -483,5 +483,5 @@ export const PORTAL_TOOLS: PortalToolLink[] = [
   { slug: "veu-rebate-estimator", label: "VEU rebate estimator", blurb: "Ballpark the rebate before a site visit.", href: "/portal/tools/veu-rebate-estimator" },
   { slug: "running-cost-calculator", label: "Running cost", blurb: "Heat pump vs gas running costs for the quote.", href: "/portal/tools/running-cost-calculator" },
   { slug: "fault-codes", label: "Fault-code finder", blurb: "Look up a brand + code on site.", href: "/portal/tools/fault-codes" },
-  { slug: "price-list", label: "Full price list", blurb: "Every model, installed price, on the main site.", href: "/pricing", external: true },
+  { slug: "price-list", label: "Products & prices", blurb: "Every option with its from price, on the main site.", href: "/#find", external: true },
 ];

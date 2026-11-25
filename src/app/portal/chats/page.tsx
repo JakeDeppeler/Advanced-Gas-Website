@@ -6,7 +6,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
-import { getChatSettings, lastMessages, listThreads, type InboxFilter } from "@/lib/chat/store";
+import { lastMessages, listThreads, type InboxFilter } from "@/lib/chat/store";
 import { aiConfigured } from "@/lib/chat/draft";
 import { metaConfigured, metaTokenSet } from "@/lib/leads/meta";
 import { CHANNEL_LABEL, draftCurrent, isWaiting, replyWindow } from "@/lib/chat/chatTypes";
@@ -38,9 +38,7 @@ export default async function ChatsPage({ searchParams }: { searchParams: { f?: 
 
   const filter: InboxFilter = FILTERS.some((f) => f.k === searchParams?.f) ? (searchParams.f as InboxFilter) : "waiting";
   const ready = dashboardDbConfigured();
-  const [all, settings] = ready
-    ? await Promise.all([listThreads(filter).catch(() => []), getChatSettings()])
-    : [[], null];
+  const all = ready ? await listThreads(filter).catch(() => []) : [];
   const threads = filter === "waiting" ? all.filter(isWaiting) : all;
   const last = await lastMessages(threads.map((t) => t.id)).catch(() => new Map());
   const manager = can(user, "overhead");
@@ -51,7 +49,6 @@ export default async function ChatsPage({ searchParams }: { searchParams: { f?: 
   if (!aiConfigured()) gaps.push("Drafts are off until ANTHROPIC_API_KEY is set on the server. You can still read and reply to every chat.");
   if (!metaConfigured()) gaps.push("Messenger and Instagram aren't connected yet, so only the website chat comes in here. Integrations says what's missing.");
   else if (!metaTokenSet()) gaps.push("No Facebook page token (META_PAGE_TOKEN), so Messenger and Instagram messages come in but replies can't go out.");
-  if (settings && !settings.widget) gaps.push("The website chat is switched off, so visitors don't see it. Turn it on in Settings when the office is ready to answer.");
 
   const now = Date.now();
 
@@ -61,9 +58,13 @@ export default async function ChatsPage({ searchParams }: { searchParams: { f?: 
         <div>
           <PortalBack href="/portal" label="Home" />
           <h1>Customer chats</h1>
-          <p>The website chat, Messenger and Instagram in one place. Open one to see the assistant&rsquo;s draft, change anything you like, then send it.</p>
+          <p>Messenger and Instagram in one place. Open one to see the assistant&rsquo;s draft, change anything you like, then send it. What people ask the website chat is under Chat answers.</p>
         </div>
-        {manager && <Link href="/portal/chats/settings" className="pt-btn pt-btn--ghost pt-head__act">Settings</Link>}
+        <div className="pt-head__act ch-acts">
+          {/* The website's own chat answers on its own now, so what it was asked lives on its own page. */}
+          <Link href="/portal/chats/answers" className="pt-btn pt-btn--ghost">Chat answers</Link>
+          {manager && <Link href="/portal/chats/settings" className="pt-btn pt-btn--ghost">Settings</Link>}
+        </div>
       </div>
 
       {!ready && <div className="pt-note pt-note--warn"><strong>Database not connected.</strong> Nothing can come in until it is.</div>}

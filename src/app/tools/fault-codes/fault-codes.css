@@ -1,0 +1,60 @@
+/* The fault code lookup, grouped (FaultCodeLookup.tsx). The cards themselves
+   are calc-c.css's .cc-fault; this lays them out by system and brand, two to
+   a row, under a jump list. Scoped under .ag like the rest of the redesign. */
+
+.ag .fcg__sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* The jump list: the homepage's navy rounded box, brands as white rows. */
+.ag .fcg__jump{display:flex;flex-direction:column;gap:16px;padding:clamp(22px,3vw,32px);border-radius:12px;background:var(--navy);color:#fff}
+.ag .fcg__jumpl{font-family:var(--disp);font-size:clamp(20px,1.8vw,24px);font-weight:900;letter-spacing:-.01em}
+.ag .fcg__jcols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 20px;align-items:start}
+.ag .fcg__jcol{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ag .fcg__jcol small{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.7)}
+.ag .fcg__jcol ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ag .fcg__jcol a{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px;padding:8px 12px;border-radius:10px;background:#fff;color:var(--navy);font-family:var(--disp);font-size:15px;font-weight:800;text-decoration:none;transition:box-shadow .15s}
+.ag .fcg__jcol a:hover,.ag .fcg__jcol a:focus-visible{box-shadow:0 0 0 2px var(--or2);color:var(--navy)}
+.ag .fcg__jcol a b{flex:none;min-width:28px;padding:2px 7px;border-radius:999px;background:var(--cream);font-family:var(--mono);font-size:12px;font-weight:700;text-align:center;color:var(--navy)}
+
+/* One section per kind of system, one block per brand. */
+.ag .fcg__sys{display:flex;flex-direction:column;gap:clamp(22px,2.6vw,32px);padding-top:clamp(8px,1.5vw,16px)}
+.ag .fcg__sysh{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;font-family:var(--disp);font-size:clamp(28px,3vw,40px);font-weight:900;line-height:1.05;letter-spacing:-.02em;color:var(--navy)}
+/* The tool frame's old .page-tool h2 draws a rule and a coloured stub under every h2; these headings are section titles, not panel labels. */
+.ag .tl .page-tool h2.fcg__sysh,.ag .page-tool h2.fcg__sysh{margin:0;padding:0;border:0;font-size:clamp(28px,3vw,40px);font-weight:900}
+.ag .tl .page-tool h2.fcg__sysh::after,.ag .page-tool h2.fcg__sysh::after{display:none}
+.ag .fcg__sysh small{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+/* Clear of the sticky header when a jump link lands here. */
+.ag .fcg__brand,.ag .fcg__run{scroll-margin-top:120px}
+.ag .fcg__brand{display:flex;flex-direction:column;gap:14px}
+.ag .fcg__bhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding-bottom:10px;border-bottom:2px solid var(--navy)}
+.ag .fcg__bhead h3{font-family:var(--disp);font-size:clamp(21px,1.9vw,26px);font-weight:900;line-height:1.15;color:var(--navy)}
+.ag .fcg__bhead > span{font-size:14px;font-weight:600;color:var(--ink3)}
+.ag .fcg__runs{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.ag .fcg__runs a{padding:5px 10px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2);font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--navy);text-decoration:none}
+.ag .fcg__runs a:hover,.ag .fcg__runs a:focus-visible{box-shadow:inset 0 0 0 2px var(--navy)}
+.ag .fcg__run{display:flex;flex-direction:column;gap:10px}
+.ag .fcg__run + .fcg__run{margin-top:8px}
+.ag .fcg__run h4{font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+
+/* Two cards to a row: the code beside the meaning, the first check under it. */
+.ag .fcg__list{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ag .fcg__list .fcg__row{grid-template-columns:76px minmax(0,1fr);gap:10px 16px;padding:14px 16px}
+.ag .fcg__list .fcg__row .cc-code{min-height:52px;font-size:18px}
+/* The code badge spans both lines, so the first check sits straight under the meaning. */
+.ag .fcg__list .fcg__row .cc-code{grid-row:1/span 2;align-self:start}
+.ag .fcg__list .fcg__row .cc-fcheck{grid-column:2;display:block}
+/* "First check" runs into its sentence rather than taking a line of its own:
+   149 cards, so a line saved on each is the length of a screen saved overall. */
+.ag .fcg__list .fcg__row .cc-fcheck .cc-lbl{display:inline;margin-right:6px}
+/* Three to a row where there's room for three. */
+@media (min-width:1280px){.ag .fcg__list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+@media (max-width:1100px){.ag .fcg__jcols{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){
+  .ag .fcg__list{grid-template-columns:minmax(0,1fr)}
+  .ag .fcg__list .fcg__row{grid-template-columns:64px minmax(0,1fr)}
+  .ag .fcg__list .fcg__row .cc-code{min-height:46px;font-size:16px}
+  .ag .fcg__list .fcg__row .cc-code{grid-row:auto}
+  .ag .fcg__list .fcg__row .cc-fcheck{grid-column:1/-1}
+}
+@media (max-width:480px){.ag .fcg__jcols{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){.ag .fcg__jcol a{transition:none}}

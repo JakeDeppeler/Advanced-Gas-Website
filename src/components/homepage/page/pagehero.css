@@ -1,0 +1,49 @@
+/* PageHero.tsx: the homepage's hero (.ahero, homepage.css) on the inside
+   pages. The homepage's classes do the work; these add the breadcrumb, the
+   label, a headline a size down (a page name runs longer than "One
+   standard."), and the card for pages that don't offer the quote form. */
+
+.ag .phx__crumbs ol{list-style:none;margin:0 0 -4px;padding:0;display:flex;flex-wrap:wrap;gap:6px;font-size:13px;color:rgba(255,255,255,.7)}
+.ag .phx__crumbs li:not(:last-child)::after{content:"›";margin-left:6px;color:rgba(255,255,255,.45)}
+.ag .phx__crumbs a{color:rgba(255,255,255,.82);text-decoration:none}
+.ag .phx__crumbs a:hover{color:#fff;text-decoration:underline}
+.ag .phx__crumbs [aria-current]{color:#fff}
+.ag .phx__eye{margin-bottom:-8px;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#FF9A5C}
+.ag .phx__h1{font-size:clamp(40px,4.6vw,66px)}
+/* The coloured part, when it ends the headline, on a line of its own */
+.ag .phx__h1 .phx__l2{display:block}
+/* The old hero's em for the coloured part, where a page still passes one */
+.ag .phx__h1 em{font-style:normal;color:var(--sky2)}
+.ag .phx__fact{max-width:15rem}
+.ag .ahero__trust a.phx__fact:hover strong{text-decoration:underline}
+
+/* No card on the right (the contact page, whose form sits under it): the words take the width they need */
+.ag .phx--solo .ahero__copy{flex-basis:auto;max-width:760px}
+/* Shorter: the page's main thing is straight under it */
+.ag .phx--short{min-height:0}
+.ag .phx--short .ahero__in{padding-top:48px;padding-bottom:56px}
+
+/* The card on the right when it isn't the quote form: the form's own box (.qf) */
+/* The quote form holds a fixed height so it doesn't jump between steps; these cards take their content's */
+.ag .qf.phx__card{gap:16px;min-height:0}
+.ag .phx__cardlbl{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--or)}
+.ag .phx__cardfoot{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink3)}
+.ag .phx__cardfoot b{color:var(--navy)}
+
+@media (max-width:600px){
+  .ag .phx--short .ahero__in{padding-top:32px;padding-bottom:40px}
+}
+
+/* Rows of links in the card: the membership tiers, the tools' questions */
+.ag .phx__rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.ag .phx__rows a{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:12px;border:1.5px solid var(--line2);text-decoration:none;color:var(--navy);transition:border-color .15s,transform .15s}
+.ag .phx__rows a:hover{border-color:var(--or);transform:translateY(-1px);color:var(--navy)}
+.ag .phx__rows strong{display:flex;align-items:center;gap:8px;font-family:var(--disp);font-size:16.5px;font-weight:800;line-height:1.25}
+.ag .phx__rows strong em{font-style:normal;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--or);border-radius:999px;padding:3px 8px}
+.ag .phx__rows span{font-size:14px;line-height:1.45;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){.ag .phx__rows a{transition:none}.ag .phx__rows a:hover{transform:none}}
+
+/* The brand logos (hub.css .bh__logos, drawn for navy) on the card's white */
+.ag .phx__card .bh__logo{background:#F6F7F9;box-shadow:none;color:var(--navy)}
+.ag .phx__card .bh__logo:hover{background:#fff;box-shadow:inset 0 0 0 1.5px var(--or);color:var(--navy)}
+.ag .phx__card .bh__limg{box-shadow:inset 0 0 0 1px var(--line)}

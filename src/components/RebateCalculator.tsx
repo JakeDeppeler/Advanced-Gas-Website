@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { site } from "@/lib/site";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 /**
  * VEU + Solar Homes rebate estimator for Advanced Gas & Aircon.
@@ -14,11 +15,17 @@ import { site } from "@/lib/site";
  *   − VEEC + STC + VIC Solar (if eligible) + Aus-Made (if brand eligible)
  *   = customer final price inc GST
  *
- * Australian Made $400 rebate applies to Reclaim and Thermann, both built by Dux at Moss Vale.
+ * The $400 for a locally made product is part of Solar Victoria's rebate (up
+ * to $1,400 instead of $1,000), so it is owner-occupier only like the rest of
+ * it (Jake, 24 Nov 2026): a rental gets VEEC + STC and nothing else.
  * VIC Solar Homes $1,000 rebate has eligibility criteria (owner-occupier,
  * combined household income < $150k, property value < $3M, no prior HW /
  * battery Solar Homes rebate at the address, existing HW system 3+ yrs
  * old). See the tooltip on that step.
+ *
+ * While SHOW_PRICES is off (Jake, Nov 2026) only the rebate side shows: the
+ * unit, install and "you pay" lines are our prices, so they wait for the
+ * written quote. The pricing rule stays so switching back on is one flag.
  */
 
 /* ------- constants ------- */
@@ -78,30 +85,20 @@ const HP_BRANDS: Brand[] = [
     ],
   },
   {
-    id: "thermann",
-    t: "Thermann",
-    s: "Australian made · great value",
-    ausMade: true,
-    products: [
-      { id: "thermann-200", name: "Thermann R290 all-in-one 200 L", desc: "1–2 person homes · plug-in", rrp: 3195, install: "aio", needsPower: true },
-      { id: "thermann-285", name: "Thermann R290 all-in-one 285 L", desc: "3–4 person homes · plug-in", rrp: 3545, install: "aio", needsPower: true },
-    ],
-  },
-  {
     id: "istore",
     t: "iStore",
     s: "Smart-app ready",
     ausMade: false,
     products: [
       { id: "istore-180", name: "iStore 180 L", desc: "1–3 person homes", rrp: 2800, install: "split" },
-      { id: "istore-275", name: "iStore 275 L", desc: "3–5 person homes", rrp: 2800, install: "split" },
+      { id: "istore-275", name: "iStore 270 L", desc: "3–5 person homes", rrp: 2800, install: "split" },
     ],
   },
   ];
 
 const AC_BRANDS = [
   { id: "mitsu",  t: "Mitsubishi Electric", s: "Premium quiet inverter" },
-  { id: "kaden",  t: "Kaden",               s: "Great value, 5-yr warranty" },
+  { id: "kaden",  t: "Kaden",               s: "Great value, 7-yr warranty" },
 ];
 
 /* ------- component ------- */
@@ -130,7 +127,7 @@ export function RebateCalculator() {
     const powerAddOn = product.needsPower && power === "no" ? POWER_ADDON : 0;
     const veec = VEEC;
     const stc  = STC;
-    const ausMade = brand.ausMade ? AUS_MADE : 0;
+    const ausMade = brand.ausMade && solar === "yes" ? AUS_MADE : 0;
     const solarR = solar === "yes" ? VIC_SOLAR : 0;
     const rebates = veec + stc + ausMade + solarR;
     const subtotal = unitIncGST + installIncGST + powerAddOn;
@@ -147,8 +144,8 @@ export function RebateCalculator() {
   return (
     <div className="rb-calc rb-calc--v2">
       <div className="rb-calc__head">
-        <h3>Quick rebate + price estimator</h3>
-        <p className="rb-calc__sub">Indicative, final price and eligibility confirmed at the site check.</p>
+        <h3>{SHOW_PRICES ? "Quick rebate + price estimator" : "Quick rebate estimator"}</h3>
+        <p className="rb-calc__sub">{SHOW_PRICES ? "Indicative, final price and eligibility confirmed at the site check." : "Indicative. Rebate and eligibility are confirmed at the site check, and the price is on your written quote."}</p>
       </div>
 
       {/* Progress */}
@@ -169,7 +166,7 @@ export function RebateCalculator() {
             onClick={() => pickCategory("hp")}
           >
             <span className="rb-calc__card-t">Heat pump hot water</span>
-            <span className="rb-calc__card-s">Reclaim · Thermann · iStore</span>
+            <span className="rb-calc__card-s">Reclaim · iStore</span>
           </button>
           <button
             type="button"
@@ -188,7 +185,7 @@ export function RebateCalculator() {
           {/* Step 2, brand */}
           <div className="rb-calc__block">
             <span className="rb-calc__qlabel">2. Which brand?</span>
-            <div className="rb-calc__grid rb-calc__grid--3">
+            <div className="rb-calc__grid rb-calc__grid--2">
               {HP_BRANDS.map((b) => (
                 <button
                   type="button"
@@ -242,7 +239,7 @@ export function RebateCalculator() {
                         onClick={() => setPower("no")}>No, need a new one</button>
                     </div>
                     <p className="rb-calc__note">
-                      If &ldquo;no&rdquo; we add ~${POWER_ADDON.toLocaleString()} for a new power point (electrical + compliance).
+                      {SHOW_PRICES ? <>If &ldquo;no&rdquo; we add ~${POWER_ADDON.toLocaleString()} for a new power point (electrical + compliance).</> : <>If &ldquo;no&rdquo;, a new power point goes on the quote (electrical + compliance).</>}
                     </p>
                   </div>
                 )}
@@ -288,13 +285,20 @@ export function RebateCalculator() {
                     <span className="rb-calc__result-l">Estimated total rebate</span>
                     <span className="rb-calc__result-num">${calc.rebates.toLocaleString()}</span>
                   </div>
-                  <div className="rb-calc__result-row">
-                    <span className="rb-calc__result-l">Est. fully installed price</span>
-                    <span className="rb-calc__result-num rb-calc__result-num--net">
-                      ${calc.total.toLocaleString()}<small> inc GST</small>
-                    </span>
-                  </div>
-                  <details className="rb-calc__breakdown">
+                  {SHOW_PRICES ? (
+                    <div className="rb-calc__result-row">
+                      <span className="rb-calc__result-l">Est. fully installed price</span>
+                      <span className="rb-calc__result-num rb-calc__result-num--net">
+                        ${calc.total.toLocaleString()}<small> inc GST</small>
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="rb-calc__result-row">
+                      <span className="rb-calc__result-l">Installed price</span>
+                      <span className="rb-calc__result-l">On your written quote, rebate off</span>
+                    </div>
+                  )}
+                  {SHOW_PRICES && <details className="rb-calc__breakdown">
                     <summary>See the breakdown</summary>
                     <div className="rb-calc__breakdown-inner">
                       <div><span>Unit ({product.name})</span><span>${Math.round(calc.unitIncGST).toLocaleString()}</span></div>
@@ -307,7 +311,19 @@ export function RebateCalculator() {
                       {calc.solarR > 0 && <div className="rb-calc__breakdown-rebate"><span>VIC Solar Homes rebate</span><span>−${calc.solarR.toLocaleString()}</span></div>}
                       <div className="rb-calc__breakdown-total"><span>You pay</span><span>${calc.total.toLocaleString()}</span></div>
                     </div>
-                  </details>
+                  </details>}
+                  {!SHOW_PRICES && (
+                    <details className="rb-calc__breakdown">
+                      <summary>See the breakdown</summary>
+                      <div className="rb-calc__breakdown-inner">
+                        <div className="rb-calc__breakdown-rebate"><span>VEEC rebate</span><span>−${calc.veec.toLocaleString()}</span></div>
+                        <div className="rb-calc__breakdown-rebate"><span>STC rebate</span><span>−${calc.stc.toLocaleString()}</span></div>
+                        {calc.ausMade > 0 && <div className="rb-calc__breakdown-rebate"><span>Australian Made rebate</span><span>−${calc.ausMade.toLocaleString()}</span></div>}
+                        {calc.solarR > 0 && <div className="rb-calc__breakdown-rebate"><span>VIC Solar Homes rebate</span><span>−${calc.solarR.toLocaleString()}</span></div>}
+                        <div className="rb-calc__breakdown-total"><span>Off your quote</span><span>−${calc.rebates.toLocaleString()}</span></div>
+                      </div>
+                    </details>
+                  )}
                   <div className="rb-calc__cta">
                     <a href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Lock this rebate in →</a>
                     <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">

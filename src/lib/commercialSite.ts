@@ -12,6 +12,7 @@
  */
 
 import { site } from "./site";
+import { OFFICE } from "./company";
 
 /* ========================= WHAT WE DO ========================= */
 
@@ -43,9 +44,9 @@ export const COMM_DISCIPLINES: {
   {
     n: "02",
     kicker: "Gas",
-    h: "Type A gas services",
-    p: "Installation, servicing and repair of Type A gas appliances, from gas cooktops and heaters to hot-water systems, with safety, compliance and reliability built into every job.",
-    tags: ["Appliance install & service", "Gas safety inspections", "Commercial hot water"],
+    h: "Type A & Type B gas services",
+    p: "Installation, servicing and repair of Type A gas appliances, from gas cooktops and heaters to hot-water systems, and Type B industrial appliance work, with safety, compliance and reliability built into every job.",
+    tags: ["Appliance install & service", "Type B industrial", "Gas safety inspections", "Commercial hot water"],
     zone: 1,
   },
   {
@@ -69,7 +70,7 @@ export const COMM_DISCIPLINES: {
 /** The captions under the schematic, one per zone, in zone order. */
 export const COMM_ZONES: { label: string; cap: string }[] = [
   { label: "Mechanical", cap: "HVAC, packaged units, ducted systems" },
-  { label: "Type A gas", cap: "Appliances, hot water, cooktops" },
+  { label: "Type A & B gas", cap: "Appliances, hot water, cooktops" },
   { label: "Controls", cap: "Airflow testing, BMS integration" },
   { label: "Refrigeration", cap: "Splits, multi-head, heat pump hot water" },
 ];
@@ -89,7 +90,7 @@ export const COMM_DIMC: { n: string; h: string; p: string }[] = [
  * place and only the short line lives here.
  */
 export const COMM_PACKAGE_LINES: Record<string, string> = {
-  "fit-outs": "Delivered to the builder's programme",
+  "fit-outs": "Delivered to the builder's program",
   "base-build": "From the schedule through to handover",
   "plant-replacement": "End-of-life plant on a building that cannot stop",
   maintenance: "Keeps a site compliant and the plant alive",
@@ -126,7 +127,7 @@ export const COMM_SECTORS: {
   {
     kicker: "Industrial",
     h: "Plant & facilities",
-    p: "Plant and facility HVAC, refrigeration and Type A gas, delivered to schedule, certified and fully compliance-documented on handover.",
+    p: "Plant and facility HVAC, refrigeration and Type A and Type B gas, delivered to schedule, certified and fully compliance-documented on handover.",
     img: "/comm/vrv-outdoor.jpg",
     cta: { label: "Submit a scope →", href: "/commercial#scope" },
   },
@@ -139,7 +140,7 @@ export const COMM_SCOPE_ITEMS: string[] = [
   "Ducted gas heating",
   "Evaporative cooling",
   "Gas, electric & heat-pump hot water",
-  "Type A gas appliance install & service",
+  "Type A & Type B gas appliance work",
   "Gas safety inspections & compliance",
   "Commercial & retail fit-outs",
   "Air balancing",
@@ -168,7 +169,6 @@ export const COMM_BRANDS_ALL: { name: string; what: string }[] = [
   { name: "Rheem", what: "Hot water" },
   { name: "Thermann", what: "Hot water" },
   { name: "Reclaim", what: "Heat pumps" },
-  { name: "Milieu", what: "Controls" },
 ];
 
 /* ======================= CAPABILITY STATEMENT ======================= */
@@ -202,6 +202,7 @@ export const CAPABILITY_STATEMENT: { group: string; rows: [string, string, boole
       ["Plumbing licence", "Lic. 46828", true],
       ["Refrigerant handling", site.licences.refrigeration, true],
       ["Type A gas", "Appliance installation & servicing"],
+      ["Type B gas", "Industrial appliance work"],
       ["Mechanical services", "Design, install, commission"],
     ],
   },
@@ -211,7 +212,7 @@ export const CAPABILITY_STATEMENT: { group: string; rows: [string, string, boole
       ["Public liability", "$20,000,000", true],
       ["Workers compensation", "Current"],
       ["Motor vehicle", "Comprehensive, full fleet"],
-      ["Workmanship", "12-month defects liability"],
+      ["Workmanship", "6-year workmanship warranty"],
       ["Equipment", "Full manufacturer warranties"],
     ],
   },
@@ -221,7 +222,7 @@ export const CAPABILITY_STATEMENT: { group: string; rows: [string, string, boole
       ["SWMS", "Supplied before site access"],
       ["Certificates of currency", "Supplied within 24 hours"],
       ["Documented procedures", "Written SOPs, version controlled"],
-      ["Compliance certificates", "Issued on completion"],
+      ["Compliance certificates", "Gas and plumbing, issued on completion"],
     ],
   },
 ];
@@ -233,6 +234,7 @@ export const COMM_LICENCE_CLASSES: string[] = [
   "Gasfitting: disconnect / reconnect",
   "Gasfitting: Type A appliances",
   "Type A appliance servicing work",
+  "Type B gasfitting work",
   "Mechanical services",
   "Mechanical services: duct fixing",
   "Mechanical services: single-head split systems",
@@ -252,7 +254,7 @@ export const COMM_LICENCE_CLASSES: string[] = [
  * booked.
  */
 export const COMM_TRADE_QUALIFICATIONS: { q: string; p: string } = {
-  q: "Qualified refrigeration mechanic",
+  q: "Trade qualification: refrigeration mechanic",
   p: "The director holds the refrigeration trade as well as the plumbing and gasfitting licence, so the refrigeration and air-conditioning work on a package is done by us and signed off by us, not subcontracted out and signed off on trust.",
 };
 
@@ -284,8 +286,11 @@ export const CAPABILITY_TICKS: { k: string; v: string }[] = [
  *
  * Dean signs the works and Jake prices them, which is what a builder asks.
  * Kellie is who they will actually deal with most weeks, and leaving her off
- * would misrepresent the company. Her photograph has not been taken yet, so
- * she gets a lettered card rather than a stock face or an empty frame.
+ * would misrepresent the company. Her photograph is the one the residential
+ * About and suburb pages use (OFFICE in company.ts), so it is read from there
+ * rather than copied: until Nov 2026 this card showed a lettered "K" while the
+ * rest of the site already had her photo. `initial` stays for anyone added
+ * before their photograph is taken.
  */
 export const COMM_LEADERSHIP: {
   name: string;
@@ -305,8 +310,9 @@ export const COMM_LEADERSHIP: {
   },
   {
     name: "Jake Deppeler",
-    role: "Estimating & install",
-    cred: site.licences.refrigeration,
+    role: "Director · Estimating & quotes",
+    // ARC AU59557 is the company's authorisation, not his: it sits in the company details.
+    cred: "jake@advancedgas.com.au",
     bio: "Your first point of contact for pricing. Reads every commercial enquiry himself and prices it off the drawings. If we have quoted it, he has been on the roof.",
     photo: "/jake.webp",
   },
@@ -315,7 +321,7 @@ export const COMM_LEADERSHIP: {
     role: "Office & scheduling",
     cred: site.email,
     bio: "Keeps jobs booked, compliance certificates issued and the paperwork moving, so nothing slips and you're never left chasing.",
-    initial: "K",
+    photo: OFFICE.photo,
   },
 ];
 
@@ -324,12 +330,12 @@ export const COMM_HOW_WE_WORK: { n: string; h: string; p: string }[] = [
   {
     n: "01",
     h: "One point of contact",
-    p: "Quote, schedule and sign-off through one accountable team. No call centres, no subcontractor run-around.",
+    p: "Quote, schedule and sign-off through one accountable team. No call centres, no run-around.",
   },
   {
     n: "02",
     h: "Compliance handled",
-    p: "We issue the Certificates of Electrical & Gas Safety and all compliance paperwork. You don't chase a thing.",
+    p: "We issue the gas and plumbing compliance certificates and all the paperwork, and Certificates of Electrical Safety come from our licensed electrician. You don't chase a thing.",
   },
   {
     n: "03",
@@ -339,7 +345,7 @@ export const COMM_HOW_WE_WORK: { n: string; h: string; p: string }[] = [
   {
     n: "04",
     h: "Genuinely local",
-    p: "A Pakenham-based fleet across the south-east and Gippsland. Fast on site when it matters.",
+    p: "A Pakenham-based fleet across the south-east and West Gippsland. Fast on site when it matters.",
   },
 ];
 
@@ -347,16 +353,21 @@ export const COMM_HOW_WE_WORK: { n: string; h: string; p: string }[] = [
  * The community photographs.
  *
  * Three real clubs the crew turn out for. The photographs have not been
- * supplied yet, so each slot renders as a labelled frame rather than
- * disappearing — an empty section would read as a claim with nothing behind
- * it, and a stock photograph of somebody else's football club would be
- * worse than that.
+ * supplied yet. Until Nov 2026 each rendered as a "Photo to come" frame,
+ * which read as an unfinished page; now the pages show the photographs only
+ * once every club has one (communityPhotos below), and the paragraph about
+ * the clubs stands on its own until then. A stock photograph of somebody
+ * else's football club would still be worse than none.
  */
-export const COMM_COMMUNITY: { cap: string }[] = [
+export const COMM_COMMUNITY: { cap: string; photo?: string }[] = [
   { cap: "Local football" },
   { cap: "Basketball" },
   { cap: "Netball" },
 ];
+
+/** The community photographs to show: none until every club has one, so the grid is never part-empty. */
+export const communityPhotos = (): { cap: string; photo: string }[] =>
+  COMM_COMMUNITY.every((c) => c.photo) ? COMM_COMMUNITY.map((c) => ({ cap: c.cap, photo: c.photo as string })) : [];
 
 /* =========================== WHERE WE WORK =========================== */
 
@@ -369,7 +380,7 @@ export const COMM_AREA_NEAR: string[] = [
   "Dandenong",
   "Drouin",
   "Warragul",
-  "The Gippsland corridor",
+  "West Gippsland",
 ];
 
 /** The chips beside the radar on contact. */

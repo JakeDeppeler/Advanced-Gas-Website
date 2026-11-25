@@ -88,8 +88,8 @@ export function Footer() {
           <aside className="ftr__news">
             <h3>Seasonal service reminders</h3>
             <p>
-              Straight to your inbox. Rebate news, honest maintenance tips,
-              first-in-line pricing. One email a season. Zero spam.
+              Straight to your inbox. Rebate news, honest maintenance tips
+              and a nudge before your service is due. One email a season. Zero spam.
             </p>
             <NewsletterForm />
             <small>By subscribing you agree to our privacy notice. Unsubscribe any time.</small>
@@ -106,9 +106,8 @@ export function Footer() {
                   <Link href={`/services/${s.slug}`}>{s.short}</Link>
                 </li>
               ))}
-              <li><Link href="/services#commercial">Commercial &amp; strata</Link></li>
+              <li><Link href="/commercial">Commercial &amp; strata</Link></li>
               <li><Link href="/contact#emergency">After-hours emergency</Link></li>
-              <li><Link href="/pricing"><strong>Full price list</strong></Link></li>
             </ul>
           </div>
 
@@ -121,10 +120,7 @@ export function Footer() {
               <li><Link href="/brands/thermann">Thermann range</Link></li>
               <li><Link href="/rebates">VEU rebate explained</Link></li>
               <li><Link href="/upgrade-or-repair">Repair or replace? The 10-year rule</Link></li>
-              <li><Link href="/water-filtration">Water filtration</Link></li>
-              <li><Link href="/water-filtration/range">Full filtration range compared</Link></li>
-              <li><Link href="/water-filtration/rainwater-uv">Tank &amp; rainwater filtration</Link></li>
-              <li><Link href="/heat-pumps">Heat pump vs gas</Link></li>
+              <li><Link href="/services/heat-pump-installation">Heat pump vs gas</Link></li>
               <li><Link href="/tools/veu-rebate-estimator">VEU rebate calculator</Link></li>
               <li><Link href="/tools/sizing-calculator">Aircon sizing calculator</Link></li>
               <li><Link href="/tools/running-cost-calculator">Running cost calculator</Link></li>
@@ -178,18 +174,12 @@ export function Footer() {
         </nav>
 
         {/* ============ Trust badges strip ============ */}
+        {/* Only what the Compliance column above doesn't already say: the
+            licence, ARC and insurance badges repeated it word for word. */}
         <ul className="ftr__badges" aria-label="Accreditations">
           <li>
             <span className="ftr__badge-tag">Accredited</span>
             <span className="ftr__badge-name">VEU Provider</span>
-          </li>
-          <li>
-            <span className="ftr__badge-tag">Authorised</span>
-            <span className="ftr__badge-name">ARC Refrigeration</span>
-          </li>
-          <li>
-            <span className="ftr__badge-tag">Licensed</span>
-            <span className="ftr__badge-name">Victorian Plumber</span>
           </li>
           <li>
             <span className="ftr__badge-tag">Partner</span>
@@ -198,10 +188,6 @@ export function Footer() {
           <li>
             <span className="ftr__badge-tag">Rated</span>
             <span className="ftr__badge-name">{RATING_TEXT}★ on Google</span>
-          </li>
-          <li>
-            <span className="ftr__badge-tag">Insured</span>
-            <span className="ftr__badge-name">$20M Public Liability</span>
           </li>
         </ul>
 
@@ -224,7 +210,7 @@ export function Footer() {
                 </li>
               ))}
             <li className="ftr__chips-more">
-              <Link href="/service-areas">All service areas within 75km →</Link>
+              <Link href="/service-areas">All service areas within 50 km →</Link>
             </li>
           </ul>
         </div>
@@ -239,7 +225,7 @@ export function Footer() {
             <span className="ftr__legal-sep" aria-hidden>·</span>
             <Link href="/terms">Terms</Link>
             <span className="ftr__legal-sep" aria-hidden>·</span>
-            <Link href="/sitemap.xml">Sitemap</Link>
+            <Link href="/service-areas">Service areas</Link>
             <span className="ftr__legal-sep" aria-hidden>·</span>
             <Link href="/contact">Complaints &amp; feedback</Link>
             <span className="ftr__legal-sep" aria-hidden>·</span>

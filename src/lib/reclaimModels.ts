@@ -8,7 +8,8 @@
  * so those searches went to manual-hosting sites and interstate
  * resellers.
  *
- * This is the data behind /brands/reclaim/models. Every code below is
+ * This was the data behind /brands/reclaim/models, now folded into the
+ * Reclaim brand page and its product pages. Every code below is
  * the manufacturer's own, not ours, and `verified` marks the ones we
  * have confirmed against Reclaim or Panasonic documentation rather
  * than taken on trust.

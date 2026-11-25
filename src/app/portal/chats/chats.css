@@ -3,6 +3,7 @@
    "needs a person"; both carry their word, never the colour alone. */
 
 .ch-gap { margin: 0; }
+.ch-acts { display: flex; flex-wrap: wrap; gap: 8px; }
 .ch-gap + .ch-gap { margin-top: 6px; }
 
 .ch-empty {
@@ -123,3 +124,23 @@
 .ch-switch em { display: block; margin-top: 4px; font-style: normal; font-size: 13.5px; line-height: 1.45; color: var(--pt-ink-2); }
 .ch-hint { font-size: 12.5px; line-height: 1.45; color: var(--pt-ink-3); }
 .ch-settings__save { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+
+/* ---- Chat answers: the website's instant answers, logged. Unsure carries
+   its words ("Couldn't answer") as well as the amber edge. */
+.ca-sum { margin: 0 0 14px; font-size: 14.5px; color: var(--pt-ink-2); }
+.ca-sum strong { color: var(--pt-ink); }
+.ca-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.ca-convo { padding: 14px 16px; border: 1px solid var(--pt-line); border-radius: var(--pt-r); background: var(--pt-surface); }
+.ca-convo__head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 14px; margin-bottom: 10px; font-size: 13px; color: var(--pt-ink-3); font-variant-numeric: tabular-nums; }
+.ca-convo__page { font-family: var(--pt-mono, ui-monospace, monospace); overflow-wrap: anywhere; }
+.ca-turns { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ca-turn { display: flex; flex-direction: column; gap: 6px; padding-left: 12px; border-left: 3px solid var(--pt-line); }
+.ca-turn.is-unsure { border-left-color: var(--pt-amber-line); }
+.ca-turn.is-alert { border-left-color: var(--pt-bad); }
+.ca-q, .ca-a { margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: 14.5px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ca-q { color: var(--pt-ink); font-weight: 700; }
+.ca-a { color: var(--pt-ink-2); }
+.ca-q > span, .ca-a > span { font-size: 12px; font-weight: 700; color: var(--pt-ink-3); white-space: normal; }
+.ca-turn.is-unsure .ca-a > span { color: var(--pt-amber); }
+.ca-turn.is-alert .ca-a > span { color: var(--pt-bad); }
+.ca-a a { color: inherit; }

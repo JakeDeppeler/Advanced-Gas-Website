@@ -66,7 +66,7 @@ export function ContactForm() {
   return (
     <form className="ct-form" onSubmit={onSubmit} noValidate>
       <h2>Get a free quote</h2>
-      <p className="ct-form__sub">60 seconds. We&apos;ll reply with a real time slot and a real price (after a 20-min site check).</p>
+      <p className="ct-form__sub">Takes 60 seconds. We&apos;ll call to book a free 20-minute site check, then send a fixed price in writing.</p>
 
       <input
         type="text"
@@ -131,8 +131,8 @@ export function ContactForm() {
           <select id="ct-besttime" name="bestTime" value={bestTime} onChange={(e) => setBestTime(e.target.value)}>
             <option>Anytime in business hours</option>
             <option>Morning (7am–12pm)</option>
-            <option>Afternoon (12pm–5pm)</option>
-            <option>Evening (after 5pm)</option>
+            {/* Office hours end at 3:30pm (site.hours), so nobody is there to make an evening call. */}
+            <option>Afternoon (12pm–3:30pm)</option>
           </select>
         </div>
       </div>

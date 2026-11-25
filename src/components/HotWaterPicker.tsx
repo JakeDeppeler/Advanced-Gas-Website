@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { quoted } from "@/lib/homepage/data";
 
 /**
  * The four ways we make hot water, as a chooser.
@@ -36,7 +37,7 @@ export function HotWaterPicker({
             <span className="hp-pick__body">
               <strong>All-in-one</strong>
               <span className="hp-pick__d">Tank and compressor in the one unit. Goes where the old tank was.</span>
-              <span className="hp-pick__meta">From $2,610 installed</span>
+              <span className="hp-pick__meta">{quoted("From $2,610 installed")}</span>
             </span>
             <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
           </Link>
@@ -54,7 +55,7 @@ export function HotWaterPicker({
             <span className="hp-pick__body">
               <strong>Split system</strong>
               <span className="hp-pick__d">Compressor outside, on its own. Quieter at the tank and better in a cold snap.</span>
-              <span className="hp-pick__meta">From $5,340 installed</span>
+              <span className="hp-pick__meta">{quoted("From $5,340 installed")}</span>
             </span>
             <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
           </Link>

@@ -57,7 +57,9 @@ export function CraneRig() {
         <rect className="cx-rig-ln" x="396" y="192" width="22" height="18" />
         {/* the plinth the unit is going onto, marked out and waiting */}
         <rect className="cx-rig-pad" x="270" y="202" width="80" height="8" strokeDasharray="4 4" />
-        <text className="cx-rig-t" x="206" y="202" opacity=".55">ROOF · PAKENHAM</text>
+        {/* Short enough to end before the plinth: "ROOF · PAKENHAM" ran under the
+            unit as it landed. The caption below still names the suburb. */}
+        <text className="cx-rig-t" x="206" y="202" opacity=".55">ROOF LEVEL</text>
 
         {/* ---- the crane ---- */}
         <g className="cx-rig-ln">

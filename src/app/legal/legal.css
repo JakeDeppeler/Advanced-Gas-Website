@@ -1,67 +1,83 @@
-/* ---------- Privacy and Terms ---------- */
+/* ---------- Privacy and Terms (LegalPage.tsx) ----------
+   Scoped under .ag like the rest of the redesign: App Router keeps a page's
+   CSS loaded after navigating away, so an unscoped rule here would restyle
+   the next page visited. Tokens (--navy, --disp, --ink2 …) come from .ag in
+   homepage.css. */
 
-.legal {
-  padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(3rem, 7vw, 5rem);
-  background: var(--paper, #fff);
+/* ---------- The contents, in the hero's card ---------- */
+.ag .lg__toc{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;counter-reset:lg}
+.ag .lg__toc li{counter-increment:lg;border-top:1px solid var(--line)}
+.ag .lg__toc li:first-child{border-top:0}
+.ag .lg__toc a{display:flex;align-items:baseline;gap:12px;padding:11px 2px;font-family:var(--disp);font-size:16px;font-weight:700;line-height:1.3;color:var(--navy);text-decoration:none}
+.ag .lg__toc a::before{content:counter(lg,decimal-leading-zero);flex:none;width:22px;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--or-ink)}
+/* An arrow pointing down the page: each one jumps to a section here, it doesn't open another page. */
+.ag .lg__toc a::after{content:"↓";margin-left:auto;color:var(--or);transition:transform .2s}
+.ag .lg__toc a:hover{color:var(--or-ink)}
+.ag .lg__toc a:hover::after{transform:translateY(2px)}
+.ag .lg__ask{line-height:1.55}
+/* Links underlined at rest, not shown by colour alone. */
+.ag .lg__ask a{font-weight:700;color:var(--navy);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(5,10,48,.3);overflow-wrap:anywhere}
+
+/* ---------- The document: white cards on cream ---------- */
+/* Closer under the hero than a full band's 112px: the first card is the start of the text, not a new section. */
+.ag .bk__sec.lg__doc{padding-top:clamp(40px,5vw,72px)}
+.ag .lg__body{display:flex;flex-direction:column;gap:16px}
+
+/* The opening paragraph, larger, the way a page header's sub line is. */
+.ag .lg__lead{padding:clamp(26px,3.4vw,44px) clamp(22px,3.4vw,48px);border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line),0 20px 40px -34px rgba(5,10,48,.4)}
+.ag .lg__lead p{margin:0;max-width:70ch;font-size:clamp(18px,1.6vw,21px);line-height:1.6;color:var(--ink)}
+
+/* A section: heading on the left, words on the right, the homepage's
+   section-head split. The words keep a reading measure; the heading's
+   column takes the rest of the width rather than leaving it blank at the
+   card's right edge. */
+.ag .lg__sec{counter-increment:lgs;display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,70ch);gap:20px clamp(32px,5vw,72px);align-items:start;padding:clamp(26px,3.4vw,44px) clamp(22px,3.4vw,48px);border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line),0 20px 40px -34px rgba(5,10,48,.4)}
+.ag .lg__body{counter-reset:lgs}
+.ag .lg__sechead{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"ico num" "ico h";column-gap:16px;row-gap:4px;align-items:center}
+/* The homepage's "why us" icon tile. */
+.ag .lg__ico{grid-area:ico;align-self:start;display:grid;place-items:center;width:48px;height:48px;border-radius:10px;background:#F3F4F7;color:var(--navy)}
+.ag .lg__num{grid-area:num;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--or-ink)}
+.ag .lg__num::before{content:counter(lgs,decimal-leading-zero)}
+/* Scrolled to from the contents with room for the pill header and the card's top above it. */
+.ag .lg__sechead h2{grid-area:h;margin:0;scroll-margin-top:150px;font-family:var(--disp);font-size:clamp(24px,2.3vw,32px);font-weight:900;line-height:1.1;letter-spacing:-.02em;color:var(--navy);text-wrap:balance}
+
+.ag .lg__txt{min-width:0;font-size:17px;line-height:1.7;color:var(--ink2)}
+.ag .lg__txt > :first-child{margin-top:0}
+.ag .lg__txt > :last-child{margin-bottom:0}
+.ag .lg__txt p{margin:0 0 1.05em}
+.ag .lg__txt strong{color:var(--navy);font-weight:700}
+.ag .lg__txt ul{list-style:none;margin:0 0 1.25em;padding:0;display:flex;flex-direction:column;gap:.7em}
+.ag .lg__txt li{position:relative;padding-left:24px}
+/* A small square rather than a dot: the site's bullets elsewhere are drawn, not typed. */
+.ag .lg__txt li::before{content:"";position:absolute;left:4px;top:.72em;width:7px;height:7px;border-radius:2px;background:var(--or)}
+/* Links underlined at rest, not shown by colour alone. */
+.ag .lg__txt a,.ag .lg__lead a{font-weight:700;color:var(--or-ink);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;overflow-wrap:anywhere}
+.ag .lg__txt a:hover{color:var(--navy);text-decoration-thickness:2px}
+
+/* The passage that mustn't be missed (complaints, consumer rights): the
+   homepage's navy box, its tile in the site orange. Navy and the orange
+   tile make it stand out, and so does being the one card set this way, so
+   it isn't down to colour alone. */
+.ag .lg__sec--box{background:var(--navy);box-shadow:0 24px 48px -30px rgba(5,10,48,.6)}
+.ag .lg__sec--box .lg__ico{background:var(--or);color:#fff}
+.ag .lg__sec--box .lg__num{color:var(--or2)}
+.ag .lg__sec--box .lg__sechead h2{color:#fff}
+.ag .lg__sec--box .lg__txt{color:rgba(255,255,255,.88)}
+.ag .lg__sec--box .lg__txt strong{color:#fff}
+.ag .lg__sec--box .lg__txt a{color:#fff;text-decoration-color:rgba(255,255,255,.55)}
+.ag .lg__sec--box .lg__txt a:hover{color:#fff;text-decoration-color:#fff}
+
+/* The licence line, under the cards rather than in one. */
+.ag .lg__foot{margin:12px 0 0;padding:0 4px;font-size:14px;line-height:1.6;color:var(--ink3)}
+.ag .lg__foot a{font-weight:600;color:var(--navy);text-decoration:underline;text-underline-offset:3px}
+
+@media (max-width:900px){
+  /* Heading over the words. */
+  .ag .lg__sec{grid-template-columns:minmax(0,1fr)}
+  .ag .lg__txt{font-size:16.5px}
 }
-
-.legal__wrap {
-  max-width: 74ch;
-  margin: 0 auto;
+@media (max-width:600px){
+  .ag .lg__ico{width:42px;height:42px}
+  .ag .lg__sechead{column-gap:14px}
 }
-
-.legal__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--orange);
-  margin: 0 0 0.5rem;
-}
-
-.legal h1 {
-  margin: 0 0 0.5rem;
-  color: var(--navy);
-}
-
-.legal__updated {
-  margin: 0 0 2rem;
-  font-size: 0.85rem;
-  color: var(--ink-2);
-}
-
-.legal h2 {
-  margin: 2.25rem 0 0.6rem;
-  font-size: clamp(1.15rem, 2.6vw, 1.4rem);
-  color: var(--navy);
-}
-
-.legal p,
-.legal li {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--ink-2);
-}
-
-.legal p { margin: 0 0 1rem; }
-
-.legal ul {
-  margin: 0 0 1.25rem;
-  padding-left: 1.15rem;
-}
-.legal li { margin: 0 0 0.5rem; }
-
-.legal__box {
-  margin: 2rem 0 0;
-  padding: 1.25rem 1.4rem;
-  border-left: 4px solid var(--orange);
-  border-radius: 0 12px 12px 0;
-  background: color-mix(in srgb, var(--orange) 7%, #fff);
-}
-.legal__box h2 { margin-top: 0; }
-.legal__box p:last-child { margin-bottom: 0; }
-
-.legal a { color: var(--orange); font-weight: 600; }
+@media (prefers-reduced-motion:reduce){.ag .lg__toc a::after,.ag .lg__toc a:hover::after{transition:none;transform:none}}

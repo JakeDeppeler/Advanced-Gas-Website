@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
-import "./membership.css";
-import { PageHero } from "@/components/PageHero";
+import { PageHero, HeroCard, CallButton } from "@/components/homepage/page/PageHero";
+import { PHOTO } from "@/lib/homepage/data";
+import { BkHead, Bands, BandPage, EndCta, type Band } from "@/components/homepage/page/bands";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
+import "@/components/homepage/page/membership.css";
 
 export const metadata: Metadata = {
   title: "Membership, discounted servicing & priority response",
   description:
-    "Become a member for discounted annual servicing, priority same-week response, and waived call-out fees across Pakenham and within 75 km.",
+    "Planned membership tiers: annual servicing, priority booking, and a waived after-hours make-safe fee on Gold, across Pakenham and within 50 km.",
   alternates: { canonical: "/membership" },
   // Placeholder pricing ($TBC on all three tiers). Take this out with the
   // real numbers — and add the page to sitemap.ts at the same time.
@@ -35,7 +40,7 @@ const tiers: Tier[] = [
     blurb: "The basics, done properly. Annual service done on time, no chasing.",
     features: [
       { label: "1 annual gas appliance service", detail: "incl. CO testing + written report" },
-      { label: "$30 off standard service rate" },
+      { label: "Member discount on the standard service rate" },
       { label: "Reminder before your service is due" },
       { label: "Same-week response on faults" },
     ],
@@ -47,9 +52,9 @@ const tiers: Tier[] = [
     price: "$TBC",
     cadence: "/ year",
     highlight: true,
-    blurb: "Most households pick this one, better discounts and priority callbacks.",
+    blurb: "Better discounts and priority callbacks.",
     features: [
-      { label: "Annual gas service at member rate $250 + GST" },
+      { label: "Annual gas service at the member rate" },
       { label: "Annual aircon filter clean / inspection" },
       { label: "Priority booking, front of the queue" },
       { label: "10% off parts on any repair" },
@@ -66,7 +71,7 @@ const tiers: Tier[] = [
     features: [
       { label: "Up to 3 annual services (gas, aircon, hot water)" },
       { label: "Member service rates on every job" },
-      { label: "Waived after-hours make-safe fee", detail: "(normally $500 + GST)" },
+      { label: "Waived after-hours make-safe fee" },
       { label: "15% off parts on repairs" },
       { label: "Annual heat pump efficiency check" },
       { label: "A dedicated technician on your account" },
@@ -95,84 +100,85 @@ const faqs = [
 ];
 
 export default function MembershipPage() {
-  return (
-    <div className="page-membership">
-      <PageHero
-        dot="orange"
-        eyebrow="Membership"
-        title={<>Servicing done <em>before</em> it becomes a problem.</>}
-        sub={<>Three tiers, one promise: your gear keeps working, your callouts get answered first, and the price you see is the price you pay.</>}
-      />
-
-      <section className="mb-tiers">
-        <div className="wrap">
-          <div className="mb-grid">
+  const bands: Band[] = [
+    {
+      id: "tiers",
+      body: (
+        <>
+          <BkHead h="Pick your {tier}." />
+          <div className="mbx__grid" data-anim="stagger">
             {tiers.map((t) => (
-              <article key={t.id} className={`mb-tier${t.highlight ? " mb-tier--feature" : ""}`}>
-                {t.highlight && <span className="mb-tier__flag">Most popular</span>}
-                <h2 className="mb-tier__name">{t.name}</h2>
-                <div className="mb-tier__price">
-                  <strong>{t.price}</strong>
-                  <span>{t.cadence}</span>
-                </div>
-                <p className="mb-tier__blurb">{t.blurb}</p>
-                <ul className="mb-tier__features">
+              <article key={t.id} className={`mbx__tier${t.highlight ? " mbx__tier--feature" : ""}`}>
+                <h3 className="mbx__name">{t.name}</h3>
+                <p className="mbx__price"><strong>{t.price}</strong><span>{t.cadence}</span></p>
+                <p className="mbx__blurb">{t.blurb}</p>
+                <ul className="mbx__list">
                   {t.features.map((f) => (
                     <li key={f.label}>
-                      <span className="mb-tier__tick">✓</span>
-                      <span>
-                        {f.label}
-                        {f.detail && (
-                          <span className="mb-tier__detail"> {f.detail}</span>
-                        )}
-                      </span>
+                      <span className="mbx__tick" aria-hidden="true">✓</span>
+                      <span>{f.label}{f.detail && <span className="mbx__detail"> {f.detail}</span>}</span>
                     </li>
                   ))}
                 </ul>
-                <Link href={t.cta.href} className="ds-btn ds-btn--orange ds-btn--lg mb-tier__cta">
-                  {t.cta.label} →
-                </Link>
+                <Link href={t.cta.href} className={`abtn ${t.highlight ? "abtn--or" : "abtn--navy"} abtn--flat mbx__cta`}>{t.cta.label} →</Link>
               </article>
             ))}
           </div>
-          <p className="mb-finep">
-            Pricing on this page is illustrative while we finalise tier costs. Call <a href={`tel:${site.phoneE164}`}>{site.phone}</a> for the current rate sheet.
+          <p className="mbx__fine">
+            Membership hasn&rsquo;t launched and the tier prices aren&rsquo;t set yet. Call <a href={`tel:${site.phoneE164}`}>{site.phone}</a> if you&rsquo;d like to hear when it does.
           </p>
-        </div>
-      </section>
-
-      <section className="mb-faq">
-        <div className="wrap mb-faq__grid">
-          <div className="mb-faq__left">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Membership FAQ</span>
-            <h2>How it works.</h2>
-            <p>Short answers to the questions we get most often.</p>
-          </div>
-          <div className="mb-faq__right">
+        </>
+      ),
+    },
+    {
+      id: "faqs", cls: "pp__two",
+      body: (
+        <>
+          <BkHead h="How it {works}.">Short answers to the questions we get most often.</BkHead>
+          <div className="afaqs">
             {faqs.map((f, i) => (
-              <details key={f.q} name="membership-faq" {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} className="afaq" name="membership-faq" {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>
             ))}
           </div>
-        </div>
-      </section>
+        </>
+      ),
+    },
+  ];
 
-      <section className="bigcta">
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Want to join? It&apos;s a 5-minute call.</h2>
-            <p>We&apos;ll size the right tier for your gear and lock in your first service date.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/contact" className="ds-btn ds-btn--orange ds-btn--xl">Become a member →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
-    </div>
+  return (
+    // The homepage's top (PageHero), behind it one of our service visits. Joining
+    // is a conversation, not a quote, so the buttons go to contact and the card
+    // on the right is the three tiers rather than the quote form.
+    <BandPage hero={
+      <PageHero
+        crumbs={[{ name: "Membership" }]}
+        eye="Membership"
+        title="Servicing done {before} it becomes a problem."
+        sub={<>Three tiers, one promise: your gear keeps working, your call-outs get answered first, and the price you see is the price you pay.</>}
+        photo={PHOTO.evapService} pos="center 45%"
+        ctas={<><Link href="/contact" className="abtn abtn--or">Become a member →</Link><CallButton from="membership-hero" /></>}
+        trust={[]}
+        card={
+          <HeroCard label="Three tiers">
+            <ul className="phx__rows">
+              {tiers.map((t) => (
+                <li key={t.id}><a href="#tiers"><strong>{t.name}</strong><span>{t.blurb}</span></a></li>
+              ))}
+            </ul>
+          </HeroCard>
+        }
+      />
+    }>
+      <Bands list={bands} />
+      <EndCta
+        title={<>Want to join? It&apos;s a <span>5-minute call</span>.</>}
+        text={<>We&apos;ll size the right tier for your gear and lock in your first service date.</>}
+        from="membership-cta"
+        cta={{ href: "/contact", label: "Become a member →" }}
+      />
+    </BandPage>
   );
 }

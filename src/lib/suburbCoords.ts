@@ -1,7 +1,7 @@
 /**
  * Approximate lat/lng for every suburb in suburbs.ts. Used by <SuburbMap>
- * to render an inline SVG showing the suburb's location within our 75 km
- * service radius from Pakenham. Coordinates are rough township-centre —
+ * to render an inline SVG showing the suburb's location around our
+ * Pakenham base. Coordinates are rough township-centre —
  * accurate to ~500m, which is well within the visual resolution of the
  * small map. No external service or JS map library needed.
  *
@@ -9,7 +9,11 @@
  */
 
 export const PAKENHAM: readonly [number, number] = [-38.078, 145.487];
-export const RADIUS_KM = 75;
+/** The area we state (Jake, Nov 2026: "50km range"). Past it, out to
+ * MAX_KM, we still come; past that we don't. The homepage checker
+ * (homepage/ServiceArea.tsx) draws the same two lines. */
+export const RADIUS_KM = 50;
+export const MAX_KM = 75;
 
 export const suburbCoords: Record<string, readonly [number, number]> = {
   "pakenham":            [-38.078, 145.487],

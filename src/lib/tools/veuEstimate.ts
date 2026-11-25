@@ -13,8 +13,9 @@ type UpgradePath = {
 };
 
 // Upgrade paths keyed by "currentSystem::plannedUpgrade".
-// Rebate ranges reflect current VEEC market prices ($60-$75 per certificate,
-// mid-2026) and the max heat-pump hot-water rebate of ~$2,700.
+// The hot water ranges are every rebate together (VEU certificates, STCs and,
+// for an eligible owner-occupier, Solar Victoria), not the VEU part alone.
+// The ceilings below hold them to what Jake will stand behind (Nov 2026).
 export const UPGRADES: UpgradePath[] = [
   // ---- Hot water upgrades ----
   // typicalInstall is the ballpark pre-rebate install for a standard
@@ -24,12 +25,12 @@ export const UPGRADES: UpgradePath[] = [
   // always $2,000-$7,000 across the whole hot-water heat-pump range.
   { key: "gas-storage::heat-pump", label: "Gas storage → Heat pump hot water",
     minRebate: 2400, maxRebate: 2700, typicalInstall: 4800,
-    notes: "The biggest hot-water rebate on offer. A typical all-in-one runs about $4,800 pre-rebate; a Reclaim CO₂ split with a stainless tank and Wi-Fi reaches around $9,700. Your own figure lands on the quote." },
+    notes: "The biggest hot-water rebate on offer. An all-in-one is the cheapest install; a Reclaim CO₂ split with a stainless tank and Wi-Fi is the dearest. Your own figure lands on the quote." },
   { key: "gas-continuous::heat-pump", label: "Gas continuous → Heat pump hot water",
     minRebate: 2000, maxRebate: 2400, typicalInstall: 4800,
     notes: "Continuous flow gas is more efficient than storage, so the rebate is slightly smaller." },
   { key: "electric-storage::heat-pump", label: "Electric storage → Heat pump hot water",
-    minRebate: 2200, maxRebate: 2600, typicalInstall: 4800,
+    minRebate: 2200, maxRebate: 2700, typicalInstall: 4800,
     notes: "Strong rebate, displacing peak-rate electric with a heat pump saves 60-70% of the running cost." },
   { key: "off-peak-electric::heat-pump", label: "Off-peak electric → Heat pump hot water",
     minRebate: 1400, maxRebate: 1800, typicalInstall: 4800,
@@ -37,7 +38,7 @@ export const UPGRADES: UpgradePath[] = [
 
   // ---- Space heating / cooling upgrades ----
   { key: "gas-ducted::rc-ducted", label: "Gas ducted heater → Reverse-cycle ducted",
-    minRebate: 2800, maxRebate: 4200, typicalInstall: 12000,
+    minRebate: 2800, maxRebate: 6000, typicalInstall: 12000,
     notes: "The single biggest VEU rebate available, retrofitting a whole home off gas ducted." },
   { key: "gas-ducted::rc-split", label: "Gas ducted heater → Multi-head reverse-cycle split",
     minRebate: 2000, maxRebate: 3200, typicalInstall: 8000,
@@ -50,7 +51,13 @@ export const UPGRADES: UpgradePath[] = [
     notes: "Applies when replacing a 15+ yr old ducted system with a modern inverter." },
 ];
 
-export const VEEC_PRICE_TREND = "$60-$75 / VEEC (2026 market)";
+/**
+ * The most any estimate shows. A heat pump is up to $2,700 in rebates all
+ * together; aircon is up to $6,000. Every other page quotes these, so the
+ * estimator must never land above them, whatever the household inputs.
+ */
+export const HEAT_PUMP_REBATE_MAX = 2700;
+export const AIRCON_REBATE_MAX = 6000;
 
 export type VeuForm = {
   postcode: string;
@@ -76,8 +83,11 @@ export function estimateVeu(form: VeuForm) {
     // Household size scales hot-water rebates modestly (bigger tank ↔ more
     // displaced fuel = more VEECs). Not applied to space heating/cooling.
     const isHotWater = upgrade.key.endsWith("::heat-pump");
+    // Centred on 1× at four people, so a big household reaches the top of the
+    // range and never past it. (It was 1.15× at 4+, which put the default
+    // result over the $2,700 the same page promised.)
     const householdFactor = isHotWater
-      ? 0.85 + Math.min(1, form.household / 4) * 0.30 // 0.85× at 1 person, 1.15× at 4+
+      ? 0.85 + Math.min(1, form.household / 4) * 0.15 // 0.89× at 1 person, 1× at 4+
       : 1;
 
     // Solar means slightly less rebate on hot water paths that are usually
@@ -85,8 +95,9 @@ export function estimateVeu(form: VeuForm) {
     // absolute avoided-emission tonnes, which are marginally lower.
     const solarFactor = isHotWater && form.hasSolar ? 0.95 : 1;
 
-    const minRebate = Math.round(upgrade.minRebate * householdFactor * solarFactor);
-    const maxRebate = Math.round(upgrade.maxRebate * householdFactor * solarFactor);
+    const cap = isHotWater ? HEAT_PUMP_REBATE_MAX : AIRCON_REBATE_MAX;
+    const maxRebate = Math.min(cap, Math.round(upgrade.maxRebate * householdFactor * solarFactor));
+    const minRebate = Math.min(maxRebate, Math.round(upgrade.minRebate * householdFactor * solarFactor));
     const midRebate = Math.round((minRebate + maxRebate) / 2);
 
     const netMin = Math.max(0, upgrade.typicalInstall - maxRebate);

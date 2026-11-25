@@ -68,6 +68,9 @@ export type SystemDetail = {
     /** The caption above the figure. "Installed" is right for an install
      *  and wrong for a call-out fee. */
     priceKey?: string;
+    /** A fixed price Jake has set; shown even while SHOW_PRICES is off.
+     *  Same meaning as on serviceContent's price rows. */
+    fixed?: boolean;
   }[];
   /** One-line note under the price table where the numbers need context. */
   pricingNote?: string;
@@ -82,7 +85,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { label: "Capacity", value: "2.5 – 7.1 kW" },
       { label: "Time on site", value: "3 – 4 hours" },
       { label: "Line-set included", value: "Up to 3 – 5 m" },
-      { label: "Warranty", value: "5-yr manufacturer + 6-yr workmanship" },
+      { label: "Warranty", value: "5–7-yr manufacturer + 6-yr workmanship" },
       { label: "Rooms covered", value: "One" },
     ],
     spotlight: {
@@ -153,7 +156,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       items: [
         {
           t: "One head calling means the compressor runs",
-          d: "Turn on the bedroom at 2 am and the outdoor unit starts for that one room. It modulates down, so it isn't running flat out, but it is running. On a single split serving the same room the situation is identical, the difference is that people expect more independence from a multi than it actually gives.",
+          d: "Turn on the bedroom at 2 am and the outdoor unit starts for that one room. It modulates down, so it isn't running flat out, but it is running. A dedicated split for that room would draw a little less; the bigger surprise is that people expect more independence from a multi than it actually gives.",
         },
         {
           t: "Capacity is shared, not multiplied",
@@ -194,10 +197,10 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
   "air-conditioning-installation/ducted": {
     specs: [
       { label: "Capacity", value: "10 – 18 kW" },
-      { label: "Zones", value: "4 – 12" },
+      { label: "Zones", value: "4 – 8 as standard" },
       { label: "Time on site", value: "2 – 3 days" },
       { label: "Needs", value: "Roof space + access" },
-      { label: "Warranty", value: "5-yr manufacturer + 6-yr workmanship" },
+      { label: "Warranty", value: "5–7-yr manufacturer + 6-yr workmanship" },
     ],
     spotlight: {
       eyebrow: "Zoning is the whole job",
@@ -239,7 +242,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Commission, balance and set the zones up", detail: "Airflow balanced across the outlets so the far bedroom gets what it's supposed to. Controller programmed, each zone tested, and we walk you through the schedule so it's running your way before we leave." },
     ],
     pricing: [
-      { tier: "Ducted reverse-cycle (PEAD-M · 4 zones)", price: "from $12,500", includes: "PEAD-M indoor, PUZ outdoor, 4× Zonemate zones, controller, compliance", group: "Ducted reverse-cycle", photo: "/mitsubishi-pea-m-ducted-v2-v3.webp" },
+      { tier: "Ducted reverse-cycle (PEA-M · 4 zones)", price: "from $12,500", includes: "PEA-M indoor, PUZ outdoor, 4 zones, controller, compliance", group: "Ducted reverse-cycle", photo: "/mitsubishi-pea-m-ducted-v2-v3.webp" },
     ],
     pricingNote:
       "Additional zones, longer duct runs and difficult roof access are the three variables. A double-storey with a second system upstairs is a different quote again, and we'll price both options if that's the honest answer.",
@@ -299,7 +302,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     ],
     spotlight: {
       eyebrow: "What you're actually paying for",
-      heading: "A service is eight measurements and a chemical clean.",
+      heading: "A service is eight steps, in this order.",
       blurb:
         "\"Service\" covers everything from a genuine hour of work to somebody hosing the outdoor unit and leaving. Here's exactly what we do, in the order we do it, so you can compare a quote against something real.",
       layout: "steps",
@@ -323,26 +326,26 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Report, and honest advice", detail: "You get the report and a straight answer about where the system is in its life. If it's twelve years old and the compressor is drawing high, we'll say that rather than book you in again next year." },
     ],
     pricing: [
-      { tier: "Split system · annual service", price: "$250 + GST", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor calibration, drain flush, service report", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per visit" },
-      { tier: "Two or more splits at one address", price: "$180 + GST", includes: "Everything in the split system service, Every split at the address at this rate, One visit rather than a second call-out", group: "Annual service", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp", priceKey: "Per split" },
-      { tier: "Split system · deep clean", price: "$350 + GST", includes: "Indoor unit taken apart, Coil and fan washed through rather than wiped, Drain tray and line flushed, Run and tested once it is back together", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per unit" },
-      { tier: "Ducted aircon · annual service", price: "$390", includes: "Return-air filter, coil clean, gas pressure check, zone controller test, damper motor test", group: "Annual service", photo: "/ducted-split.webp", photoScene: true, priceKey: "Per visit" },
-      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it, Fee waived if the repair goes ahead the same day", group: "Call-out", priceKey: "Call-out fee" },
+      { tier: "Split system · annual service", price: "$250 + GST", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor check, drain flush, service report", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per visit", fixed: true },
+      { tier: "Two or more splits at one address", price: "$180 + GST", includes: "Everything in the split system service, Every split at the address at this rate, One visit rather than a second call-out", group: "Annual service", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp", priceKey: "Per split", fixed: true },
+      { tier: "Split system · deep clean", price: "$350 + GST", includes: "Indoor unit taken apart, Coil and fan washed through rather than wiped, Drain tray and line flushed, Run and tested once it is back together", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per unit", fixed: true },
+      { tier: "Ducted aircon · annual service", price: "$390", includes: "Return-air filter, coil clean, refrigerant pressure check, zone controller test, damper motor test", group: "Annual service", photo: "/ducted-split.webp", photoScene: true, priceKey: "Per visit" },
+      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it", group: "Call-out", priceKey: "Call-out fee" },
     ],
   },
 
   "aircon-servicing-repairs/evap": {
     pricing: [
-      { tier: "Evaporative cooler · pre-summer service, single storey", price: "$300 + GST", includes: "Pads checked and replaced where needed, Tray drained and flushed, Pump and float tested under load, Distributor lines cleared, Written service report", group: "Annual service", photo: "/evap cooler service close ip.jpg", photoScene: true, priceKey: "Per visit" },
-      { tier: "Evaporative cooler · pre-summer service, double storey", price: "$400 + GST", includes: "Everything in the single-storey service, On a two-storey roof, with the extra access and safety gear that needs", group: "Annual service", photo: "/evap cooler service close ip.jpg", photoScene: true, priceKey: "Per visit" },
-      { tier: "Evap cooler and gas ducted heater, same visit", price: "10% off", includes: "Both serviced at the one visit, $495 + GST on a single storey, $585 + GST on a double storey", group: "Annual service", priceKey: "Both together" },
+      { tier: "Evaporative cooler · pre-summer service, single storey", price: "$300 + GST", includes: "Pads checked and a replacement quoted if needed, Tray drained and flushed, Pump and float tested under load, Distributor lines cleared, Written service report", group: "Annual service", photo: "/evap cooler service close ip.jpg", photoScene: true, priceKey: "Per visit", fixed: true },
+      { tier: "Evaporative cooler · pre-summer service, double storey", price: "$400 + GST", includes: "Everything in the single-storey service, On a two-storey roof, with the extra access and safety gear that needs", group: "Annual service", photo: "/evap cooler service close ip.jpg", photoScene: true, priceKey: "Per visit", fixed: true },
+      { tier: "Evap cooler and gas ducted heater, same visit", price: "10% off", includes: "Both serviced at the one visit, $495 + GST on a single storey, $585 + GST on a double storey", group: "Annual service", priceKey: "Both together", fixed: true },
     ],
     specs: [
       { label: "Best booked", value: "Sept – Nov" },
       { label: "Time on site", value: "60 – 90 minutes" },
-      { label: "Access", value: "Roof, so leave it to us" },
+      { label: "Roof access", value: "Handled by us" },
       { label: "Pads last", value: "Roughly 3 – 5 years" },
-      { label: "Also covers", value: "Winter shutdown" },
+      { label: "Winter shutdown", value: "Same visit, if you want it" },
     ],
     spotlight: {
       eyebrow: "It lives on the roof",
@@ -368,7 +371,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Run it and check the outlets", detail: "System run up and airflow checked at the ceiling outlets, so you know the cooling actually reaches the rooms rather than just the roof space." },
     ],
     pricingNote:
-      "Evap servicing is quoted on the unit and the roof rather than off a fixed list, pad replacement and roof access are the two things that move it. Ask when you book and you'll get a number before we come out.",
+      "Fixed prices, plus GST: $300 on a single storey, $400 on a double storey. Have the gas heater serviced at the same visit and both come off 10%. Replacement pads, if they're needed, are quoted before we fit them.",
   },
 
   /* ------------------------------------------------------------------
@@ -391,7 +394,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       columns: ["3-star", "6-star"],
       items: [
         { t: "Up-front", d: "The cheapest ducted heater we'll quote, and a real saving on the day. || Meaningfully more, and the gap is the whole argument." },
-        { t: "Gas burned", d: "Roughly a third more for the same heat delivered. || Roughly a third less, every hour it runs." },
+        { t: "Gas burned", d: "Roughly a third more for the same heat delivered. || Roughly a quarter less, every hour it runs." },
         { t: "Where it pays back", d: "Never, on running cost. It pays back only if you're selling soon. || Over the years you stay, and faster in a house that runs the heater a lot." },
         { t: "House you're selling in two years", d: "Usually the right call. You won't be paying the bills. || Hard to justify, you're buying savings for the next owner." },
         { t: "House you're staying in", d: "The expensive option wearing a cheap price tag. || Usually the right call, and it's the one we'd fit in our own place." },
@@ -486,7 +489,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       eyebrow: "The part that isn't optional",
       heading: "A cracked heat exchanger has no smell and no warning.",
       blurb:
-        "This is the one service on the site we won't discount and won't skip a step on. Carbon monoxide from a failed gas heater is colourless, odourless, and kills people in Victoria. The test takes minutes. Here's exactly what it involves.",
+        "This is the one service on the site we won't skip a step on. Carbon monoxide from a failed gas heater is colourless, odourless, and kills people in Victoria. The test takes minutes. Here's exactly what it involves.",
       layout: "steps",
       items: [
         { t: "Visual inspection, cold", d: "Burner, heat exchanger, flue and seals looked at before anything is lit. A fair proportion of problems are visible at this stage to someone who knows what they're looking at." },
@@ -510,9 +513,9 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Report emailed", detail: "Readings, what was done, and anything we'd watch. Useful at sale time, and useful for a landlord who needs to show the heater has been maintained." },
     ],
     pricing: [
-      { tier: "Gas ducted heater service + CO test", price: "$250 + GST", includes: "Full service, gas pressure test, combustion analysis with calibrated analyser, spillage test, safety controls, written report", group: "Annual service", photo: "/gas-ducted-install.webp", photoScene: true, priceKey: "Per visit" },
-      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it, Fee waived if the repair goes ahead the same day", group: "Call-out", priceKey: "Call-out fee" },
-      { tier: "Emergency call-out (after-hours)", price: "$220 + parts", includes: "Same-day attendance for a gas leak or a CO alarm, No heat sorted the same day where we can, Diagnosis and a written repair quote on the spot", group: "Emergency", priceKey: "Call-out fee" },
+      { tier: "Gas ducted heater service + CO test", price: "$250 + GST", includes: "Full service, gas pressure test, combustion analysis with calibrated analyser, spillage test, safety controls, written report, 10% off with an evap service at the same visit", group: "Annual service", photo: "/gas-ducted-install.webp", photoScene: true, priceKey: "Per visit", fixed: true },
+      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it", group: "Call-out", priceKey: "Call-out fee" },
+      { tier: "After-hours call-out: gas leak", price: "$450 + GST", includes: "Covers the first hour on site, We answer after hours when we can, Smell gas? Ring 132 771 first, Any repair quoted in writing before it goes ahead", group: "After hours", priceKey: "Call-out fee", fixed: true },
     ],
   },
 
@@ -520,6 +523,8 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     specs: [
       { label: "Refrigerant", value: "CO₂ (R744)" },
       { label: "Tank sizes", value: "160 – 400 L" },
+      // Jake, Nov 2026: any swap to a heat pump is 2–4 hours; an old electric tank in the roof is 4–6.
+      { label: "On site, or 4 – 6 from an old electric tank in the roof", value: "2 – 4 hrs" },
       { label: "Holds to", value: "-10 °C ambient" },
       { label: "Rebate", value: "Up to $2,700 off" },
     ],
@@ -543,50 +548,51 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
   "heat-pump-installation/all-in-one": {
     specs: [
       { label: "Refrigerant", value: "R290 propane" },
-      { label: "Tank sizes", value: "180 – 285 L" },
-      { label: "Time on site", value: "3 – 5 hrs" },
+      { label: "Tank sizes", value: "180 – 300 L" },
+      { label: "On site, or 4 – 6 from an old electric tank in the roof", value: "2 – 4 hrs" },
       { label: "Rebate", value: "Up to $2,700 off" },
     ],
     steps: [
       { title: "One spot to check", detail: "An all-in-one goes where the old tank was, provided there is air around it. That's the whole siting question, which is why these are the simpler job." },
-      { title: "Size on the household", detail: "180–200 L for one or two, 270–285 L for three or four. Five or more and we'll point you at a split instead of selling you an undersized one." },
-      { title: "Rebate worked out at the quote", detail: "On a straight electric-storage swap the VEU figure is at its largest, and on an iStore it takes the biggest bite out of the install of anything we fit." },
+      { title: "Size on the household", detail: "180–200 L for one or two, 270–300 L for three or four. Five or more and we'll point you at a split instead of selling you an undersized one." },
+      { title: "Rebate worked out at the quote", detail: "On a straight electric-storage swap the VEU figure is at its largest. It comes off the price on the quote, whichever unit you choose." },
       { title: "Old unit out, new one in", detail: "Drained, disconnected and to a metal recycler the same visit. New tempering valve holding the outlets at 50 °C." },
       { title: "Electrical checked", detail: "Most swaps run off the existing circuit. Where they don't, that's on the quote before we start rather than a surprise on the day." },
       { title: "Timer set before we go", detail: "Cheap tariff, or the middle of the day if you have solar. Tested with you rather than left on the default." },
     ],
     pricing: [
+      // Reclaim ECO first, the one we push (Jake, 24 Nov 2026); the iStore is still the lowest price.
+      { tier: "Reclaim ECO R290", price: "$2,538", includes: "Supply and install, Tempering valve fitted, 8-year warranty on the whole unit, parts and labour, Old unit taken away and the VEU rebate applied", group: "All-in-one", photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", priceKey: "Inc GST" },
       { tier: "iStore", price: "$2,150", includes: "Supply and install, Tempering valve fitted, Old unit drained and taken away, VEU rebate applied at the quote", group: "All-in-one", photo: "/270L-istore-heatpump.webp", priceKey: "Inc GST" },
-      { tier: "Reclaim ECO R290", price: "$2,538", includes: "Supply and install, Tempering valve fitted, 8-year tank warranty, parts and labour, Old unit taken away and the VEU rebate applied", group: "All-in-one", photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", priceKey: "Inc GST" },
-      { tier: "Thermann ECO R290", price: "$2,538", includes: "Supply and install, Tempering valve fitted, The same platform as the Reclaim ECO, Old unit taken away and the VEU rebate applied", group: "All-in-one", photo: "/thermann_integrated_heat_pump_02.jpg", priceKey: "Inc GST" },
+      { tier: "Thermann ECO R290", price: "$2,538", includes: "Supply and install, Tempering valve fitted, A similar R290 all-in-one to the Reclaim ECO, Old unit taken away and the VEU rebate applied", group: "All-in-one", photo: "/thermann_integrated_heat_pump_02.jpg", priceKey: "Inc GST" },
     ],
     pricingNote:
-      "All three are inc GST, after the VEU rebate for a Victorian owner-occupier at current VEEC prices. One thing that can add to them: if there is no power point within two metres of the existing system, the unit needs a circuit run to it and that is $350. We check on the site visit and it goes on the written quote, never onto the invoice afterwards. Reclaim ECO and Thermann ECO are the same platform: what differs is supply, not spec.",
+      "All three are inc GST, after the VEU rebate for a Victorian owner-occupier at current VEEC prices. One thing that can add to them: if there is no power point within two metres of the existing system, the unit needs a circuit run to it. We check on the site visit and it goes on the written quote, never onto the invoice afterwards. Reclaim ECO and Thermann ECO are similar units at the same price: pick on brand, or on which one Reece can supply.",
   },
   "gas-plumbing/temporary-hot-water": {
     specs: [
-      { label: "Daily rate", value: "$30 per day" },
-      { label: "Set-up + removal", value: "$350, waived if we do the job" },
+      { label: "Hire", value: "By the day" },
+      { label: "Set-up + removal", value: "Waived if we do the job" },
       { label: "Connected", value: "Usually same day" },
       { label: "Covers", value: "The whole house" },
       { label: "Obligation", value: "None" },
     ],
     spotlight: {
       eyebrow: "What it actually buys you",
-      heading: "It takes the deadline off a four thousand dollar decision.",
+      heading: "It takes the deadline off a big decision.",
       blurb:
         "When a tank dies you're suddenly being asked to spend serious money today, with cold showers as the deadline. That's the worst possible way to buy a hot water system and it's exactly how people end up with the wrong one. Here's how the week goes instead.",
       layout: "steps",
       items: [
-        { t: "Day 0, it fails", d: "You ring us. We come out, look at what's actually gone, and tell you whether it's repairable. If it's a component rather than the cylinder, we fix it and none of the rest of this applies." },
+        { t: "Day 0: it fails", d: "You ring us. We come out, look at what's actually gone, and tell you whether it's repairable. If it's a component rather than the cylinder, we fix it and none of the rest of this applies." },
         { t: "Day 0: temporary unit connected", d: "Same visit, in most cases. It plumbs into the existing hot water line where the old unit was, so every outlet in the house works normally again. Hot showers tonight." },
         { t: "Days 1–3: you actually compare", d: "Three real quotes, read properly, at a normal pace. Heat pump versus gas, what the VEU rebate is worth on each, what your roof and your household actually suit. The comparison you'd never make standing in a cold bathroom." },
         { t: "Days 3–7: the right unit, not the available one", d: "This is the bit the hire really pays for. Without it you take whoever can come today with whatever is on the truck. With it you can wait for the unit that suits the house, or for a rebate approval to come through." },
-        { t: "Install day, temporary unit goes with us", d: "Disconnected and taken away the same day the new system goes in. If we're doing the replacement, the $350 set-up and removal is waived, so all you've paid is the days you actually used." },
-        { t: "If you go elsewhere", d: "You pay the $350, which covers the two trips and the gear, and we take it away with no hard feelings. We'd rather you had hot water and chose properly than felt cornered." },
+        { t: "Install day, temporary unit goes with us", d: "Disconnected and taken away the same day the new system goes in. If we're doing the replacement, the set-up and removal fee is waived, so all you've paid is the days you actually used." },
+        { t: "If you go elsewhere", d: "You pay the set-up and removal fee, which covers the two trips and the gear, and we take it away with no hard feelings. We'd rather you had hot water and chose properly than felt cornered." },
       ],
       note:
-        "The daily rate keeps running until the new system goes in, so this buys time rather than replacing the decision. If your existing system can be repaired for less than the hire will cost, we'll tell you that instead, it happens more often than you'd think.",
+        "The daily rate keeps running until the new system goes in, so this buys time rather than replacing the decision. If your existing system can be repaired for less than the hire will cost, we'll tell you that instead.",
     },
     steps: [
       { title: "Ring us: same day across the corridor", detail: "Pakenham, Officer, Berwick, Beaconsfield, Narre Warren and Cranbourne, usually same day if you ring in the morning." },

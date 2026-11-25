@@ -6,7 +6,7 @@ import { FIXED, SIZING_DEFAULTS, SYSTEMS, sizeHousehold, type SizingForm } from 
 /** The four compressor sizes we fit, as the design lists them. */
 const CAPS = [
   { kw: 2.5, models: "Reclaim, Thermann, iStore 180" },
-  { kw: 4, models: "iStore 270, Panasonic 4 kW" },
+  { kw: 4, models: "iStore 275, Panasonic 4 kW" },
   { kw: 5, models: "Reclaim 215 / 315" },
   { kw: 6, models: "Panasonic, fastest recovery" },
 ];

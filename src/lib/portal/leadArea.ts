@@ -6,7 +6,7 @@ import { suburbs } from "@/lib/suburbs";
  * A radius is a circle and Melbourne is not. Thirty-six kilometres south-east
  * is Lang Lang, half an hour down the highway; thirty-six kilometres
  * north-west is the other side of the city and an hour in traffic. The site
- * advertises "within 75 km", which is why enquiries turn up from places that
+ * advertises "within 50 km" and still travels to 75, which is why enquiries turn up from places that
  * feel a long way away and technically are not — so this sorts them by how
  * long the van is actually in the car, which is the number that decides
  * whether a job is worth taking.

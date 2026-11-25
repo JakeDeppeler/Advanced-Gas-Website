@@ -1,0 +1,301 @@
+/* The service pages in the product pages' bands (ServiceView.tsx). The cards
+   inside were drawn for cream and sky sections, white on a tint with no
+   edge; a band can now be white, so they take the product page's card edge
+   and shadow and read on either. */
+.ag .svk :is(.bxt__card,.kxr__card){box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45)}
+.ag .svk .kxn a{border-color:var(--line2);box-shadow:0 20px 40px -32px rgba(5,10,48,.45)}
+.ag .svk .bk__sec--white .kx__facts div{background:var(--cream);border-color:transparent}
+.ag .svk .bxt__n{color:var(--acc)}
+/* Headings on navy: the coloured part lightens, as on the product page */
+.ag .svk .bk__sec--navy .bk__head p{color:rgba(255,255,255,.84)}
+.ag .svk .pxbr .h2{margin:0}
+.ag .svk .bk__boxh span{color:var(--navy)}
+/* No light blue in the bands (Jake's rule for the brand and product pages):
+   "A good fit if" goes navy as the product page's Pros do, and the price
+   cards' group chips take the accent. */
+.ag .svk .pcx__col--pro{background:var(--navy)}
+.ag .svk .pcx__col--pro h3{color:#fff}
+.ag .svk .pcx__col--pro h3 span{background:var(--acc);color:#fff}
+.ag .svk .pcx__col--pro li{color:rgba(255,255,255,.88)}
+.ag .svk .pcx__col--pro li::before{color:var(--acc-l)}
+.ag .svk .kxr__g{color:var(--or-ink);background:var(--cream)}
+.ag .svk .bk__sec--cream .kxr__g{background:#F7E6DA}
+/* The hero's coloured word and label in the accent, not the old sky blue */
+.ag .svk .kx__h1 em{color:var(--or2)}
+.ag .svk .bxh .lk2__eye{color:#FF9A5C}
+/* Suburb pages: the problem list and the subheads, on either light band */
+.ag .svk .kxk li{box-shadow:inset 0 0 0 1px var(--line2)}
+.ag .svk .bk__sec--navy .kx__sub{margin:0 0 12px}
+.ag .svk .kx2{align-items:start}
+
+/* ---------- The service pages and their system pages (ServiceView.tsx),
+   Nov 2026: built from the homepage's sections (Jake: "they need to resemble
+   the home page more"). The homepage's classes do the work (ahero, hbrands,
+   sg, awhy, revs, hfaq, htools-box, tgrid); these rules only add what a
+   service page has that the homepage doesn't, and are scoped to the page
+   root (.ag.svpg) so no other page that loads this file picks them up. */
+
+/* Sections: the homepage's padding, toned white and cream in turn (ServiceView's Sections) */
+.ag.svpg .svq{position:relative;padding:112px 0;scroll-margin-top:96px}
+.ag.svpg .svq--white{background:#fff}
+.ag.svpg .svq--cream{background:var(--cream)}
+.ag.svpg .svq--navy{background:var(--navy)}
+.ag.svpg .svq--sky{background:var(--skylt)}
+/* Two of a tone that meet run on as one band */
+.ag.svpg section.svq--join{padding-top:0}
+.ag.svpg .svq__in{display:flex;flex-direction:column;gap:32px}
+/* Headings: the coloured part in the homepage's orange, lighter on navy */
+.ag.svpg .h2 span{color:var(--or)}
+.ag.svpg .svbox .h2 span{color:var(--or2)}
+.ag.svpg .svhd p{max-width:34rem}
+
+/* The hero is the shared PageHero (pagehero.css). */
+
+/* The brand chips: as many columns as there are makers, so a short row still fills the line */
+.ag.svpg .svb{padding:56px 0}
+.ag.svpg .svb .hbrands__grid{grid-template-columns:repeat(var(--n),minmax(0,1fr))}
+
+/* The system cards: the homepage's "Everything we do" card, with the options pill in the corner */
+.ag.svpg .svsg[data-n="2"],.ag.svpg .svsg[data-n="4"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* Five: two wide, then three, so no row ends in a gap. Desktop only: the spans would add columns to the narrower grids. */
+@media (min-width:961px){
+  .ag.svpg .svsg[data-n="5"]{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .ag.svpg .svsg[data-n="5"]>:nth-child(-n+2){grid-column:span 3}
+  .ag.svpg .svsg[data-n="5"]>:nth-child(n+3){grid-column:span 2}
+}
+@media (hover:hover){.ag.svpg .svsg[data-n="2"] .sg__card{height:440px}}
+.ag.svpg .svsg__card img{object-position:center 45%}
+/* The whole card opens the system's page; the title and blurb sit over it but let the click through */
+.ag.svpg .svsg__hit{position:absolute;inset:0;z-index:1;border-radius:inherit}
+.ag.svpg .svsg__hit:focus-visible{outline:3px solid var(--or2);outline-offset:-3px}
+.ag.svpg .svsg__card .sg__body{z-index:2;pointer-events:none}
+.ag.svpg .svsg__card .sg__more{transition:max-height .35s ease,opacity .25s}
+.ag.svpg .svsg__card:hover .sg__more,.ag.svpg .svsg__card:focus-within .sg__more{max-height:200px;opacity:1}
+.ag.svpg .svsg__tag{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--or2)}
+.ag.svpg .svsg__opt{position:absolute;top:16px;right:16px;z-index:3;display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;background:#fff;font-family:var(--disp);font-size:13.5px;font-weight:800;color:var(--navy);text-decoration:none;box-shadow:0 10px 24px -12px rgba(2,6,26,.6);transition:background .15s,color .15s}
+.ag.svpg .svsg__opt:hover,.ag.svpg .svsg__opt:focus-visible{background:var(--or);color:#fff}
+/* A product shot on white (no install photo of ours for it yet) sits on a light panel above the shade */
+.ag.svpg .svsg__card--prod{background:linear-gradient(180deg,#fff 0%,#E9EEF4 100%)}
+.ag.svpg .svsg__card--prod img{object-fit:contain;padding:36px 32px 128px;mix-blend-mode:multiply}
+.ag.svpg .svsg__card--prod .sg__shade{background:linear-gradient(180deg,rgba(5,10,48,0) 50%,rgba(5,10,48,.92) 100%)}
+
+/* What you get: the homepage's bento, with a drawing and a line on each point */
+.ag.svpg .svw__bigt{font-size:clamp(26px,2.6vw,36px);font-weight:900;line-height:1.05;letter-spacing:-.02em}
+.ag.svpg .svw__bigs{font-size:15px;line-height:1.55;color:rgba(255,255,255,.85);max-width:30rem}
+.ag.svpg .svw__fig--long{font-size:40px;line-height:1;letter-spacing:-.03em}
+.ag.svpg .svw__figk{font-size:15px;line-height:1.45}
+.ag.svpg .whycard--sky .svw__figk{font-weight:600}
+.ag.svpg .svw__item{justify-content:flex-start;gap:18px}
+.ag.svpg .whycard .svw__ico{width:52px;height:52px;color:var(--or) !important}
+.ag.svpg .svw__ico svg{width:34px;height:34px}
+.ag.svpg .svw__t{display:flex;flex-direction:column;gap:5px}
+.ag.svpg .svw__line{font-size:14px;font-weight:700;line-height:1.4;color:var(--navy)}
+
+/* How it looks / keeping it working: a photo of ours beside the words and figures */
+.ag.svpg .svft{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,64px);align-items:center}
+.ag.svpg .svft--flip .svft__img{order:2}
+.ag.svpg .svft__img{position:relative;aspect-ratio:4/3.2;border-radius:12px;overflow:hidden;background:var(--navy)}
+.ag.svpg .svft__img img{object-fit:cover}
+.ag.svpg .svft__t{display:flex;flex-direction:column;gap:16px}
+.ag.svpg .svft__t>p{margin:0;font-size:16px;line-height:1.65;color:var(--ink2);max-width:36rem}
+.ag.svpg .svft__facts{margin:6px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ag.svpg .svft__facts div{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border-radius:12px;background:#fff}
+.ag.svpg .svq--white .svft__facts div{background:#F6F7F9}
+.ag.svpg .svft__facts dd{margin:0;font-family:var(--disp);font-size:20px;font-weight:800;line-height:1.15;color:var(--navy)}
+.ag.svpg .svft__facts dt{font-size:13.5px;line-height:1.4;color:var(--ink2)}
+
+/* Two lists: what's in the job and what isn't, or who a system suits. Marks and headings carry the meaning. */
+.ag.svpg .svin{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));gap:14px}
+.ag.svpg .svin__col{display:flex;flex-direction:column;gap:16px;padding:28px 30px;border-radius:12px}
+.ag.svpg .svin__col--in{background:var(--navy);color:#fff}
+.ag.svpg .svin__col--out{background:#fff}
+.ag.svpg .svq--white .svin__col--out{background:#F6F7F9}
+.ag.svpg .svin__col h3{display:flex;align-items:center;gap:12px;font-family:var(--disp);font-size:21px;font-weight:800;color:var(--navy)}
+.ag.svpg .svin__col--in h3{color:#fff}
+.ag.svpg .svin__col h3 span{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:50%;font-size:19px;color:#fff;background:var(--navy)}
+.ag.svpg .svin__col--in h3 span{background:var(--or)}
+.ag.svpg .svin__col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+.ag.svpg .svin__col li{position:relative;padding-left:24px;font-size:15.5px;line-height:1.5;color:var(--ink)}
+.ag.svpg .svin__col--in li{color:rgba(255,255,255,.88)}
+.ag.svpg .svin__col li::before{position:absolute;left:2px;font-weight:800}
+.ag.svpg .svin__col--in li::before{content:"+";color:var(--or2)}
+.ag.svpg .svin__col--out li::before{content:"−";color:var(--ink3)}
+
+/* The homepage's navy box (Tools for you) holding the steps, the prices, the options and a table */
+.ag.svpg .svbox{position:relative;overflow:clip}
+.ag.svpg .svbox > * + *{margin-top:28px}
+.ag.svpg .svbox .tgrid{margin-top:28px}
+.ag.svpg .svbox .sechead__t{max-width:720px}
+
+/* How it runs: a numbered card per step */
+.ag.svpg .svst{list-style:none;padding:0}
+.ag.svpg .svst__card:hover{transform:none;box-shadow:none}
+.ag.svpg .svst__card b{display:grid;place-items:center;width:36px;height:36px;margin-bottom:8px;border-radius:50%;background:var(--or);font-family:var(--disp);font-size:15px;font-weight:800;color:#fff}
+.ag.svpg .svst__card span{font-size:14.5px;line-height:1.55}
+
+/* Price cards: one per trade, a photo per job */
+.ag.svpg .svp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ag.svpg .svp--1{grid-template-columns:minmax(0,1fr)}
+.ag.svpg .svp--2,.ag.svpg .svp--4{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ag.svpg .svp__card{display:flex;flex-direction:column;overflow:hidden;border-radius:12px;background:#fff;color:var(--ink)}
+.ag.svpg .svp__head{margin:0;padding:18px 22px 14px;border-bottom:1px solid var(--line);font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
+.ag.svpg .svp__rows{list-style:none;margin:0;padding:0}
+/* One trade on its own: its jobs side by side across the card */
+.ag.svpg .svp--1 .svp__rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))}
+.ag.svpg .svp__rows>li{display:grid;grid-template-columns:80px minmax(0,1fr);gap:16px;align-items:start;padding:16px 22px;border-top:1px solid var(--line)}
+.ag.svpg .svp__rows>li:first-child,.ag.svpg .svp--1 .svp__rows>li{border-top:0}
+.ag.svpg .svp__img{position:relative;width:80px;height:80px;overflow:hidden;border-radius:10px;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.ag.svpg .svp__img img{object-fit:contain;padding:6px}
+.ag.svpg .svp__img--scene img{object-fit:cover;padding:0}
+.ag.svpg .svp__img--ico{display:grid;place-items:center;background:#F3F4F7;box-shadow:none;color:var(--or)}
+.ag.svpg .svp__img--ico svg{width:42px;height:42px}
+.ag.svpg .svp__t{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ag.svpg .svp__t strong{font-family:var(--disp);font-size:16.5px;font-weight:800;line-height:1.25;color:var(--navy)}
+.ag.svpg .svp__t em{font-style:normal;font-family:var(--disp);font-size:20px;font-weight:900;color:var(--navy)}
+.ag.svpg .svp__t em small{font-family:var(--body);font-size:12px;font-weight:600;color:var(--ink3)}
+.ag.svpg .svp__t ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.ag.svpg .svp__t ul li{position:relative;padding-left:18px;font-size:14px;line-height:1.45;color:var(--ink2)}
+/* The includes are split off one comma list ("Supply, install, …"): each starts a line, so each takes a capital */
+.ag.svpg .svp__t ul li::first-letter{text-transform:uppercase}
+.ag.svpg .svp__t ul li::before{content:"✓";position:absolute;left:0;top:0;font-size:12px;font-weight:800;color:var(--or)}
+
+/* A note set apart from the cards: the honest caveat */
+.ag.svpg .svnote{margin:0;max-width:860px;padding:16px 20px;border-left:4px solid var(--or);border-radius:0 12px 12px 0;background:#fff;font-size:15.5px;line-height:1.6;color:var(--ink)}
+.ag.svpg .svq--white .svnote{background:var(--cream)}
+.ag.svpg .svnote.svnote--dark{background:rgba(255,255,255,.07);color:rgba(255,255,255,.88);border-left-color:var(--or2)}
+
+/* Our installs: photo tiles with their captions */
+.ag.svpg .svgl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ag.svpg .svgl__ph{position:relative;margin:0;height:360px;overflow:hidden;border-radius:12px;background:var(--navy)}
+.ag.svpg .svgl__ph img{object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.ag.svpg .svgl__ph:hover img{transform:scale(1.05)}
+.ag.svpg .svgl__ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,10,48,0) 50%,rgba(5,10,48,.88) 100%);pointer-events:none}
+.ag.svpg .svgl__ph figcaption{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:18px 20px;font-family:var(--disp);font-size:17px;font-weight:800;line-height:1.25;color:#fff}
+
+/* A system's own point (systemDetail's spotlight) */
+.ag.svpg .svs__cards,.ag.svpg .svs__steps,.ag.svpg .svs__list{list-style:none;margin:0;padding:0;counter-reset:svs}
+.ag.svpg .svs__cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ag.svpg .svs__cards--4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ag.svpg .svs__cards li,.ag.svpg .svs__steps li,.ag.svpg .svs__list li{counter-increment:svs;position:relative;display:flex;flex-direction:column;gap:8px}
+.ag.svpg .svs__cards li{padding:24px;border-radius:12px;background:#fff}
+.ag.svpg .svq--white .svs__cards li{background:#F6F7F9}
+.ag.svpg .svs__cards li::before{content:counter(svs,decimal-leading-zero);font-family:var(--disp);font-size:30px;font-weight:900;line-height:1;color:var(--or)}
+.ag.svpg .svs__cards h3,.ag.svpg .svs__steps h3,.ag.svpg .svs__list h3{font-family:var(--disp);font-size:18.5px;font-weight:800;line-height:1.25;color:var(--navy)}
+.ag.svpg .svs__cards p,.ag.svpg .svs__steps p,.ag.svpg .svs__list p{margin:0;font-size:15px;line-height:1.6;color:var(--ink2)}
+.ag.svpg .svs__steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 40px}
+.ag.svpg .svs__steps li{min-height:44px;padding-left:62px}
+.ag.svpg .svs__steps li::before,.ag.svpg .svs__list li::before{content:counter(svs);position:absolute;left:0;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;font-family:var(--disp);font-size:17px;font-weight:900;color:#fff}
+.ag.svpg .svs__steps li::before{top:-4px;background:var(--navy)}
+.ag.svpg .svs__split{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,4vw,56px);align-items:start}
+.ag.svpg .svs__img{position:sticky;top:120px;display:block;aspect-ratio:1;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.ag.svpg .svs__img img{object-fit:contain;padding:10%;mix-blend-mode:multiply}
+.ag.svpg .svs__list{display:flex;flex-direction:column}
+.ag.svpg .svs__list li{padding:20px 0 20px 62px;border-top:1px solid var(--line2)}
+.ag.svpg .svs__list li:first-child{padding-top:4px;border-top:0}
+.ag.svpg .svs__list li::before{top:18px;background:var(--or)}
+.ag.svpg .svs__list li:first-child::before{top:2px}
+/* The table: two columns side by side, white in the navy box */
+.ag.svpg .svs__tblwrap{overflow-x:auto;border-radius:12px;background:#fff}
+.ag.svpg .svs__tbl{width:100%;border-collapse:collapse;font-size:15px;line-height:1.55;color:var(--ink2)}
+.ag.svpg .svs__tbl th,.ag.svpg .svs__tbl td{padding:16px 20px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.ag.svpg .svs__tbl thead th{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);background:#F6F7F9}
+.ag.svpg .svs__tbl tbody th{width:22%;font-family:var(--disp);font-size:16px;font-weight:800;color:var(--navy)}
+.ag.svpg .svs__tbl tbody tr:last-child>*{border-bottom:0}
+
+/* The options, on the finder's own page: one white card in the navy box */
+.ag.svpg .svo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);overflow:hidden;border-radius:12px;background:#fff;color:inherit;text-decoration:none;transition:transform .2s,box-shadow .2s}
+.ag.svpg .svo:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--or2)}
+.ag.svpg .svo:focus-visible{outline:3px solid var(--or2);outline-offset:3px}
+.ag.svpg .svo__img{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;min-height:260px;padding:20px;background:#fff;border-right:1px solid var(--line)}
+.ag.svpg .svo__img>span{position:relative}
+.ag.svpg .svo__img img{object-fit:contain;mix-blend-mode:multiply}
+.ag.svpg .svo__txt{display:flex;flex-direction:column;gap:8px;padding:28px 30px}
+.ag.svpg .svo__txt small{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--or)}
+.ag.svpg .svo__txt strong{font-family:var(--disp);font-size:clamp(24px,2.2vw,30px);font-weight:900;letter-spacing:-.015em;color:var(--navy)}
+.ag.svpg .svo__intro{font-size:15.5px;line-height:1.6;color:var(--ink2)}
+.ag.svpg .svo__meta{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);font-size:14px;color:var(--ink3)}
+.ag.svpg .svo__meta b{color:var(--navy)}
+.ag.svpg .svo__go{display:flex;justify-content:space-between;align-items:center;font-family:var(--disp);font-size:15.5px;font-weight:700;color:var(--or-ink)}
+.ag.svpg .svo__go i{font-style:normal;transition:transform .2s}
+.ag.svpg .svo:hover .svo__go i{transform:translateX(4px)}
+
+/* The nearest suburbs, as the homepage's chips */
+.ag.svpg .svar .kx__chips{display:flex;flex-wrap:wrap;gap:10px;margin:0}
+.ag.svpg .svar .kx__chips a{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:999px;background:#fff;border:1px solid var(--line2);font-family:var(--disp);font-size:15px;font-weight:700;color:var(--navy);text-decoration:none;transition:border-color .15s,transform .15s}
+.ag.svpg .svar .kx__chips a:hover{border-color:var(--navy);transform:translateY(-2px)}
+.ag.svpg .svar .kx__chips .kx__chips-all{background:var(--or);border-color:var(--or);color:#fff}
+.ag.svpg .svar .kx__chips .kx__chips-all:hover{background:var(--or-h);border-color:var(--or-h)}
+
+@media (max-width:1100px){
+  .ag.svpg .svs__cards--4{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:960px){
+  .ag.svpg .svsg[data-n="5"]>:last-child{grid-column:1/-1}
+  .ag.svpg .svft,.ag.svpg .svs__split,.ag.svpg .svo{grid-template-columns:minmax(0,1fr)}
+  .ag.svpg .svft--flip .svft__img{order:0}
+  .ag.svpg .svgl,.ag.svpg .svs__cards,.ag.svpg .svp--3,.ag.svpg .svp--4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag.svpg .svp--3>:last-child{grid-column:1/-1}
+  .ag.svpg .svs__img{position:relative;top:0;width:min(100%,340px);aspect-ratio:4/3}
+  .ag.svpg .svo__img{min-height:200px;border-right:0;border-bottom:1px solid var(--line)}
+  .ag.svpg .svb .hbrands__grid{grid-template-columns:repeat(min(var(--n),4),minmax(0,1fr))}
+}
+@media (max-width:700px){
+  .ag.svpg .svp--2,.ag.svpg .svp--3,.ag.svpg .svp--4,.ag.svpg .svs__steps{grid-template-columns:minmax(0,1fr)}
+  /* The two-column table stacks into a card per row on a phone, the label above each value */
+  .ag.svpg .svs__tbl thead{display:none}
+  .ag.svpg .svs__tbl,.ag.svpg .svs__tbl tbody,.ag.svpg .svs__tbl tr,.ag.svpg .svs__tbl tbody th,.ag.svpg .svs__tbl td{display:block;width:auto}
+  .ag.svpg .svs__tbl tr{padding:16px 18px;border-bottom:1px solid var(--line)}
+  .ag.svpg .svs__tbl tbody tr:last-child{border-bottom:0}
+  .ag.svpg .svs__tbl tbody th,.ag.svpg .svs__tbl td{padding:0;border:0}
+  .ag.svpg .svs__tbl td{margin-top:10px}
+  .ag.svpg .svs__tbl td::before{content:attr(data-l);display:block;margin-bottom:2px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+}
+@media (max-width:600px){
+  .ag.svpg .svq{padding:72px 0}
+  .ag.svpg section.svq--join{padding-top:0}
+  .ag.svpg .svb{padding:40px 0}
+  .ag.svpg .svb .hbrands__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag.svpg .svsg,.ag.svpg .svsg[data-n]{grid-template-columns:minmax(0,1fr)}
+  .ag.svpg .svsg[data-n="5"]>:last-child{grid-column:auto}
+  .ag.svpg .svgl,.ag.svpg .svs__cards,.ag.svpg .svs__cards--4{grid-template-columns:minmax(0,1fr);gap:10px}
+  .ag.svpg .svgl__ph{height:300px}
+  .ag.svpg .svs__cards li{padding:18px}
+  .ag.svpg .svft__facts dd{font-size:17px}
+  .ag.svpg .svin__col{padding:22px 20px}
+  .ag.svpg .svp__rows>li{grid-template-columns:64px minmax(0,1fr);gap:12px;padding:14px 16px}
+  .ag.svpg .svp__img{width:64px;height:64px}
+  .ag.svpg .svp__head{padding:16px}
+  .ag.svpg .svo__img{min-height:150px;padding:14px}
+  .ag.svpg .svo__txt{padding:20px}
+  .ag.svpg .whycard .svw__ico{width:48px;height:48px}
+  .ag.svpg .svw__fig--long{font-size:36px}
+}
+/* Touch screens: the blurb is always shown (the homepage's rule). These
+   blurbs run longer than the homepage's, and over the photo they covered it,
+   so the photo takes the top of the card and the words sit under it on navy. */
+@media (hover:none){
+  .ag.svpg .svsg__card{display:flex;flex-direction:column;height:auto;padding-top:210px}
+  .ag.svpg .svsg__card > img{height:230px !important;bottom:auto !important}
+  .ag.svpg .svsg__card .sg__shade{background:linear-gradient(180deg,rgba(5,10,48,0) 0,rgba(5,10,48,0) 120px,var(--navy) 230px)}
+  .ag.svpg .svsg__card .sg__body{position:relative;width:100%}
+  .ag.svpg .svsg__card .sg__more{max-height:none;opacity:1}
+  .ag.svpg .svsg__card:hover img{transform:none}
+  /* A product shot keeps its white panel, behind the photo only */
+  .ag.svpg .svsg__card--prod{background:var(--navy)}
+  .ag.svpg .svsg__card--prod::before{content:"";position:absolute;left:0;right:0;top:0;height:230px;background:linear-gradient(180deg,#fff,#E9EEF4)}
+  .ag.svpg .svsg__card--prod img{padding:24px 24px 56px}
+  .ag.svpg .svsg__opt{top:14px;right:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ag.svpg .sg__card img,.ag.svpg .svgl__ph img,.ag.svpg .svo,.ag.svpg .svo__go i,.ag.svpg .svar .kx__chips a{transition:none}
+  .ag.svpg .sg__card:hover img,.ag.svpg .svgl__ph:hover img,.ag.svpg .svo:hover,.ag.svpg .svar .kx__chips a:hover{transform:none}
+  .ag.svpg .svo:hover .svo__go i{transform:none}
+}
+/* A note under a table or the prices in the navy box: the box's own gap above it */
+.ag.svpg .svbox > .svnote{margin-top:24px}
+/* The bento's last point fills what's left of its row (ServiceView's Why) */
+@media (min-width:961px){.ag.svpg .svw__last{grid-column:span var(--s4,1)}}
+@media (min-width:601px) and (max-width:960px){.ag.svpg .svw__last{grid-column:span var(--s2,1)}}
+@media (min-width:601px) and (max-width:960px){.ag.svpg .svsg[data-n="3"]>:last-child{grid-column:1/-1}}
+.ag.svpg .svft__img--prod{background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.ag.svpg .svft__img--prod img{object-fit:contain;padding:8%;mix-blend-mode:multiply}

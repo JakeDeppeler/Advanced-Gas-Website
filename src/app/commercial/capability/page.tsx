@@ -6,9 +6,9 @@ import { COMM_CLIENTS } from "@/lib/commercial";
 import {
   CAPABILITY_STATEMENT,
   COMM_AREA_NEAR,
-  COMM_COMMUNITY,
   COMM_DISCIPLINES,
   COMM_LEADERSHIP,
+  communityPhotos,
   COMM_LICENCE_CLASSES,
   COMM_REGISTRATION_CLASSES,
   COMM_TRADE_QUALIFICATIONS,
@@ -44,7 +44,7 @@ const STATS: { v: string; k: string }[] = [
   { v: "20+", k: "Years' director experience" },
   { v: "$20M", k: "Public liability" },
   { v: "12 yrs", k: "Trading from Pakenham" },
-  { v: "12 mo", k: "Workmanship warranty" },
+  { v: "6 yrs", k: "Workmanship warranty" },
 ];
 
 const CREDS: { k: string; v: string }[] = [
@@ -57,6 +57,7 @@ const CREDS: { k: string; v: string }[] = [
 ];
 
 export default function CapabilityPage() {
+  const photos = communityPhotos();
   return (
     <div className="page-cx" data-no-reveal>
       <CxSubHero
@@ -118,13 +119,13 @@ export default function CapabilityPage() {
             <div className="cx-ovw__t cx-rv">
               <p>A family-owned business based in Pakenham, servicing Melbourne&rsquo;s south-east and West Gippsland.</p>
               <p>
-                We are a provider of HVAC, heating, cooling, Type A gas, general and mechanical plumbing, and
-                refrigeration services across residential, commercial and industrial projects throughout Victoria,
-                and open to projects across the region and interstate.
+                We are a provider of HVAC, heating, cooling, Type A and Type B gas, general and mechanical
+                plumbing, and refrigeration services across residential, commercial and industrial projects in
+                Melbourne&rsquo;s south-east and West Gippsland, and further for contract work.
               </p>
               <p>
-                We operate from traditional values: we under-promise, over-deliver, and complete work on time,
-                within schedule and budget.
+                We operate from traditional values: we under-promise, over-deliver, and complete work on time
+                and on budget.
               </p>
             </div>
             <div className="cx-ovw__side cx-rv" style={{ ["--i" as string]: "1" }}>
@@ -133,8 +134,8 @@ export default function CapabilityPage() {
                 {COMM_AREA_NEAR.map((a) => <li key={a}>{a}</li>)}
               </ul>
               <p>
-                Fully licensed and insured. Certificates of Electrical &amp; Gas Safety provided. Certificates of
-                currency available on request.
+                Fully licensed and insured. Gas compliance certificates provided, and Certificates of Electrical
+                Safety from our licensed electrician. Certificates of currency available on request.
               </p>
             </div>
           </div>
@@ -159,7 +160,8 @@ export default function CapabilityPage() {
                 key={d.n}
                 style={{ ["--i" as string]: String(i % 3) }}
               >
-                <span className="cx-num">{d.n} · {d.kicker}</span>
+                {/* The kicker only: numbered cards inside section 02 read as the section numbers jumping. */}
+                <span className="cx-num">{d.kicker}</span>
                 <h3>{d.h}</h3>
                 <p>{d.p}</p>
               </li>
@@ -167,7 +169,7 @@ export default function CapabilityPage() {
             <li className="cx-svc__item cx-rv" style={{ ["--i" as string]: "1" }}>
               <span className="cx-num">ARC</span>
               <h3>{site.licences.refrigeration.replace(/^ARC\s*/, "")}</h3>
-              <p>Authorised ARC trading authority for the handling of refrigerant gases.</p>
+              <p>ARC refrigerant trading authorisation, for handling refrigerant gases.</p>
             </li>
           </ol>
         </div>
@@ -296,7 +298,7 @@ export default function CapabilityPage() {
       {/* ======================== 07 · COMMUNITY ======================== */}
       <section className="cx-sec cx-sec--navy" id="community">
         <div className="wrap">
-          <div className="cx-comm">
+          <div className={`cx-comm${photos.length ? "" : " cx-comm--solo"}`}>
             <div className="cx-rv">
               <span className="cx-eye cx-eye--sky">07 · Giving back</span>
               <h2>Community involvement.</h2>
@@ -305,16 +307,22 @@ export default function CapabilityPage() {
                 financial contributions and through time and hands-on effort on a voluntary basis.
               </p>
             </div>
-            <ul className="cx-comm__g">
-              {COMM_COMMUNITY.map((c, i) => (
-                <li key={c.cap}>
-                  <figure className="cx-rv" style={{ ["--i" as string]: String(i) }}>
-                    <div className="cx-comm__slot">Photo to come</div>
-                    <figcaption>{c.cap}</figcaption>
-                  </figure>
-                </li>
-              ))}
-            </ul>
+            {/* The clubs' photographs once there is one for every club; until then
+                the paragraph stands alone, rather than beside "Photo to come" frames. */}
+            {photos.length > 0 && (
+              <ul className="cx-comm__g">
+                {photos.map((c, i) => (
+                  <li key={c.cap}>
+                    <figure className="cx-rv" style={{ ["--i" as string]: String(i) }}>
+                      <div className="cx-comm__slot cx-comm__slot--photo">
+                        <Image src={c.photo} alt={`${c.cap}: a club we support`} fill sizes="(max-width: 900px) 33vw, 240px" />
+                      </div>
+                      <figcaption>{c.cap}</figcaption>
+                    </figure>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </section>

@@ -46,6 +46,44 @@ const nextConfig = {
    */
   async redirects() {
     return [
+      // The price list went (Jake, Oct 2026): every option now carries its
+      // own from price and finance figure on its product page, reached from
+      // Find your system.
+      { source: "/pricing", destination: "/#find", permanent: true },
+      // Water filtration came off the site (Jake, Nov 2026). Its pages were
+      // indexed, so they land on the services list rather than a 404.
+      { source: "/water-filtration", destination: "/services", permanent: true },
+      { source: "/water-filtration/:path*", destination: "/services", permanent: true },
+      // ---- Old-design pages folded into the redesign (Nov 2026) ----
+      // "Heat pump or gas?" was the hot water fork with the numbers; the
+      // heat pump installation page now teaches the same thing in the new
+      // layout, with the rebate, and the prices came off site-wide.
+      { source: "/heat-pumps", destination: "/services/heat-pump-installation", permanent: true },
+      // The filterable full range: every brand page now carries its range,
+      // and the brands page lists them all, so that's where "show me the
+      // range" lands.
+      { source: "/range", destination: "/brands", permanent: true },
+      // The phone-first homepage mock, superseded by the homepage itself.
+      // Never indexed (robots disallows it), so not permanent.
+      { source: "/preview", destination: "/", permanent: false },
+      // Options that are really another option (`same` in lib/homepage/data.ts)
+      // have no page of their own: "switch to a heat pump" from gas storage IS
+      // the iStore, and its page has to teach a heat pump, not a gas tank.
+      // Keep this list in step with `same` there.
+      { source: "/find/gas-storage/signature", destination: "/find/heat-pump/essential", permanent: true },
+      { source: "/find/gas-storage/premium", destination: "/find/gas-continuous-flow/essential", permanent: true },
+      { source: "/find/gas-continuous-flow/signature", destination: "/find/heat-pump/premium", permanent: true },
+      // Gas ducted heating went from three tiers to four star ratings (Nov 2026).
+      { source: "/find/gas-ducted-heating/essential", destination: "/find/gas-ducted-heating/3-star", permanent: true },
+      { source: "/find/gas-ducted-heating/premium", destination: "/find/gas-ducted-heating/6-star", permanent: true },
+      { source: "/find/gas-ducted-heating/signature", destination: "/find/gas-ducted-heating/6-star", permanent: true },
+      // Zonemate came off the site (Jake, Nov 2026), and with it the zoning
+      // page built from its range. Zoning lives on the ducted split page now,
+      // where the zone plan and Mitsubishi's own controller are.
+      { source: "/brands/zonemate", destination: "/find/ducted", permanent: true },
+      { source: "/brands/zonemate/:path*", destination: "/find/ducted", permanent: true },
+      { source: "/find/zoning", destination: "/find/ducted", permanent: true },
+      { source: "/find/zoning/:path*", destination: "/find/ducted", permanent: true },
       // The blog editor moved out of Marketing into its own section. Not
       // permanent: these are portal addresses, never indexed, and a 308 is
       // cached by the browser for good.
@@ -109,6 +147,12 @@ const nextConfig = {
       // the same pump and only muddied the range, so its page 301s to the
       // Reclaim hub.
       { source: "/brands/reclaim/co2-split-215-5kw", destination: "/brands/reclaim", permanent: true },
+      // The old compare and models pages, folded into the Reclaim brand page
+      // (Nov 2026). They were pages calling permanentRedirect(); prerendered,
+      // `next start` served their 308 with no Location header, so the
+      // redirect lives here, where it always carries one.
+      { source: "/brands/reclaim/compare", destination: "/brands/reclaim", permanent: true },
+      { source: "/brands/reclaim/models", destination: "/brands/reclaim", permanent: true },
 
       // ---- WEB-010: legacy Wix URLs ----
       // /plumbing-services/ held rankings and inbound links on the old
@@ -220,8 +264,18 @@ const nextConfig = {
     ];
     const immutable = { key: "Cache-Control", value: "public, max-age=31536000, immutable" };
 
+    // A preview build can sit on a test address of its own (a branch domain
+    // such as new.advancedgas.com.au), and robots.ts and the page metadata
+    // say "index" wherever they run. Without this, a test address that got
+    // crawled would be indexed as a second copy of the site. The header wins
+    // over every page's own robots setting, so it is set once, here.
+    const notLive = process.env.VERCEL_ENV === "preview"
+      ? [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }]
+      : [];
+
     return [
       { source: "/:path*", headers: security },
+      ...notLive,
       // Content-addressed build assets — safe to cache forever.
       { source: "/_next/static/:path*", headers: [immutable] },
       // Images (fingerprint-free but replaced infrequently). One-year cache with

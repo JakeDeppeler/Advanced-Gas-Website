@@ -99,7 +99,7 @@
   border-radius: 14px;
 }
 .page-blog .bl-news__form input {
-  flex: 1; background: transparent; border: none; outline: none;
+  flex: 1; min-width: 0; background: transparent; border: none; outline: none;
   color: #fff; font-family: var(--f-body); font-size: 15px; padding: 8px 10px;
 }
 .page-blog .bl-news__form input::placeholder { color: rgba(255,255,255,0.45); }
@@ -108,10 +108,14 @@
   .page-blog .bl-feat__card { grid-template-columns: 1fr; }
   .page-blog .bl-feat__copy { padding: 32px; }
   .page-blog .bl-grid { grid-template-columns: repeat(2, 1fr); }
-  .page-blog .bl-news__grid { grid-template-columns: 1fr; }
+  .page-blog .bl-news__grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 720px) {
   .page-blog .bl-grid { grid-template-columns: 1fr; }
+  /* On a phone the button goes under the address, full width, instead of off the edge */
+  .page-blog .bl-news__form { flex-wrap: wrap; }
+  .page-blog .bl-news__form input { flex-basis: 100%; min-height: 44px; }
+  .page-blog .bl-news__form > :not(input) { flex: 1 1 100%; }
 }
 
 /* ============== BLOG POST, individual article ============== */

@@ -11,8 +11,9 @@ import { site } from "@/lib/site";
  * area can find themselves on it.
  *
  * 2.5px to the kilometre, so the rings at 62, 125 and 187 are the three
- * distances. The 75 km ring is orange because it is the one that matters:
- * inside it there is no travel loading.
+ * distances. The 50 km ring is orange because it is the area we state
+ * (Jake, Nov 2026: "50km range"); the 75 km ring, dashed and faint, is as
+ * far as we still come out.
  */
 
 export function ServiceRadar() {
@@ -27,11 +28,11 @@ export function ServiceRadar() {
         </defs>
 
         <circle className="cx-rg" cx="260" cy="210" r="62" />
-        <circle className="cx-rg" cx="260" cy="210" r="125" />
-        <circle className="cx-rg" cx="260" cy="210" r="187" style={{ stroke: "rgba(243,103,34,.55)", strokeDasharray: "6 6" }} />
+        <circle className="cx-rg" cx="260" cy="210" r="125" style={{ stroke: "rgba(243,103,34,.75)" }} />
+        <circle className="cx-rg" cx="260" cy="210" r="187" style={{ strokeDasharray: "6 6" }} />
         <text x="266" y="152" opacity=".5">25 KM</text>
-        <text x="266" y="89" opacity=".5">50 KM</text>
-        <text x="266" y="27" style={{ fill: "var(--cx-orange)" }}>75 KM</text>
+        <text x="266" y="89" style={{ fill: "var(--cx-orange)" }}>50 KM</text>
+        <text x="266" y="27" opacity=".5">75 KM</text>
 
         <g className="cx-sweep">
           <path d="M260 210 L447 210 A187 187 0 0 0 392 78 Z" fill="url(#cx-sweep)" />
@@ -65,7 +66,7 @@ export function ServiceRadar() {
           <span className="cx-rig__eye">Base</span>
           <div>{site.address.street}, {site.address.suburb}</div>
         </div>
-        <span className="cx-rig__live">Crews out today</span>
+        {/* No "Crews out today" here: it was hard-coded, so it showed on weekends too. */}
       </figcaption>
     </figure>
   );

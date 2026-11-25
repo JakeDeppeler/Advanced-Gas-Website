@@ -26,7 +26,7 @@ export const COMM_SCOPES: CommScope[] = [
     slug: "fit-outs",
     n: "01",
     title: "Tenancy & retail fit-outs",
-    lede: "Mechanical services for a new tenancy, delivered to the builder's programme.",
+    lede: "Mechanical services for a new tenancy, delivered to the builder's program.",
     detail: [
       "Ductwork, plant, controls and commissioning as one package",
       "Coordinated with the head contractor and the other trades",
@@ -136,8 +136,9 @@ export const COMM_SCOPES: CommScope[] = [
     title: "Breakdown response",
     lede: "A number that gets answered when the plant stops on a Friday afternoon.",
     detail: [
-      "Priority response on contracted sites",
-      "After-hours attendance",
+      "Priority response on contracted sites in business hours",
+      // Not a 24/7 promise (Jake, 24 Nov 2026): after hours is when we can.
+      `After hours, gas leaks and no hot water when we can (call-out ${site.afterHours.callout}, covering ${site.afterHours.covers})`,
       "Make-safe, then a priced repair before the work goes ahead",
     ],
     suits: "Anyone with a site that cannot be closed",
@@ -172,6 +173,7 @@ export const CAPABILITY: { group: string; rows: [string, string, boolean?][] }[]
       ["Plumbing licence", `Lic. ${PLUMBING_NO}`, true],
       ["Refrigerant handling", site.licences.refrigeration, true],
       ["Type A gas", "Appliance installation & servicing"],
+      ["Type B gas", "Industrial appliance work"],
       ["Mechanical services", "Design, install, commission"],
     ],
   },
@@ -191,16 +193,16 @@ export const CAPABILITY: { group: string; rows: [string, string, boolean?][] }[]
       ["Site inductions", "Completed and returned within 24 hours"],
       ["Documented procedures", "Written SOPs, reviewed and version controlled"],
       ["Job records", "Photographs and forms against every job, retained"],
-      ["Compliance certificates", "Issued on completion"],
+      ["Compliance certificates", "Gas and plumbing, issued on completion"],
     ],
   },
   {
     group: "Capacity",
     rows: [
-      ["Workforce", "Directly employed installers and apprentices, not subcontracted"],
+      ["Workforce", "Our crew, with every part of the job run under us. No labour hire"],
       ["Base", `${site.address.suburb}, VIC`],
-      ["Service area", "Melbourne's south-east and Gippsland, and further for contract work"],
-      ["Response", "Priority attendance on contracted sites, after hours available"],
+      ["Service area", "Melbourne's south-east and West Gippsland, and further for contract work"],
+      ["Response", "Priority attendance on contracted sites; after hours when we can"],
     ],
   },
 ];
@@ -261,7 +263,7 @@ export const COMM_CAPABILITIES = [
   "Air balancing",
   "Mechanical ventilation",
   "Kitchen & exhaust ventilation",
-  "Type A gas",
+  "Type A & Type B gas",
   "Commercial hot water",
   "Heat pump plant",
   "Split & multi-head",
@@ -321,7 +323,7 @@ export const COMM_STANDARD: { n: string; h: string; p: string }[] = [
   {
     n: "02",
     h: "The standard is written down",
-    p: "Twenty procedures, not folklore held by whoever has been here longest. Ask to see them.",
+    p: "Written procedures, not folklore held by whoever has been here longest. Ask to see them.",
   },
   {
     n: "03",
@@ -368,12 +370,12 @@ export const COMM_FAQS: { q: string; a: string }[] = [
     a: "SWMS are supplied before site access, and inductions are completed and returned within 24 hours. If your site uses a particular contractor management system, tell us which one and we'll get set up in it rather than sending you PDFs.",
   },
   {
-    q: "Are you licensed for refrigerant and Type A gas work?",
-    a: `ARC refrigerant handling licence ${site.licences.refrigeration} and plumbing licence ${site.licences.plumbing}, both current. Type A appliance installation and servicing, with compliance certificates issued on completion.`,
+    q: "Are you licensed for refrigerant and gas work?",
+    a: `ARC refrigerant handling licence ${site.licences.refrigeration} and plumbing licence ${site.licences.plumbing}, both current. Type A appliance installation and servicing and Type B industrial appliance work, with gas compliance certificates issued on completion. Certificates of Electrical Safety come from our licensed electrician.`,
   },
   {
     q: "How far do you travel?",
-    a: "The standard service area is 75 km from Pakenham, which covers Melbourne's south-east. We travel further for rollout and contract work. The Westpac branch was in Sale. If you have multiple sites spread across the state, talk to us about it rather than assuming we're out of range.",
+    a: "The standard service area is 50 km from Pakenham, which covers Melbourne's south-east. We travel further for rollout and contract work. The Westpac branch was in Sale. If you have multiple sites spread across the state, talk to us about it rather than assuming we're out of range.",
   },
   {
     q: "Will you take a one-off job, or is it contract work only?",
@@ -397,7 +399,7 @@ export const COMM_FACTS: { n: string; k: string; p: string }[] = [
   { n: "12", k: "years trading", p: "Same family, same name, same base in Pakenham since 2014." },
   { n: "$20M", k: "public liability", p: "Certificate of currency back the same day you ask for it." },
   { n: "Before site", k: "paperwork returned", p: "SWMS, certificates of currency and site inductions land before anyone turns up. If they are not back, we are not on site." },
-  { n: "100%", k: "directly employed", p: "Our own installers and apprentices. No labour hire, no rotating subcontractors." },
+  { n: "One", k: "crew, all under us", p: "Our crew runs every part of the job, start to finish. No labour hire." },
 ];
 
 

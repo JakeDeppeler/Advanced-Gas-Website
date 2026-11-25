@@ -32,6 +32,11 @@ export type Review = {
   a: string;
   /** Star rating as left on Google. Anything under 4 is filtered out. */
   rating: number;
+  /**
+   * Why a review is held off the site. Set when nobody can confirm the text
+   * matches Google word for word; remove it once someone has checked.
+   */
+  unconfirmed?: string;
 };
 
 /**
@@ -57,14 +62,14 @@ export const RATING_TEXT = RATING_SUMMARY.value.toFixed(1);
 
 const REVIEWS_RAW: Review[] = [
   { title: "Quoted Mon, installed Fri", txt: "Took the old gas Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so it came straight off the price. Bloke on the phone is the bloke on the tools, refreshing.", who: "Jess M.", what: "Pakenham · heat pump install", a: "JM" , rating: 5 },
-  { title: "Family business, feels it", txt: "Answered the phone myself, quoted the job, showed up to install the job. That trail of trust doesn't exist with most of the bigger mobs anymore.", who: "Tom H.", what: "Narre Warren · heat pump", a: "TH" , rating: 5 },
+  { title: "Family business, feels it", txt: "Answered the phone myself, quoted the job, showed up to install the job. That trail of trust doesn't exist with most of the bigger mobs anymore.", who: "Tom H.", what: "Narre Warren · heat pump", a: "TH" , rating: 5, unconfirmed: "Nov 2026 audit: wording not yet checked against Google" },
   { title: "Actually got up in the roof", txt: "Had three quotes for a ducted system. These guys were the only ones who actually crawled into the roof. Middle of the pack on price but installed cleaner than the others would have.", who: "Dean R.", what: "Officer · ducted retrofit", a: "DR" , rating: 5 },
   { title: "Rebate handled, didn't lift a finger", txt: "The VEU paperwork looked scary online. They filled it all in, I signed once at the quote and once on the day. Rebate was already in the price. Painless.", who: "Lauren M.", what: "Pakenham · heat pump swap", a: "LM" , rating: 5 },
   { title: "Emergency sorted Sunday", txt: "Hot water died on a Sunday with three kids in the house. Answered the phone, had a temp loaner running by lunch, new iStore in on Tuesday. That's service.", who: "Sam K.", what: "Berwick · emergency hot water", a: "SK" , rating: 5 },
   { title: "Cleaned up like nothing happened", txt: "Full ducted retrofit over two days. When they left the roof cavity was tidier than they found it and the driveway had been swept. Small thing but it matters.", who: "Bianca R.", what: "Berwick · ducted install", a: "BR" , rating: 5 },
   { title: "No surprises on the invoice", txt: "Quote number matched the invoice exactly. No 'we hit unexpected wiring' story at the end. Nice change.", who: "Priya S.", what: "Cranbourne · split install", a: "PS" , rating: 5 },
   { title: "Follow-up call was a surprise", txt: "A week after install they rang to check the heat pump was running quiet and the app was set up. First tradie who's ever followed up after payment cleared.", who: "Nick D.", what: "Beaconsfield · heat pump", a: "ND" , rating: 5 },
-  { title: "Explained everything", txt: "Walked me through the Milieu tablet, showed the wife how to use it, showed us the compliance cert. Ten minutes of teaching that other installers just skip.", who: "Marcus T.", what: "Officer · ducted aircon", a: "MT" , rating: 5 },
+  { title: "Explained everything", txt: "Walked me through the Milieu tablet, showed the wife how to use it, showed us the compliance cert. Ten minutes of teaching that other installers just skip.", who: "Marcus T.", what: "Officer · ducted aircon", a: "MT" , rating: 5, unconfirmed: "Nov 2026 audit: wording not yet checked against Google" },
   { title: "Split install in half a day", txt: "Bedroom Mitsubishi went in before lunch. Neat pipework, brackets straight, temp checked before they left. Would use again for the lounge.", who: "Alex P.", what: "Cranbourne East · split", a: "AP" , rating: 5 },
 ];
 
@@ -74,7 +79,10 @@ const REVIEWS_RAW: Review[] = [
  * then sorted highest-first.
  */
 export const REVIEWS: Review[] = REVIEWS_RAW
-  .filter((r) => r.rating >= MIN_PUBLISHED_RATING)
+  // Held back until someone confirms the text against Google (Jake wasn't
+  // sure, 24 Nov 2026): a reworded review shown as a Google review is the
+  // thing the sourcing rule above exists to prevent.
+  .filter((r) => r.rating >= MIN_PUBLISHED_RATING && !r.unconfirmed)
   .sort((a, b) => b.rating - a.rating);
 
 /**

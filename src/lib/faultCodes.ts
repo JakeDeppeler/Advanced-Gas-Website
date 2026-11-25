@@ -197,7 +197,7 @@ export const FAULT_CODES: FaultCode[] = [
       ],
       diyChecks: [
         "Take the indoor filters out and wash them",
-        "Hose the outdoor coil down gently with the unit off",
+        "Switch off at the outdoor isolator, then hose the coil down gently",
         "Clear at least 30 cm around the outdoor unit",
         "Leave it off for an hour if the indoor coil has iced, then restart",
       ],
@@ -436,7 +436,7 @@ export const FAULT_CODES: FaultCode[] = [
       ],
     },
   },
-  { brand: "Brivis", code: "h01 44", system: "heater", meaning: "Flame roll-out detected during ignition",                         firstCheck: "Roll-out sensor triggered. Book gas fitter, burner or heat exchanger issue.",                                       severity: "warn",
+  { brand: "Brivis", code: "h01 44", system: "heater", meaning: "Flame roll-out detected during ignition",                         firstCheck: "STOP unit. Roll-out sensor triggered. Book gas fitter, burner or heat exchanger issue.",                             severity: "critical",
     detail: {
       whatItMeans: "Flame roll-out. The burner flame has come out of the combustion chamber where it should not be, and the roll-out sensor has shut the heater down. This is one of the codes we take seriously immediately.",
       causes: [
@@ -490,7 +490,7 @@ export const FAULT_CODES: FaultCode[] = [
         "Gas line sizing check where several appliances share a run",
         "Combustion analysis once it lights",
       ],
-      keepRunning: "There is nothing running to keep going. Resetting it a few times is fine, but do not sit there cycling it all evening; every failed attempt puts unburnt gas into the combustion chamber before the purge clears it.",
+      keepRunning: "There is nothing running to keep going. One reset is fine; if it fails again, leave it and book it. Do not sit there cycling it all evening; every failed attempt puts unburnt gas into the combustion chamber before the purge clears it.",
       typicalFix: "A good proportion of these are a valve someone turned off or an empty bottle, and cost you a phone call. The genuine ones are usually an igniter or a flame sense rod, both stocked and both done on the first visit.",
       related: [
         "h01 50",
@@ -578,7 +578,7 @@ export const FAULT_CODES: FaultCode[] = [
         "Pull the return-air filter and hold it up to the light. If you cannot see through it, that is your answer",
         "Open every ceiling vent in the house",
         "Check nothing is sitting against the return-air grille",
-        "Reset once after it has cooled right down",
+        "Don't reset it. Turn it off and book a gas fitter",
       ],
       techChecks: [
         "Temperature rise across the heat exchanger against the data plate",
@@ -599,7 +599,7 @@ export const FAULT_CODES: FaultCode[] = [
   },
   { brand: "Brivis", code: "h01 54", system: "heater", meaning: "Roll-out lockout, max roll-out events during heat cycle",        firstCheck: "STOP unit. Repeated roll-out, burner / heat exchanger inspection required.",                                        severity: "critical" },
   { brand: "Brivis", code: "h01 55", system: "heater", meaning: "Flame validation lockout, flame lost repeatedly at validate step", firstCheck: "STOP unit. Book gas fitter, flame or gas supply issue.",                                                            severity: "critical" },
-  { brand: "Brivis", code: "h01 56", system: "heater", meaning: "Pressure switch stuck open, flue fan on but no pressure",        firstCheck: "Pressure switch or tube blocked. Book service.",                                                                      severity: "warn",
+  { brand: "Brivis", code: "h01 56", system: "heater", meaning: "Pressure switch stuck open, flue fan on but no pressure",        firstCheck: "STOP unit. Pressure switch or tube blocked. Book service.",                                                           severity: "critical",
     detail: {
       whatItMeans: "The pressure switch is stuck open. The flue fan is running, so the heater expects to see pressure in the combustion chamber, and the switch is telling it there is none.",
       causes: [
@@ -629,7 +629,7 @@ export const FAULT_CODES: FaultCode[] = [
       ],
     },
   },
-  { brand: "Brivis", code: "h01 57", system: "heater", meaning: "Pressure switch stuck closed, flue fan off but pressure detected", firstCheck: "Pressure switch stuck. Book service.",                                                                               severity: "warn",
+  { brand: "Brivis", code: "h01 57", system: "heater", meaning: "Pressure switch stuck closed, flue fan off but pressure detected", firstCheck: "STOP unit. Pressure switch stuck. Book service.",                                                                    severity: "critical",
     detail: {
       whatItMeans: "The pressure switch is stuck closed. The flue fan is off, so the heater expects no pressure, and the switch says there is some. Mechanically the opposite of h01 56 and usually a failed switch rather than a flue problem.",
       causes: [
@@ -740,7 +740,7 @@ export const FAULT_CODES: FaultCode[] = [
         "Circulation pump operation",
         "Heat exchanger and evaporator condition",
       ],
-      keepRunning: "No. Stop it and book it. The good news is that Reclaim's heat pump warranty runs ten years parts and labour on their own unit, so if the system is within that window this is very likely covered.",
+      keepRunning: "No. Stop it and book it. The good news is that Reclaim's heat pump warranty runs ten years on the heat pump, so if the system is within that window this is very likely covered.",
       typicalFix: "Often airflow or water flow rather than the refrigerant circuit itself. Where it is the circuit, it is a warranty job through Reclaim rather than something to pay for out of pocket.",
       related: [
         "E6",
@@ -795,7 +795,7 @@ export const FAULT_CODES: FaultCode[] = [
         "Very high ambient plus a dirty coil together",
       ],
       diyChecks: [
-        "Turn it off at the isolator",
+        "Switch the heat pump off at its controller (not the isolator, which also cuts the boost element)",
         "Look at the coil, if you can see it, and check whether it is furred up with dust",
         "Make sure nothing is stacked against the unit",
       ],
@@ -805,8 +805,8 @@ export const FAULT_CODES: FaultCode[] = [
         "Fan motor test",
         "Confirm clearances match iStore's install requirements",
       ],
-      keepRunning: "Turn it off. You will still have whatever hot water is in the tank, and on most iStore units the electric boost will keep you going while you wait, which is worth knowing if you have a house full of people.",
-      typicalFix: "Usually a coil clean and better clearance around the unit. iStore carry a 6-year tank and 3-year compressor warranty, so a genuine refrigerant-side fault inside that period is a warranty job.",
+      keepRunning: "Turn the heat pump off. You will still have whatever hot water is in the tank, and if your model has a boost mode, using it will keep you going while you wait, which is worth knowing if you have a house full of people.",
+      typicalFix: "Usually a coil clean and better clearance around the unit. iStore carry a 5-year warranty on the whole unit, so a genuine refrigerant-side fault inside that period is a warranty job.",
       related: [
         "E8",
         "E7",
@@ -1061,7 +1061,7 @@ export const FAULT_CODES: FaultCode[] = [
       ],
     },
   },
-  { brand: "Bonaire", code: "E05", system: "evap",   meaning: "Ambient temp sensor fault",                       firstCheck: "Outdoor sensor open, sensor swap by installer.",                                             severity: "warn",
+  { brand: "Bonaire", code: "E05", system: "evap",   meaning: "Ambient temp sensor fault",                       firstCheck: "Outdoor sensor open, sensor swap by installer.",                                             severity: "info",
     detail: {
       whatItMeans: "The ambient temperature sensor has gone open-circuit or out of range. The unit no longer knows what the outside temperature is, which affects how it decides to run.",
       causes: [
@@ -1194,7 +1194,7 @@ export const FAULT_CODES: FaultCode[] = [
 
   // ------------------- Extra Mitsubishi codes -------------------
   { brand: "Mitsubishi Electric", code: "P7", system: "aircon", meaning: "System error / multi-head miswire",       firstCheck: "Indoor unit address conflict on multi-head. Requires MXZ config check.",                       severity: "warn" },
-  { brand: "Mitsubishi Electric", code: "U8", system: "aircon", meaning: "Outdoor DC voltage abnormal",             firstCheck: "STOP unit. Power supply or inverter drive fault, warranty service.",                          severity: "critical" },
+  { brand: "Mitsubishi Electric", code: "U8", system: "aircon", meaning: "Outdoor fan motor protection stop",       firstCheck: "Outdoor fan stopped or running too slow. Clear the outdoor unit, then book a service: fan motor or board.", severity: "warn" },
 
   // ------------------- Extra Daikin codes -------------------
   { brand: "Daikin",  code: "H9",  system: "aircon",   meaning: "Outdoor ambient sensor fault",                    firstCheck: "Sensor open, swap fix.",                                                                     severity: "warn" },

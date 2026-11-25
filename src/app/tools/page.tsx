@@ -1,18 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/lib/site";
-import { InstagramCTA } from "@/components/InstagramCTA";
-import "../detail.css";
-import "./tools.css";
-import { PageHero } from "@/components/PageHero";
+import { BkMotion } from "@/components/homepage/brand/BkMotion";
+import { PageHero, HeroCard } from "@/components/homepage/page/PageHero";
+import { SiteModeStrip } from "@/components/Header";
+import { PHOTO } from "@/lib/homepage/data";
+import { EndCta } from "@/components/homepage/page/bands";
+import { TOOL_GROUPS, TOOL_LIST } from "@/components/homepage/tools/toolList";
+import "@/components/homepage/homepage.css";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
+import "@/components/homepage/brand/blocks.css";
+import "@/components/homepage/page/category.css";
+import "@/components/homepage/tools/tools.css";
 
 /**
- * /tools hub — free calculators + reference material that pull organic
- * traffic on high-intent search queries ("aircon sizing calculator",
- * "running cost aircon", "Mitsubishi fault code E9").
+ * /tools hub: free calculators and reference that pull organic traffic on
+ * high-intent searches ("aircon sizing calculator", "running cost aircon",
+ * "Mitsubishi fault code E9"). Each tool page targets one query cluster,
+ * then hands the visitor a natural step up to a quote.
  *
- * Each tool page targets one specific query cluster, then hands the
- * visitor a natural upgrade into a quote CTA.
+ * The hero in the brand pages' block layout; the tools themselves in the
+ * homepage's navy tools box, each card naming the job it does.
  */
 
 export const metadata: Metadata = {
@@ -22,218 +31,88 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tools" },
 };
 
-/** Tool groups — the hub was one flat grid of 8 cards, which made it
- *  hard to tell the comparison tools from the money tools at a glance. */
-type ToolGroup = "compare" | "cost" | "size" | "reference";
-
-const TOOL_GROUPS: { key: ToolGroup; label: string; blurb: string }[] = [
-  { key: "size",      label: "Size it right",      blurb: "Work out what your home actually needs before anyone quotes you." },
-  { key: "cost",      label: "What it'll cost",    blurb: "Running costs, rebates and payback. Real numbers, not sales maths." },
-  { key: "compare",   label: "Compare systems",    blurb: "Side-by-side on the specs that decide it." },
-  { key: "reference", label: "Reference",          blurb: "Look something up." },
-];
-
-const TOOLS: {
-  slug: string;
-  title: string;
-  tagline: string;
-  blurb: string;
-  ctaLabel: string;
-  bullets: string[];
-  group: ToolGroup;
-}[] = [
-  {
-    slug: "sizing-calculator",
-    group: "size",
-    title: "Aircon Sizing Calculator",
-    tagline: "What size aircon does this room need?",
-    blurb:
-      "Get the right kW rating for your room in seconds. Enter the room dimensions, ceiling height, orientation and insulation. The calculator handles the industry-standard heat-load formula so you don't quote the wrong size.",
-    ctaLabel: "Open the sizing calculator →",
-    bullets: [
-      "Australian residential heat-load formula",
-      "Adjusts for ceiling height, orientation, insulation, glazing, occupants",
-      "Recommends a cooling capacity range (kW) + closest standard model size",
-    ],
-  },
-  {
-    slug: "heat-pump-sizing",
-    group: "size",
-    title: "Heat Pump Sizing Calculator",
-    tagline: "What size hot water tank does my home need?",
-    blurb:
-      "Most guides just count bedrooms. This one sizes off what your household actually draws, shower flow, shower length, how many people go through before work, then gives you the tank size, recovery rate and full reheat time.",
-    ctaLabel: "Size my heat pump →",
-    bullets: [
-      "Works out the real hot-water fraction of a mixed shower (a 9 L/min head only pulls ~5 L from the tank)",
-      "Sizes on 80% usable capacity, not the number on the badge",
-      "Reheat time + L/hr recovery for your chosen COP and compressor",
-    ],
-  },
-  {
-    slug: "veu-rebate-estimator",
-    group: "cost",
-    title: "VEU Rebate Estimator",
-    tagline: "How much rebate can I claim?",
-    blurb:
-      "Enter your postcode, current system and planned upgrade, get the estimated Victorian Energy Upgrades rebate range and your net out-of-pocket install cost. Covers hot water and space heating/cooling upgrades.",
-    ctaLabel: "Estimate my rebate →",
-    bullets: [
-      "Every VEU upgrade path (gas / electric → heat pump, gas ducted → RC)",
-      "Household size + solar adjustments for hot water",
-      "Rebate range + net install cost after rebate",
-    ],
-  },
-  {
-    slug: "heating-comparator",
-    group: "compare",
-    title: "Gas vs Reverse-Cycle Heating",
-    tagline: "Which is cheaper to run this winter?",
-    blurb:
-      "Compare the annual winter running cost of a gas ducted heater against a reverse-cycle (heat pump) system for your home. Enter heat load, hours, star rating, COP and tariffs, get the payback if you swap.",
-    ctaLabel: "Compare heating cost →",
-    bullets: [
-      "3 to 6-star gas efficiency + inverter reverse-cycle COP",
-      "Annual saving + payback with VEU rebate applied",
-      "10-year net saving projection",
-    ],
-  },
-  {
-    slug: "heat-pump-compare",
-    group: "compare",
-    title: "Heat Pump Compare",
-    tagline: "Reclaim vs iStore vs Thermann vs Rheem.",
-    blurb:
-      "Cross-brand heat pump hot water comparison, CO₂ vs R290 vs R134a, capacity, warranty, COP, price band, made-in and our installer take. Pick 2-5 models to compare side-by-side.",
-    ctaLabel: "Compare heat pumps →",
-    bullets: [
-      "Every major HW heat pump brand we service",
-      "Refrigerant type, COP, warranty, install range",
-      "Pros / cons + our default recommendations",
-    ],
-  },
-  {
-    slug: "system-comparison",
-    group: "compare",
-    title: "System Type Comparison",
-    tagline: "Split vs multi-head vs ducted vs gas vs evap.",
-    blurb:
-      "Side-by-side comparison of the five main home climate-control options, install cost, running cost, zone control, lifespan, best-for scenarios and which brands we install for each. Pick 2-5 systems to compare.",
-    ctaLabel: "Compare systems →",
-    bullets: [
-      "5 system types · toggle any 2-5 to compare",
-      "Real Melbourne install-cost + running-cost ranges",
-      "Pros, cons, brands and rule-of-thumb picks",
-    ],
-  },
-  {
-    slug: "hot-water-savings",
-    group: "cost",
-    title: "Hot Water Savings Calculator",
-    tagline: "How much will a heat pump save me?",
-    blurb:
-      "Compare your current gas or electric hot water annual cost against a modern heat pump. Applies the Victorian VEU rebate to the install cost and projects the payback period over 10 years, the fastest way to see if the upgrade actually pays for itself.",
-    ctaLabel: "See my savings →",
-    bullets: [
-      "Handles gas storage, gas continuous, electric peak, off-peak and solar-boost",
-      "VEU rebate applied to net install cost",
-      "Payback in years + 10-year total savings",
-    ],
-  },
-  {
-    slug: "running-cost-calculator",
-    group: "cost",
-    title: "Running Cost Calculator",
-    tagline: "What will this cost me to run?",
-    blurb:
-      "Estimate the electricity cost of running an aircon or heat pump per day, week and year. Uses your unit's kW input (or capacity + COP), your usage hours and your electricity price to project the real running cost.",
-    ctaLabel: "Estimate my running cost →",
-    bullets: [
-      "Works for split, multi-head, ducted and heat pump hot water",
-      "COP + capacity → kW input conversion built in",
-      "Shows cost per day, per week and per year at your electricity rate",
-    ],
-  },
-  {
-    slug: "fault-codes",
-    group: "reference",
-    title: "Aircon Fault Code Lookup",
-    tagline: "What does this error code on my aircon mean?",
-    blurb:
-      "Searchable table of the most common fault codes across every major aircon brand we service, Mitsubishi Electric, Daikin, Fujitsu, Panasonic, LG, Kaden and more. Each entry lists the likely cause and the first thing to check.",
-    ctaLabel: "Look up a fault code →",
-    bullets: [
-      "Every brand we service, plus the ones we don't",
-      "Likely cause + first-check for each code",
-      "One click to call us if it's an install-day / warranty issue",
-    ],
-  },
-];
+/** A tool's line icon on its tile; the card's words carry the meaning, so it's hidden from screen readers. */
+function ToolIcon({ d, size }: { d: string; size: number }) {
+  return (
+    <span className="tlh__ico" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
+    </span>
+  );
+}
 
 export default function ToolsHubPage() {
+  // In the groups' order, so the set still reads size, cost, compare, look up.
+  const tools = TOOL_GROUPS.flatMap((g) => TOOL_LIST.filter((t) => t.group === g.key));
+  const groupLabel = Object.fromEntries(TOOL_GROUPS.map((g) => [g.key, g.label])) as Record<string, string>;
   return (
-    <div className="page-detail page-tools">
+    // Two boxes: the blocks styles hang off .bk sitting inside .ag.
+    <>
+    <SiteModeStrip tabs={false} />
+    <div className="ag ag--flat" data-no-reveal>
+      {/* The homepage's top (PageHero), over a ducted unit we put in a roof;
+          the card on the right is the questions the tools answer. */}
       <PageHero
-        crumbs={[{ href: "/", label: "Home" }, { label: "Tools" }]}
-        eyebrow="Free tools"
-        title={<>Aircon &amp; heat pump <span className="accent">tools you can use right now</span>.</>}
-        sub={<>Three free calculators and reference tools we use ourselves on quote day. Work out what size aircon fits your room, what it&rsquo;ll cost to run, or what that flashing fault code on your existing unit actually means.</>}
+        crumbs={[{ name: "Tools" }]}
+        eye="Free tools"
+        title="The tools we use {on quote day}."
+        sub="What size a room needs, what it'll cost to run, what the rebate is worth, which system suits, and what a fault code means. Free, and no sign-up."
+        photo={PHOTO.ductedInstall} pos="center 50%"
+        ctas={<><a href="#tools" className="abtn abtn--or">Pick a tool ↓</a><Link href="/quote" className="abtn abtn--line">Or get a free quote</Link></>}
+        trust={[{ v: `${TOOL_LIST.length} free tools`, k: "No sign-up · No email needed" }]}
+        card={
+          <HeroCard label="Answers in a minute">
+            <ul className="phx__rows phx__rows--ico">
+              {TOOL_LIST.slice(0, 5).map((t) => (
+                <li key={t.slug}><Link href={`/tools/${t.slug}`}><ToolIcon d={t.icon} size={20} /><span><strong>{t.q}</strong><span>{t.title}</span></span></Link></li>
+              ))}
+            </ul>
+          </HeroCard>
+        }
       />
+      <div className="bx bk cx tl" style={{ ["--acc" as string]: "#C2521A" }}>
+      <BkMotion />
 
-      <section className="tools-grid-sec">
+      {/* Every tool in one navy rounded box of white cards, the homepage's
+          "Tools for you" (.htools-box, .tcard). It was four bands of cards
+          with coloured top rules, the last band holding one card. The group
+          each tool belongs to is written on its card, so nothing rests on
+          the old category colours. */}
+      <section className="bk__sec bk__sec--white" id="tools">
         <div className="wrap">
-          {TOOL_GROUPS.map((g) => {
-            const inGroup = TOOLS.filter((t) => t.group === g.key);
-            if (inGroup.length === 0) return null;
-            return (
-              <div key={g.key} className="tools-group">
-                <div className="tools-group__head">
-                  <h2 className="tools-group__title">{g.label}</h2>
-                  <p className="tools-group__blurb">{g.blurb}</p>
-                  <span className="tools-group__count">
-                    {inGroup.length} {inGroup.length === 1 ? "tool" : "tools"}
-                  </span>
-                </div>
-                <div className="tools-grid">
-                  {inGroup.map((t) => (
-                    <Link key={t.slug} href={`/tools/${t.slug}`} className="tool-card">
-                      <div className="tool-card__inner">
-                        <div className="tool-card__eyebrow">Free tool</div>
-                        <h3>{t.title}</h3>
-                        <p className="tool-card__tagline">{t.tagline}</p>
-                        <p className="tool-card__blurb">{t.blurb}</p>
-                        <ul className="tool-card__bullets">
-                          {t.bullets.map((b) => <li key={b}>{b}</li>)}
-                        </ul>
-                        <span className="tool-card__cta">{t.ctaLabel}</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+          <div className="htools-box tlh">
+            <div className="sechead">
+              <div className="sechead__t">
+                <h2 className="h2">Pick a <span>tool</span>.</h2>
+                <p className="htools-sec__p">Size it right, see what it&apos;ll cost, compare systems or look up a fault code. Each one opens on its own page, free and with no sign-up.</p>
               </div>
-            );
-          })}
-          <InstagramCTA
-            heading="Want to see the work, not just the numbers?"
-            body="Our Instagram is every install we finish, splits, ducted, heat pumps and gas heaters going into real houses across Melbourne's south-east."
-          />
+            </div>
+            <ul className="tgrid tlh__grid" data-anim="stagger">
+              {tools.map((t) => (
+                <li key={t.slug}>
+                  <Link href={`/tools/${t.slug}`} className="tcard tlh__card">
+                    {/* A big title beside its icon, as the card's header (Jake, Nov
+                        2026: "the header should be large and have icons"). */}
+                    <span className="tlh__top">
+                      <ToolIcon d={t.icon} size={28} />
+                      <span className="tlh__name"><small className="tlh__grp">{groupLabel[t.group]}</small><strong>{t.title}</strong></span>
+                    </span>
+                    <span className="tlh__q">{t.q}</span>
+                    <ul className="tlh__pts">{t.points.map((p) => <li key={p}>{p}</li>)}</ul>
+                    <em>{t.cta} →</em>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
-      <section className="bigcta" data-hide-sticky-cta>
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Rather just have us size / quote it?</h2>
-            <p>Send the room dimensions or a photo of the fault code. We&rsquo;ll come back with a written price.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
-    </div>
+      <EndCta
+        title={<>Rather we just <span>work it out</span>?</>}
+        text="Send the room dimensions, or a photo of the fault code, and we'll come back with a written price."
+        from="tools-hub"
+      />
+    </div></div>
+    </>
   );
 }

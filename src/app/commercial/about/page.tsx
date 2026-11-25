@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { site } from "@/lib/site";
-import { COMM_COMMUNITY, COMM_HOW_WE_WORK, COMM_LEADERSHIP } from "@/lib/commercialSite";
+import { COMM_HOW_WE_WORK, COMM_LEADERSHIP, communityPhotos } from "@/lib/commercialSite";
 import { CountUp } from "@/components/CountUp";
 import { CxSubHero } from "@/components/commercial/CxSubHero";
 import { CxClose } from "@/components/commercial/CxClose";
@@ -29,11 +29,12 @@ export const metadata: Metadata = {
 const STATS: { v: string; k: string }[] = [
   { v: "12 yrs", k: "Trading from Pakenham" },
   { v: "20+", k: "Years' director experience" },
-  { v: "20", k: "Written procedures" },
+  { v: "6 yrs", k: "Workmanship warranty" },
   { v: "$20M", k: "Public liability" },
 ];
 
 export default function CommercialAboutPage() {
+  const photos = communityPhotos();
   return (
     <div className="page-cx" data-no-reveal>
       <CxSubHero
@@ -73,19 +74,20 @@ export default function CommercialAboutPage() {
             <div className="cx-rv">
               <span className="cx-eye">01 · Who we are</span>
               <blockquote className="cx-quote">
-                We under-promise, <em>over-deliver,</em> and finish on time, within schedule and budget.
+                We under-promise, <em>over-deliver,</em> and finish on time and on budget.
               </blockquote>
             </div>
             <div className="cx-ovw__t cx-rv" style={{ ["--i" as string]: "1", paddingTop: 8 }}>
               <p>We genuinely care about our clients and their stakeholders, and we operate from traditional values.</p>
               <p>
                 We pride ourselves on top-notch installation, repair and maintenance across HVAC, heating, cooling,
-                Type A gas, general and mechanical plumbing, and refrigeration. Residential, commercial and
-                industrial projects throughout Victoria, and open to projects across the region and interstate.
+                Type A and Type B gas, general and mechanical plumbing, and refrigeration. Residential, commercial
+                and industrial projects across Melbourne&rsquo;s south-east and West Gippsland, and further for
+                contract work.
               </p>
               <p>
-                Directly employed installers and apprentices, in our own vans. No labour hire, no rotating
-                subcontractors on your site.
+                Our crew, in our own vans, with every part of the job run under us. No labour hire, and the
+                same crew on your site from the first week to the last.
               </p>
             </div>
           </div>
@@ -149,7 +151,7 @@ export default function CommercialAboutPage() {
             <Image src="/dean.webp" alt="" width={128} height={128} />
             <p>
               <b>Mentored individually.</b> Our staff are trained to uphold the same traditional values and quality
-              of work, as though our director had completed your works personally.
+              of work, as if Dean had done the job himself.
             </p>
           </div>
         </div>
@@ -158,7 +160,7 @@ export default function CommercialAboutPage() {
       {/* ======================== 04 · COMMUNITY ======================== */}
       <section className="cx-sec cx-sec--navy" id="community">
         <div className="wrap">
-          <div className="cx-comm">
+          <div className={`cx-comm${photos.length ? "" : " cx-comm--solo"}`}>
             <div className="cx-rv">
               <span className="cx-eye cx-eye--sky">04 · Giving back</span>
               <h2>Community involvement.</h2>
@@ -169,16 +171,22 @@ export default function CommercialAboutPage() {
               </p>
               <p>It forms a large part of our down-time, and we hope it sets a strong example for the generations to come.</p>
             </div>
-            <ul className="cx-comm__g">
-              {COMM_COMMUNITY.map((c, i) => (
-                <li key={c.cap}>
-                  <figure className="cx-rv" style={{ ["--i" as string]: String(i) }}>
-                    <div className="cx-comm__slot">Photo to come</div>
-                    <figcaption>{c.cap}</figcaption>
-                  </figure>
-                </li>
-              ))}
-            </ul>
+            {/* The clubs' photographs once there is one for every club; until then
+                the paragraph stands alone, rather than beside "Photo to come" frames. */}
+            {photos.length > 0 && (
+              <ul className="cx-comm__g">
+                {photos.map((c, i) => (
+                  <li key={c.cap}>
+                    <figure className="cx-rv" style={{ ["--i" as string]: String(i) }}>
+                      <div className="cx-comm__slot cx-comm__slot--photo">
+                        <Image src={c.photo} alt={`${c.cap}: a club we support`} fill sizes="(max-width: 900px) 33vw, 240px" />
+                      </div>
+                      <figcaption>{c.cap}</figcaption>
+                    </figure>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </section>

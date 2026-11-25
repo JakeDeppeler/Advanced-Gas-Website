@@ -31,7 +31,7 @@ export function UpgradeNudge({
         <p className="upnudge__caveat">{NUDGE_CAVEAT}</p>
         <div className="upnudge__actions">
           <Link href="/rebates" className="upnudge__cta">
-            Up to ${REBATE_FACTS.maxStacked.toLocaleString()} back with the VEU rebate
+            Up to ${REBATE_FACTS.upTo.toLocaleString()} in rebates on a heat pump
           </Link>
           <Link href="/upgrade-or-repair" className="upnudge__link">
             Repair or replace? →

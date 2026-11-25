@@ -211,7 +211,6 @@ const BRAND_KEYWORDS: Record<string, string[]> = {
   "kaden": ["kaden", "ksi", "kci", "kdm"],
   "thermann": ["thermann", "g-series", "gseries"],
   "istore": ["istore", "i-store"],
-  "zonemate": ["zonemate", "milieu"],
 };
 
 /**

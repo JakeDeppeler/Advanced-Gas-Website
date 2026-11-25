@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
-import "../legal/legal.css";
+import { PHOTO } from "@/lib/homepage/data";
+import { LegalPage, LegalLead, LegalSection } from "../legal/LegalPage";
 
 /**
  * Terms of service.
@@ -17,120 +18,145 @@ import "../legal/legal.css";
  * someone assume otherwise.
  */
 
+const DESCRIPTION =
+  "How our quotes, prices, VEU rebates, deposits, access requirements and 6-year workmanship warranty work, in plain terms. Advanced Gas & Aircon, Pakenham.";
+
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description:
-    "How our quotes, prices, VEU rebates, deposits, access requirements and 6-year workmanship warranty work, in plain terms. Advanced Gas & Aircon, Pakenham.",
+  description: DESCRIPTION,
   alternates: { canonical: "/terms" },
 };
 
-const UPDATED = "12 August 2026";
+const UPDATED = "24 November 2026";
+
+const TOC: [string, string][] = [
+  ["quotes", "Quotes"],
+  ["rebates", "Rebates"],
+  ["payment", "Deposits and payment"],
+  ["access", "Access and site conditions"],
+  ["warranty", "Warranty"],
+  ["cancelling", "Cancelling"],
+  ["liability", "Liability"],
+  ["rights", "Your consumer rights"],
+  ["else", "Anything else"],
+];
 
 export default function TermsPage() {
   return (
-    <div className="legal">
-      <div className="wrap legal__wrap">
-        <span className="legal__eyebrow">Legal</span>
-        <h1>Terms of service</h1>
-        <p className="legal__updated">Last updated {UPDATED}</p>
-
-        <p>
+    <LegalPage
+      crumb="Terms of service"
+      title="Terms of {service}."
+      // The meta description doubles as the hero's line, so the hero adds nothing the terms don't say.
+      sub={DESCRIPTION}
+      // One of our installers with a delivery of new units: the equipment and the workmanship these terms cover.
+      photo={PHOTO.whyBig} pos="center 45%"
+      updated={UPDATED}
+      toc={TOC}
+      end={{ title: <>Want it <span>in writing</span>?</>, from: "terms-cta" }}
+    >
+        <LegalLead><p>
           These are the terms {site.legalName}, trading as {site.name}, works
           under. They apply when you accept a quote from us. They are written to
           be read, not to be survived.
-        </p>
+        </p></LegalLead>
 
-        <h2>Quotes</h2>
-        <p>
-          A written quote is fixed for 30 days and the number on it is the
-          number on the invoice. If something on site turns out to be different
-          from what we were told or could see, we stop, tell you what changed,
-          and give you a revised price before we do the work. We do not
-          discover extra cost halfway through and bill you for it afterwards.
-        </p>
-        <p>
-          Prices on this website are indicative and are there so you know
-          roughly where you stand. The quote is the price.
-        </p>
+        <LegalSection id="quotes" title="Quotes" icon="quote">
+          <p>
+            A written quote is fixed for 30 days and the number on it is the
+            number on the invoice. If something on site turns out to be different
+            from what we were told or could see, we stop, tell you what changed,
+            and give you a revised price before we do the work. We do not
+            discover extra cost halfway through and bill you for it afterwards.
+          </p>
+          <p>
+            Prices on this website are indicative and are there so you know
+            roughly where you stand. The quote is the price.
+          </p>
+        </LegalSection>
 
-        <h2>Rebates</h2>
-        <p>
-          Where a job is eligible under Victorian Energy Upgrades or Solar
-          Homes, we apply the rebate at the quote and lodge the paperwork
-          ourselves. You do not front the money and chase it back.
-        </p>
-        <p>
-          Eligibility is decided by the scheme, not by us, and rebate values
-          move with certificate prices. We confirm your eligibility before you
-          commit. If a rebate is refused for a reason we got wrong, we wear it.
-          If it is refused because the information you gave us was wrong, the
-          difference is payable.
-        </p>
+        <LegalSection id="rebates" title="Rebates" icon="percent">
+          <p>
+            Where a job is eligible under Victorian Energy Upgrades or Solar
+            Homes, we apply the rebate at the quote and lodge the paperwork
+            ourselves. You do not front the money and chase it back.
+          </p>
+          <p>
+            Eligibility is decided by the scheme, not by us, and rebate values
+            move with certificate prices. We confirm your eligibility before you
+            commit. If a rebate is refused for a reason we got wrong, we wear it.
+            If it is refused because the information you gave us was wrong, the
+            difference is payable.
+          </p>
+        </LegalSection>
 
-        <h2>Deposits and payment</h2>
-        <p>
-          Most residential jobs are paid on completion. Where a job needs
-          equipment ordered in specially, we ask for a deposit to cover the
-          stock, and that is stated on the quote rather than sprung on you.
-          Invoices are due within 7 days unless we have agreed otherwise in
-          writing.
-        </p>
+        <LegalSection id="payment" title="Deposits and payment" icon="card">
+          <p>
+            Most residential jobs are paid on completion. Where a job needs
+            equipment ordered in specially, we ask for a deposit to cover the
+            stock, and that is stated on the quote rather than sprung on you.
+            Invoices are due within 7 days unless we have agreed otherwise in
+            writing.
+          </p>
+        </LegalSection>
 
-        <h2>Access and site conditions</h2>
-        <p>
-          We need safe access to the work area, the switchboard and the meter on
-          the day. If a roof is unsafe to walk, if the weather makes roof work
-          dangerous, or if we can&rsquo;t get to the equipment, we will rebook
-          rather than push on. We would rather move a job than have someone get
-          hurt on it.
-        </p>
-        <p>
-          If we arrive at an agreed time and can&rsquo;t get in, or the job is
-          cancelled with less than 24 hours notice, a call-out fee may apply. We
-          will tell you before charging it.
-        </p>
+        <LegalSection id="access" title="Access and site conditions" icon="home">
+          <p>
+            We need safe access to the work area, the switchboard and the meter on
+            the day. If a roof is unsafe to walk, if the weather makes roof work
+            dangerous, or if we can&rsquo;t get to the equipment, we will rebook
+            rather than push on. We would rather move a job than have someone get
+            hurt on it.
+          </p>
+          <p>
+            If we arrive at an agreed time and can&rsquo;t get in, or the job is
+            cancelled with less than 24 hours&rsquo; notice, a call-out fee may apply. We
+            will tell you before charging it.
+          </p>
+        </LegalSection>
 
-        <h2>Warranty</h2>
-        <ul>
-          <li>
-            <strong>Our workmanship: 6 years.</strong> If something we did
-            fails, we come back and fix it. That covers the install, the
-            brackets, the pipework, the wiring and the finish.
-          </li>
-          <li>
-            <strong>The equipment: the manufacturer&rsquo;s own warranty,</strong>{" "}
-            registered in your name at install. Lengths vary by product and are
-            listed on each product page.
-          </li>
-          <li>
-            <strong>Parts we supply on a repair: 12 months.</strong>
-          </li>
-        </ul>
-        <p>
-          Warranty does not cover damage from misuse, storms, pests, power
-          surges, someone else&rsquo;s work on the system, or a manufacturer
-          service schedule that was never followed. Where a manufacturer
-          requires annual servicing to keep cover in force, we tell you at
-          handover and the reminder is free.
-        </p>
+        <LegalSection id="warranty" title="Warranty" icon="shield">
+          <ul>
+            <li>
+              <strong>Our workmanship: 6 years, on homes and businesses alike.</strong> If something we did
+              fails, we come back and fix it. That covers the install, the
+              brackets, the pipework, the wiring and the finish.
+            </li>
+            <li>
+              <strong>The equipment: the manufacturer&rsquo;s own warranty,</strong>{" "}
+              registered in your name at install. Lengths vary by product and are
+              listed on each product page.
+            </li>
+            <li>
+              <strong>Parts we supply on a repair: 12 months.</strong>
+            </li>
+          </ul>
+          <p>
+            Warranty does not cover damage from misuse, storms, pests, power
+            surges, someone else&rsquo;s work on the system, or a manufacturer
+            service schedule that was never followed. Where a manufacturer
+            requires annual servicing to keep cover in force, we tell you at
+            handover and the reminder is free.
+          </p>
+        </LegalSection>
 
-        <h2>Cancelling</h2>
-        <p>
-          You can cancel before we order equipment and we will refund any
-          deposit in full. After stock is ordered specially for your job, we
-          keep the cost of that stock and refund the rest.
-        </p>
+        <LegalSection id="cancelling" title="Cancelling" icon="cancel">
+          <p>
+            You can cancel before we order equipment and we will refund any
+            deposit in full. After stock is ordered specially for your job, we
+            keep the cost of that stock and refund the rest.
+          </p>
+        </LegalSection>
 
-        <h2>Liability</h2>
-        <p>
-          We carry $20 million public liability insurance. We are responsible
-          for the work we do and the damage we cause. We are not responsible for
-          pre-existing faults in a property, or for consequential losses such as
-          lost income, beyond what the law requires of us.
-        </p>
+        <LegalSection id="liability" title="Liability" icon="umbrella">
+          <p>
+            We carry $20 million public liability insurance. We are responsible
+            for the work we do and the damage we cause. We are not responsible for
+            pre-existing faults in a property, or for consequential losses such as
+            lost income, beyond what the law requires of us.
+          </p>
+        </LegalSection>
 
-        <div className="legal__box">
-          <h2>Your consumer rights</h2>
+        <LegalSection id="rights" title="Your consumer rights" icon="scale" boxed>
           <p>
             Nothing on this page limits your rights under the Australian
             Consumer Law. Our goods and services come with guarantees that
@@ -139,22 +165,22 @@ export default function TermsPage() {
             foreseeable loss or damage. Where a failure is not major, you are
             entitled to have it fixed in a reasonable time.
           </p>
-        </div>
+        </LegalSection>
 
-        <h2>Anything else</h2>
-        <p>
-          These terms are governed by the law of Victoria, Australia. If a
-          dispute comes up, call us first, on{" "}
-          <a href={`tel:${site.phoneE164}`}>{site.phone}</a>. In eleven years
-          almost everything has been sorted out on the phone.
-        </p>
+        <LegalSection id="else" title="Anything else" icon="phone">
+          <p>
+            These terms are governed by the law of Victoria, Australia. If a
+            dispute comes up, call us first, on{" "}
+            <a href={`tel:${site.phoneE164}`}>{site.phone}</a>. Since 2014
+            almost everything has been sorted out on the phone.
+          </p>
+        </LegalSection>
 
-        <p style={{ marginTop: "2rem" }}>
+        <p className="lg__foot">
           {site.legalName} · ABN {site.abn} · Plumbing Licence 46828 ·{" "}
           <Link href="/contact">Contact us</Link> ·{" "}
           <Link href="/privacy">Privacy notice</Link>
         </p>
-      </div>
-    </div>
+    </LegalPage>
   );
 }

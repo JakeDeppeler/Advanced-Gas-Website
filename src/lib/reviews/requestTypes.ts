@@ -40,7 +40,7 @@ export type ReviewSettings = {
 export const DEFAULT_REVIEW_SUBJECT = "How did {tech} go, {first}?";
 export const DEFAULT_REVIEW_BODY = `Hi {first},
 
-Thank you for having {tech} out for your {job}. We're a family business in Pakenham, and everyone who comes to your door works for us, not a subcontractor.
+Thank you for having {tech} out for your {job}. We're a family business in Pakenham, and the person who quotes your job is part of the team that installs it.
 
 Would you take a minute to say how it went on Google? Honest reviews are how the next family in {suburb} finds a tradie they can trust, and we read every one.
 

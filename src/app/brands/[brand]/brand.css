@@ -1527,8 +1527,8 @@
 }
 
 /* ==========================================================
-   Single-product brand hub (Zonemate — the Milieu zoning system
-   is their only product, so the brand page IS the product page).
+   Single-product brand hub (a brand with one product, so the
+   brand page IS the product page).
    Hero row: photo left, model + take + CTA right. ProductTabs
    renders underneath with the full spec / features / why split.
    ========================================================== */

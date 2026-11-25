@@ -1,11 +1,30 @@
-import { site, services, suburbs } from "./site";
+import { site, services, publishedSuburbs } from "./site";
+import { SHOW_PRICES } from "./homepage/data";
 
-// Generates JSON-LD blocks for SEO. Embed via <Script type="application/ld+json">.
+// Generates JSON-LD blocks for SEO. Embed with <JsonLd data={...} /> from
+// components/JsonLd, never next/script (see that file for why).
+
+/**
+ * schema.org wants full day names. `site.hours` keeps the "Mon-Fri" shorthand
+ * people read, and it was being passed straight through as
+ * `dayOfWeek: "Mon-Fri"`, which schema.org doesn't recognise, so the one
+ * record Google reads our hours from gave hours for no day at all.
+ */
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+function dayNames(span: string): string[] {
+  const idx = (d: string) => DAYS.findIndex((x) => x.startsWith(d.trim().slice(0, 3)));
+  const [from, to = from] = span.split("-").map(idx);
+  return from < 0 || to < 0 ? [] : DAYS.slice(from, to + 1);
+}
 
 export function localBusinessSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "HVACBusiness",
+    // Both, because the work is both. The gas and hot water half of the
+    // business runs on a plumbing licence, and Plumber is the type that
+    // "hot water Cranbourne" and "gas fitter Officer" belong to. HVACBusiness
+    // on its own described only the aircon half.
+    "@type": ["HVACBusiness", "Plumber"],
     "@id": `${site.url}#business`,
     name: site.name,
     legalName: site.legalName,
@@ -28,16 +47,21 @@ export function localBusinessSchema() {
       latitude: site.geo.lat,
       longitude: site.geo.lng,
     },
-    areaServed: suburbs.map((s) => ({
+    // Published suburbs, each pinned to Victoria ("Officer" and "Clyde" are
+    // place names in other states too) and pointing at its page.
+    areaServed: publishedSuburbs.map((s) => ({
       "@type": "City",
       name: s.name,
+      url: `${site.url}/areas/${s.slug}`,
+      containedInPlace: { "@type": "State", name: site.primaryState },
     })),
     openingHoursSpecification: site.hours.map((h) => ({
       "@type": "OpeningHoursSpecification",
-      dayOfWeek: h.day,
+      dayOfWeek: dayNames(h.day),
       opens: h.open,
       closes: h.close,
     })),
+    taxID: `ABN ${site.abn}`,
     sameAs: Object.values(site.social).filter(Boolean),
     hasOfferCatalog: {
       "@type": "OfferCatalog",
@@ -54,22 +78,66 @@ export function localBusinessSchema() {
   };
 }
 
-export function serviceSchema(serviceSlug: string, location?: string) {
+/**
+ * A Service, provided by the business record the layout prints on every page.
+ *
+ * This used to take a location and build a URL to /areas/<suburb>/<service>.
+ * Those pages were pruned in WEB-008 and 301 to the suburb hub, so a caller
+ * passing a location would have marked up a redirect as the service's home.
+ * Suburbs have suburbServiceSchema below, which points at the hub. A system
+ * page (/services/<service>/<system>) passes its system so the Service names
+ * the job the page is actually about.
+ */
+export function serviceSchema(serviceSlug: string, system?: { id: string; label: string; blurb?: string }) {
   const svc = services.find((s) => s.slug === serviceSlug);
   if (!svc) return null;
-  const name = location ? `${svc.name} in ${location}` : svc.name;
-  const url = location
-    ? `${site.url}/areas/${location.toLowerCase().replace(/\s+/g, "-")}/${svc.slug}`
-    : `${site.url}/services/${svc.slug}`;
   return {
     "@context": "https://schema.org",
     "@type": "Service",
-    name,
+    name: system ? system.label : svc.name,
     serviceType: svc.name,
     provider: { "@id": `${site.url}#business` },
-    areaServed: location ?? site.primaryRegion,
-    description: svc.blurb,
-    url,
+    areaServed: { "@type": "AdministrativeArea", name: site.primaryRegion },
+    description: system?.blurb ?? svc.blurb,
+    url: system ? `${site.url}/services/${svc.slug}/${system.id}` : `${site.url}/services/${svc.slug}`,
+  };
+}
+
+/**
+ * A suburb page as structured data: the services we provide in that one
+ * suburb, provided by the Pakenham business record.
+ *
+ * The suburb pages carried only a breadcrumb, so nothing in their markup said
+ * which place they were about. This states where the work is done, not that
+ * we have a presence there: the provider's address stays Sierra Circuit.
+ */
+export function suburbServiceSchema(sub: { name: string; slug: string; postcode: string }) {
+  const place = {
+    "@type": "City",
+    name: sub.name,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: sub.name,
+      postalCode: sub.postcode,
+      addressRegion: site.address.state,
+      addressCountry: site.address.country,
+    },
+  };
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: `Air conditioning, heating and hot water in ${sub.name}`,
+    url: `${site.url}/areas/${sub.slug}`,
+    provider: { "@id": `${site.url}#business` },
+    areaServed: place,
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: `Services in ${sub.name}`,
+      itemListElement: services.map((s) => ({
+        "@type": "Offer",
+        itemOffered: { "@type": "Service", name: s.name, url: `${site.url}/services/${s.slug}` },
+      })),
+    },
   };
 }
 
@@ -129,7 +197,9 @@ export function productSchema(p: {
   installedPriceFrom?: string;
 }, brandSlug: string) {
   // "$2,538" and "From $2,538" both reduce to the number schema.org wants.
-  const priceNum = p.installedPriceFrom
+  // No offer at all while SHOW_PRICES is off: structured data mustn't carry
+  // a price the page itself no longer shows.
+  const priceNum = SHOW_PRICES && p.installedPriceFrom
     ? Number(p.installedPriceFrom.replace(/[^0-9.]/g, "")) || null
     : null;
 

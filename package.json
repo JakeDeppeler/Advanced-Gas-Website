@@ -44,6 +44,7 @@
     "check:weatherjobs": "npx tsx scripts/check-weatherjobs.ts",
     "check:reviews": "npx tsx scripts/check-reviews.ts",
     "check:wording": "npx tsx scripts/check-wording.ts",
+    "check:assistant": "npx sucrase-node scripts/check-assistant.ts",
     "check:quote-templates": "npx tsx scripts/check-quote-templates.ts",
     "check:equipment-copy": "npx tsx scripts/check-equipment-copy.ts",
     "check:service-wording": "npx tsx scripts/check-service-wording.ts",
