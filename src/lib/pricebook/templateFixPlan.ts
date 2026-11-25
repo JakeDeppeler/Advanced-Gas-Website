@@ -231,11 +231,20 @@ export function planMitsubishiZoning(t: Tpl, z: ZoningText): Edit | null {
   if (gateway.length) { items = items.filter((i) => !gateway.includes(i)); did.push(`Zonemate gateway off ($${gateway.map((g) => g.unitPrice).join(", $")})`); }
   let sensors = 0;
   items = items.map((i) => {
-    if (i.skuId !== ZONEMATE.sensor) return i;
+    // A sensor under a zone add-on is the add-on service's own linked part in the pricebook
+    // (ServiceTitan hands it back with a made-up negative id), not a line of the template: the
+    // template can't change it, so it's left for the add-on (25 Nov, three templates).
+    if (i.skuId !== ZONEMATE.sensor || i.parentItemId != null || (i.id != null && i.id < 0)) return i;
     sensors++;
-    return { ...i, id: null, skuId: ITC_SKU, skuType: "Equipment" as const, skuName: z.itcName, description: z.itcText ?? null, unitPrice: 0, unitCost: null };
+    return { ...i, id: null, skuId: ITC_SKU, skuType: "Equipment" as const, skuName: z.itcName, description: z.itcText ?? null, unitPrice: 0, unitCost: null, chargeable: false };
   });
   if (sensors) did.push(`${sensors} ZoneMate sensor${sensors === 1 ? "" : "s"} → Mitsubishi temperature control${sensors === 1 ? "" : "s"} at $0`);
+  // ServiceTitan prices a template's lines from the pricebook ($90 an ITC), so $0 is held by
+  // making the line not chargeable, as the office's own quotes have it.
+  for (const i of items) {
+    if (i.skuId !== ITC_SKU || i.parentItemId != null || (i.id != null && i.id < 0) || i.id == null) continue;
+    if (Number(i.unitPrice) !== 0 || i.chargeable !== false) { i.unitPrice = 0; i.chargeable = false; did.push("temperature control at $0, not chargeable"); }
+  }
   return did.length ? { items, did } : null;
 }
 
