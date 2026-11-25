@@ -12,6 +12,11 @@ import type { QuoteJob } from "@/lib/ducted/stQuote";
 
 const money = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const hrs = (n: number) => `${Number.isInteger(n) ? n : n.toFixed(2).replace(/0$/, "")} h`;
+/** The designer's model code when there is one ("PEA-M125HAA"), else the unit as the notes named it ("Mitsubishi 16kW ducted"). */
+const unitLabel = (s: string | null) => {
+  const last = s?.trim().split(/\s+/).pop() ?? "";
+  return !s ? "—" : /^[A-Z]{2,}[\w-]*\d/.test(last) ? last : s.trim();
+};
 const GROUP_LABEL: Record<Group, string> = { unit: "Unit", controls: "Zone controller", install: "Installation", extra: "Certificate" };
 
 /**
@@ -138,7 +143,7 @@ function DesignQuote({ cat }: { cat: DuctedCatalogue }) {
         {t && !t.problem && q && (
           <>
             <dl className="pk-du-read">
-              <div><dt>Unit</dt><dd title={t.indoor ?? undefined}>{t.indoor?.split(" ").pop() ?? "—"}{t.kw ? ` · ${t.kw} kW` : ""}</dd></div>
+              <div><dt>Unit</dt><dd title={t.indoor ?? undefined}>{unitLabel(t.indoor)}{t.kw && !/kw/i.test(t.indoor ?? "") ? ` · ${t.kw} kW` : ""}</dd></div>
               <div><dt>Outlets</dt><dd>{q.outlets}</dd></div>
               <div><dt>Zones</dt><dd>{q.zones}</dd></div>
               <div><dt>Take-offs</dt><dd>{t.takeoffs.reduce((a, f) => a + f.qty, 0)}</dd></div>
