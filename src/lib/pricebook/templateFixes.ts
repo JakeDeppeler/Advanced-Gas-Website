@@ -4,7 +4,7 @@ import { stFetch, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
-import { INSTALL_LINE } from "./wording";
+import { SERVICE_COPY } from "./wording";
 import { DUCTED, DUPLICATES, INTERNAL_ON_EXTERNAL, RENAME_24, SKU, planDuctedFixed, planFixes, planFixes24, type Prices, type Tpl } from "./templateFixPlan";
 
 /**
@@ -64,7 +64,7 @@ async function swapToInternal(t: Live): Promise<string> {
   const oldIds = new Set(items.map((i) => i.id).filter((x) => x != null));
   const groupName = (ext.itemGroupName ?? "Gas Ducted Heater - Internal").trim();
   const first = items.map((i) => (i === ext
-    ? { id: null, skuId: SKU.gasInternal, skuType: "Service" as const, skuName: String(svc.displayName ?? "Gas Ducted Heater - Internal"), description: INSTALL_LINE, quantity: 1, unitPrice: price, isAddOn: false, itemGroupName: groupName }
+    ? { id: null, skuId: SKU.gasInternal, skuType: "Service" as const, skuName: String(svc.displayName ?? "Gas Ducted Heater - Internal"), description: SERVICE_COPY["GAS-DUCT-INT"], quantity: 1, unitPrice: price, isAddOn: false, itemGroupName: groupName }
     : i.itemGroupParentId === ext.id ? { ...i, itemGroupParentId: null } : i));
   await stSend("PATCH", path(t.id), { items: templatePatchItems(first) });
   let back = await stFetch<Live>(path(t.id));

@@ -55,7 +55,23 @@ ok("short enough to read on a quote (under 190 words)", words.every((w) => w.n <
 
 const by = (name: string) => texts.find((x) => x.name.trim() === name.trim())!;
 ok("the titles use the maker's real outputs: the '26kW' Buffalos are 28 and 30kW", /Buffalo 28kW 3-star/.test(by("Brivis Buffalo 3 Star 26kW").t) && /Buffalo 30kW 5-star/.test(by("Brivis Buffalo 5 Star 26kW").t));
-ok("Mitsubishi never claims a warranty edge over Kaden (Kaden is 7 years, Mitsubishi 5)", texts.filter((x) => x.family.startsWith("mitsubishi")).every((x) => !/longer warranty/i.test(x.t)) && /7 years against 5/.test(by("Kaden KSI 7kw V3 Split Air Conditioner").t));
+ok("Mitsubishi never claims a warranty edge", texts.filter((x) => x.family.startsWith("mitsubishi")).every((x) => !/longer warranty/i.test(x.t)) && /7-year warranty/.test(by("Kaden KSI 7kw V3 Split Air Conditioner").t));
+
+// Jake, 25 Nov: "on the brand we should only talk about that brand, not compare
+// it to other brands". A unit's words name its own maker only. The exceptions
+// are where another name is part of the product, not a comparison: Reclaim's
+// Panasonic-powered range, Kaden's warranty (serviced through Rinnai's network)
+// and ZoneMate, which says which ducted systems it works with.
+const BRANDS: [string, RegExp][] = [
+  ["mitsubishi", /Mitsubishi/i], ["kaden", /Kaden/i], ["rinnai", /Rinnai/i], ["zonemate", /Zone ?Mate/i], ["reclaim", /Reclaim/i], ["panasonic", /Panasonic/i],
+  ["thermann", /Thermann/i], ["istore", /iStore/i], ["brivis", /Brivis/i], ["braemar", /Braemar/i], ["seeley", /Seeley/i], ["bosch", /Bosch/i],
+  ["beko", /Beko/i], ["westinghouse", /Westinghouse/i], ["daikin", /Daikin/i], ["fujitsu", /Fujitsu/i], ["rheem", /Rheem/i], ["dux", /\bDux\b/], ["breezair", /Breezair/i], ["coolair", /Coolair/i],
+];
+const ALLOWED: Record<string, string[]> = { "reclaim-x-panasonic": ["panasonic"], "zonemate-touch-pro": ["mitsubishi", "kaden"] };
+const ownBrand = (family: string) => BRANDS.map(([b]) => b).filter((b) => family.startsWith(b) || family.includes(b));
+const others = texts.map((x) => ({ name: x.name.trim(), family: x.family, hits: BRANDS.filter(([b, re]) => re.test(x.t) && !ownBrand(x.family).includes(b) && !(ALLOWED[x.family] ?? []).includes(b) && !(b === "rinnai" && x.family.startsWith("kaden") && /Rinnai service/.test(x.t))).map(([b]) => b) })).filter((x) => x.hits.length);
+ok("each unit talks about its own brand only, no comparison with another", others.length === 0, others);
+ok("same-brand comparisons stay: Buffalo 3-star against 5-star", /Compared with the 5-star Buffalo/.test(by("Brivis Buffalo 3 Star 26kW").t));
 ok("the KM60 is a multi-split, not the ducted text it had", /multi-split outdoor unit, for up to 6 rooms/.test(by("Kaden Multi Condenser KM60").t));
 ok("the StarPro says StarPro, not the Ecostar text it had", /StarPro 6/.test(by("Brivis Starpro SP615in V4").t) && !/Ecostar/.test(by("Brivis Starpro SP615in V4").t));
 ok("the Bosch cooktop lost its 'on sale' line", !/sale/i.test(by("Bosch Series 4 60cm Gas Cooktop with Wok Burner").t));

@@ -41,7 +41,12 @@ export const VERSION = "2026-11-22";
 // The units' own descriptions didn't change with it, so they stay on the
 // 17 Nov pass: a new pass would treat any description nobody recorded as
 // fair to write over, and nobody asked for the units to be looked at again.
-const EQUIPMENT_VERSION = "2026-11-17";
+const EQUIPMENT_VERSION = "2026-11-25";
+// The installation services' own descriptions (step 2). Kept apart from VERSION so
+// new install wording (Jake, 25 Nov: say what the installation covers) goes on
+// the 18 services without walking all 199 templates again: a template's service
+// line shows the service's description whatever the template holds.
+const SERVICE_VERSION = "2026-11-25";
 const KEY = "quote_wording";
 const BACKUP = "quote_wording_backup";
 /** ServiceTitan's limit on ids in one call. */
@@ -53,7 +58,7 @@ type Rec = { v?: string; s?: string; l?: Record<string, string> };
 type Progress = {
   templates?: Record<string, Rec>;
   equipment?: Record<string, { v?: string; h?: string }>;
-  /** Installation services whose description is done, by id: the VERSION it was done at. */
+  /** Installation services whose description is done, by id: the SERVICE_VERSION it was done at. */
   services?: Record<string, string>;
   /** The version whose first pass is done: from then on, nothing unrecorded is written over. */
   firstPassDone?: string;
@@ -156,12 +161,12 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
   const installServices = services.filter((s) => installCodes.has(String(s.code ?? "").trim().toUpperCase()));
   for (const s of installServices) {
     const id = Number(s.id);
-    if (svcRecs[id] === VERSION) continue;
+    if (svcRecs[id] === SERVICE_VERSION) continue;
     if (Date.now() > until || writes >= maxWrites || out.failed.length) break;
     const code = String(s.code ?? "").trim().toUpperCase();
     const want = SERVICE_COPY[code];
     const name = String(s.displayName ?? code).trim();
-    if (plainText(s.description as string | null) === flatText(want)) { svcRecs[id] = VERSION; continue; }
+    if (plainText(s.description as string | null) === flatText(want)) { svcRecs[id] = SERVICE_VERSION; continue; }
     if (!bS[id]) { bS[id] = { at: at(), code, description: plainText(s.description as string | null) }; backupDirty = true; }
     // As the 17 Nov service wording went on (labourSync.ts applyWording): plain text, read back.
     const path = stTenantPath("pricebook", `services/${id}`);
@@ -171,7 +176,7 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
       writes++;
       const back = await stFetch<Raw>(path);
       if (plainText(back.description as string | null) !== flatText(want)) throw new Error("the description reads back different");
-      svcRecs[id] = VERSION;
+      svcRecs[id] = SERVICE_VERSION;
       out.services.push(name);
       await saveSettings(KEY, p);
     } catch (e) {
@@ -249,7 +254,7 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
   }
 
   const remaining = all.filter((t) => recs[t.id]?.v !== VERSION).length + equipIds.filter((id) => eqRecs[id]?.v !== EQUIPMENT_VERSION).length
-    + installServices.filter((s) => svcRecs[Number(s.id)] !== VERSION).length;
+    + installServices.filter((s) => svcRecs[Number(s.id)] !== SERVICE_VERSION).length;
   if (!remaining && firstPass) p.firstPassDone = VERSION;
   out.left = Object.values(left).slice(0, 20);
   if (out.templates.length || out.equipment.length || out.services.length) {

@@ -176,42 +176,81 @@ export function templateSummary(f: TemplateFacts): string {
  * that quote's line does say it (jobwrite/lines.ts labourLine).
  */
 export const INSTALL_LINE = "All labour and materials required to complete the works described in the Job Summary.";
+
+/**
+ * Jake, 25 Nov: "for the template for the installation we need to expand a
+ * little on what the installation [covers]: materials, labour and electric
+ * if there is". Each kind of install says what it covers: the labour, the
+ * materials that go in with it (as the templates carry them), the old unit
+ * out and the system commissioned. The electrician still has a priced line of
+ * its own, so where a job has one the installation line points to it rather
+ * than claiming it a second time. Multi-heads, ducted and the Dominator carry
+ * their labour on its own line too (the head-count labour, added on the job;
+ * the two-day labour; the one-day labour), so theirs say so.
+ */
+const ELEC_OWN_LINE = "The electrical connection by our licensed electrician is on its own line.";
+const DONE_RIGHT = "pressure-tested, vacuumed and commissioned, and we show you how to use it before we leave";
+// Every material named here is on the templates for that kind of install
+// (checked against the 24 Nov snapshot of all 199): no pipe lengths, since the
+// templates carry whole coils and the run is whatever the job needs, and no
+// controller on the evap or gas heater lines, since none of those templates
+// carries one.
+export const INSTALL_COPY: Record<string, string> = {
+  "AC-SPLIT-BTB": `Installation of your new split system, with the outdoor unit on the other side of the wall from the indoor unit. Includes all labour and the materials: insulated copper pipework through a sealed core hole, the condensate drain, a heavy-duty wall bracket for the outdoor unit and Colorbond cover over the pipework. Any old system is removed and disposed of, and the new one is ${DONE_RIGHT}. ${ELEC_OWN_LINE}`,
+  "AC-SPLIT-RTW": `Installation of your new split system, with the pipework run out of sight through the roof space to the outdoor unit on a wall bracket. Includes all labour and the materials: insulated copper pipework, the condensate drain, a heavy-duty wall bracket for the outdoor unit and two lengths of Colorbond cover over the pipework, with every penetration sealed. Any old system is removed and disposed of, and the new one is ${DONE_RIGHT}. ${ELEC_OWN_LINE}`,
+  "AC-SPLIT-RTR": `Installation of your new split system, with the outdoor unit on a bracket on your roof. Includes all labour and the materials: a heavy-duty roof bracket, a sealed roof flashing to keep the roof weathertight, insulated copper pipework and the condensate drain through the roof space, and Colorbond cover over the pipework. Any old system is removed and disposed of, and the new one is ${DONE_RIGHT}. ${ELEC_OWN_LINE}`,
+  "AC-SPLIT-MULTI": `Installation of your new multi-head system: the outdoor unit and each indoor head. Includes the materials: insulated copper pipework to each head (one coil of each size, with more added on the job if the runs need it), condensate drains and a condensate pump where a head can't drain by gravity, a heavy-duty wall bracket for the outdoor unit and Colorbond cover over the pipework, with every penetration sealed. Any old systems are removed and disposed of, and the new one is ${DONE_RIGHT}. The labour is added as its own line for the number of heads being fitted, and the electrical connection by our licensed electrician is on its own line.`,
+  "AC-DUCTED-2DAYS": "Installation of your new ducted system. Includes the materials and the fit-out: the indoor unit in the roof space on a platform with spring anti-vibration mounts, the outdoor unit on a heavy-duty wall bracket, new Bradflo R1.5 insulated ductwork to an outlet in each room, the return air grille and filter, refrigeration pipework and the condensate drain. Any old system and ducting are removed and disposed of, and the new system is pressure-tested, vacuumed, commissioned and the airflow balanced to every outlet. The materials are listed with this line. The two days of labour, the Zonemate controller and the electrical connection by our licensed electrician are on their own lines, and each zone is an add-on.",
+  "AC-DOM-INSTALL": "Installation of your new Dominator on your existing ductwork. Includes the materials: a new return air box and filter, refrigeration pipework, the condensate drain, a heavy-duty wall bracket for the outdoor unit with Colorbond cover over the pipework, and new duct connections where needed. Your old unit is removed and disposed of, and the new system is commissioned and tested. The day of labour and the electrical work by our licensed electrician are on their own lines.",
+  "AC-RAC-INSTALL": "Installation of your new window/wall air conditioner in the existing opening. Includes all labour, fitting and sealing the unit in the opening, and removing and disposing of your old unit. It plugs into your existing power point.",
+  "AC-CONDENSER-REPLACE": `Replacement of your outdoor unit. Includes all labour, recovering the refrigerant from the old unit, connecting the new one to your existing pipework, and removing and disposing of the old unit; the system is ${DONE_RIGHT}.`,
+  "EVAP-INSTALL": "Changeover of your rooftop evaporative cooler. Includes all labour and the materials: the new cooler fitted to your existing ductwork and water supply, a new PVC drain run to the gutter, and the roof penetration resealed and weatherproofed. Your old cooler is removed and disposed of, and the new one is commissioned and tested. It runs on your existing power supply.",
+  "GAS-DUCT-INT": "Replacement of your internal ducted gas heater, in the same place as your old one. Includes all labour and the materials: the new heater connected to your existing ductwork, gas and flue, with new duct and flue parts and roof flashing where needed. Your old heater is removed and disposed of, and the new one gets a gas safety and carbon monoxide check, commissioning and testing.",
+  "GAS-DUCT-EXT": "Replacement of your external ducted gas heater. Includes all labour and the materials: the new heater on a new base box with its flashing, connected to your existing ductwork and gas. Your old heater is removed and disposed of, and the new one gets a gas safety and carbon monoxide check, commissioning and testing.",
+  "HW-HP-PLUG": "Installation of your new heat pump hot water system in place of your old one. Includes all labour and the materials: a reinforced concrete slab, copper pipework and fittings, a Tomson tempering valve kit and insulation on the pipework. Your old system is removed and disposed of, and the new one is commissioned and tested. It plugs into a power point at the unit, so no electrician is needed.",
+  "HW-HP-HARD": `Installation of your new heat pump hot water system in place of your old one. Includes all labour and the materials: a reinforced concrete slab, copper pipework and fittings, a Tomson tempering valve kit and insulation on the pipework. Your old system is removed and disposed of, and the new one is commissioned and tested. ${ELEC_OWN_LINE}`,
+  "HW-HP-SPLIT": `Installation of your new split heat pump hot water system: the tank and the outdoor heat pump unit. Includes all labour and the materials: a reinforced concrete slab, a wall bracket for the heat pump, copper pipework and fittings, a Tomson tempering valve kit and insulation on the pipework. Your old system is removed and disposed of, and the new one is commissioned and tested. ${ELEC_OWN_LINE}`,
+  "HW-CF-INS": "Installation of your new continuous flow hot water system. Includes all labour and the materials: a heater connection kit, copper pipework and fittings for the gas and water, and insulation on the pipework. Your old system is removed and disposed of, and the new one gets a gas safety check, commissioning and testing.",
+  "HW-STORAGE-TO-CF": "Changeover from your storage hot water system to a new continuous flow system. Includes all labour and the materials: a new gas feed in larger copper sized for the new unit, a heater connection kit, copper pipework and fittings for the water, and insulation on the pipework. Your old system is removed and disposed of, and the new one gets a gas safety check, commissioning and testing.",
+  "HW-GAS-STORAGE-INS": "Replacement of your gas storage hot water system, in the same place as your old one. Includes all labour and the materials: a Tomson tempering valve and duo valve, copper pipework and fittings and insulation, connected to your existing gas and flue. Your old system is removed and disposed of, and the new one gets a gas safety check, commissioning and testing.",
+  "GAS-COOKTOP-INSTALL": "Installation of your new gas cooktop in the existing cut-out. Includes all labour and the materials: a new gas isolation valve and appliance regulator, connected to your gas supply. Your old cooktop is removed and disposed of, and the new one gets a gas safety check and a test of every burner.",
+};
 /** The services that carry it, for the after-sync run to put on the pricebook (quoteWording.ts). */
 export const INSTALL_CODES = ["AC-SPLIT-BTB", "AC-SPLIT-RTW", "AC-SPLIT-RTR", "AC-SPLIT-MULTI", "AC-DUCTED-2DAYS", "AC-DOM-INSTALL", "AC-RAC-INSTALL", "AC-CONDENSER-REPLACE", "EVAP-INSTALL", "GAS-DUCT-INT", "GAS-DUCT-EXT", "HW-HP-HARD", "HW-HP-PLUG", "HW-HP-SPLIT", "HW-CF-INS", "HW-STORAGE-TO-CF", "HW-GAS-STORAGE-INS", "GAS-COOKTOP-INSTALL"] as const;
 
 export const SERVICE_COPY: Record<string, string> = {
   // Split installs: what the job is, where the outdoor unit goes, what's in it.
-  "AC-SPLIT-BTB": INSTALL_LINE,
-  "AC-SPLIT-RTW": INSTALL_LINE,
-  "AC-SPLIT-RTR": INSTALL_LINE,
-  "AC-SPLIT-MULTI": INSTALL_LINE,
+  "AC-SPLIT-BTB": INSTALL_COPY["AC-SPLIT-BTB"],
+  "AC-SPLIT-RTW": INSTALL_COPY["AC-SPLIT-RTW"],
+  "AC-SPLIT-RTR": INSTALL_COPY["AC-SPLIT-RTR"],
+  "AC-SPLIT-MULTI": INSTALL_COPY["AC-SPLIT-MULTI"],
   "AC-SPLIT-MULTI-2": "Installation labour for a 2-head system: two technicians, 5 hours, to mount the heads and the outdoor unit, run and connect the pipework and drains, test, vacuum and commission.",
   "AC-SPLIT-MULTI-3": "Installation labour for a 3-head system: two technicians, 7 hours, to mount the heads and the outdoor unit, run and connect the pipework and drains, test, vacuum and commission.",
   "AC-SPLIT-MULTI-4": "Installation labour for a 4-head system: two technicians, 8 hours, to mount the heads and the outdoor unit, run and connect the pipework and drains, test, vacuum and commission.",
   "AC-SPLIT-MULTI-5": "Installation labour for a 5-head system: two technicians, 12 hours, to mount the heads and the outdoor unit, run and connect the pipework and drains, test, vacuum and commission.",
   "AC-SPLIT-MULTI-6": "Installation labour for a 6-head system: two technicians, 14 hours, to mount the heads and the outdoor unit, run and connect the pipework and drains, test, vacuum and commission.",
-  "AC-DUCTED-2DAYS": INSTALL_LINE,
+  "AC-DUCTED-2DAYS": INSTALL_COPY["AC-DUCTED-2DAYS"],
   "AC-DUCTED-LAB": "Installation labour for your ducted system: two technicians, two days, on the roof-space and outdoor work, ductwork, outlets, zoning, pipework, commissioning and balancing.",
   "AC-DUCTED-LAB-1DAY": "Installation labour for your ducted system: two technicians, one day.",
-  "AC-DOM-INSTALL": INSTALL_LINE,
+  "AC-DOM-INSTALL": INSTALL_COPY["AC-DOM-INSTALL"],
   "AC-DOM-LAB": "Installation labour for your Dominator changeover: two technicians, one day, to remove the old unit, fit and connect the new system to your existing ductwork, commission and test.",
-  "AC-RAC-INSTALL": INSTALL_LINE,
-  "AC-CONDENSER-REPLACE": INSTALL_LINE,
+  "AC-RAC-INSTALL": INSTALL_COPY["AC-RAC-INSTALL"],
+  "AC-CONDENSER-REPLACE": INSTALL_COPY["AC-CONDENSER-REPLACE"],
   "DECOMMISSION-DISPOSAL": "Disconnection and removal of your old unit, with the refrigerant safely recovered by a licensed technician, and disposal. For a visit where we're taking a system out and not installing a new one; when we install a new system, removing the old one is included.",
-  "EVAP-INSTALL": INSTALL_LINE,
+  "EVAP-INSTALL": INSTALL_COPY["EVAP-INSTALL"],
   // The internal heater's own service (3 hours, Jake 6 Nov), and the words an
   // internal heater's line gets while its template still uses the external one.
-  "GAS-DUCT-INT": INSTALL_LINE,
-  "GAS-DUCT-EXT#internal": INSTALL_LINE,
-  "GAS-DUCT-EXT": INSTALL_LINE,
+  "GAS-DUCT-INT": INSTALL_COPY["GAS-DUCT-INT"],
+  "GAS-DUCT-EXT#internal": INSTALL_COPY["GAS-DUCT-INT"],
+  "GAS-DUCT-EXT": INSTALL_COPY["GAS-DUCT-EXT"],
   // Hot water and cooking.
-  "HW-HP-HARD": INSTALL_LINE,
-  "HW-HP-PLUG": INSTALL_LINE,
-  "HW-HP-SPLIT": INSTALL_LINE,
-  "HW-CF-INS": INSTALL_LINE,
-  "HW-STORAGE-TO-CF": INSTALL_LINE,
-  "HW-GAS-STORAGE-INS": INSTALL_LINE,
-  "GAS-COOKTOP-INSTALL": INSTALL_LINE,
+  "HW-HP-HARD": INSTALL_COPY["HW-HP-HARD"],
+  "HW-HP-PLUG": INSTALL_COPY["HW-HP-PLUG"],
+  "HW-HP-SPLIT": INSTALL_COPY["HW-HP-SPLIT"],
+  "HW-CF-INS": INSTALL_COPY["HW-CF-INS"],
+  "HW-STORAGE-TO-CF": INSTALL_COPY["HW-STORAGE-TO-CF"],
+  "HW-GAS-STORAGE-INS": INSTALL_COPY["HW-GAS-STORAGE-INS"],
+  "GAS-COOKTOP-INSTALL": INSTALL_COPY["GAS-COOKTOP-INSTALL"],
   // Electrical: the electrician's work, in the same words.
   "AC-SPLIT-ELEC": "The electrical work by a licensed electrician: a dedicated circuit and breaker at the switchboard, cabling to the unit, a weatherproof isolator at the outdoor unit, control cabling between the units, testing and a Certificate of Electrical Safety.",
   "AC-MULTI-ELEC": "The electrical work by a licensed electrician: a new RCBO and dedicated circuit from the switchboard, power to the outdoor unit, a weatherproof isolator, control cabling to each indoor head, testing and a Certificate of Electrical Safety.",
