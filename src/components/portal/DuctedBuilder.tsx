@@ -213,7 +213,10 @@ function QuoteCard({ q, rate, source, hoursNote, extraReason }: { q: DuctedQuote
   };
   // Everything under the installation head bar the services: the ITCs are equipment but sit with the materials.
   const materials = q.lines.filter((l) => l.group === "install" && l.sku && l.sku.skuType !== "Service");
-  const linesText = q.lines.map((l) => `${l.quantity} × ${l.name}${l.missing ? " (not in pricebook)" : ""}  ${money(l.quantity * l.unitPrice)}`).join("\n");
+  // As ServiceTitan gets it: each group's head carries the group's price, the lines under it $0.
+  const groupSum = (g: Group) => q.lines.filter((l) => l.group === g).reduce((a, l) => a + l.quantity * l.unitPrice, 0);
+  const linesText = GROUPS.flatMap((g) => q.lines.filter((l) => l.group === g).map((l, i) =>
+    `${i ? "    " : ""}${l.quantity} × ${l.name.trim()}${l.missing ? " (not in pricebook)" : ""}  ${money(i === 0 ? groupSum(g) : 0)}`)).join("\n");
 
   return (
     <section className="pk-card pk-pad">
@@ -239,15 +242,24 @@ function QuoteCard({ q, rate, source, hoursNote, extraReason }: { q: DuctedQuote
             {GROUPS.map((g) => {
               const ls = q.lines.filter((l) => l.group === g);
               if (!ls.length) return null;
-              const sum = ls.reduce((a, l) => a + l.quantity * l.unitPrice, 0);
+              const sum = groupSum(g);
+              // The quote as it lands in ServiceTitan: the head line carries the whole group (Jake, 25 Nov:
+              // "they should all push into the one main header"), every line under it is $0, and what each
+              // line puts into the head is written under its name so the price can still be checked.
               return [
                 <tr key={`${g}-h`} className="pk-du-grp"><td colSpan={3}>{GROUP_LABEL[g]}</td><td>{money(sum)}</td></tr>,
-                ...ls.map((l, i) => (
-                  <tr key={`${g}-${i}`} className={l.missing ? "pk-du-bad" : i > 0 ? "pk-du-kid" : undefined}>
-                    <td>{l.name.trim()}{l.missing ? " · not in the pricebook" : ""}{l.note && <span className="pk-du-note">{l.note}</span>}</td>
-                    <td>{l.quantity}</td><td>{money(l.unitPrice)}</td><td>{money(l.quantity * l.unitPrice)}</td>
-                  </tr>
-                )),
+                ...ls.map((l, i) => {
+                  const own = l.quantity * l.unitPrice;
+                  const head = i === 0;
+                  const into = !head && !l.missing && own > 0 ? `${money(own)} in the ${GROUP_LABEL[g].toLowerCase()} price` : null;
+                  const takes = head && ls.length > 1 ? `takes the ${ls.length - 1} line${ls.length === 2 ? "" : "s"} under it` : null;
+                  return (
+                    <tr key={`${g}-${i}`} className={l.missing ? "pk-du-bad" : !head ? "pk-du-kid" : undefined}>
+                      <td>{l.name.trim()}{l.missing ? " · not in the pricebook" : ""}{[l.note, takes, into].filter(Boolean).map((n, k) => <span key={k} className="pk-du-note">{n}</span>)}</td>
+                      <td>{l.quantity}</td><td>{money(head ? sum / l.quantity : 0)}</td><td>{money(head ? sum : 0)}</td>
+                    </tr>
+                  );
+                }),
               ];
             })}
           </tbody>

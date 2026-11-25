@@ -59,6 +59,8 @@ export const SECTION_ICON: Record<string, string> = {
   cash: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>',
   wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
   file: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 13h6M9 17h6"/>',
+  // A fan coil branching to two outlets: the ducted quote's own.
+  duct: '<rect x="2" y="9" width="6" height="6" rx="1"/><path d="M8 12h3"/><path d="M11 12c3 0 4-5 7.5-5M11 12c3 0 4 5 7.5 5"/><circle cx="20" cy="7" r="1.5"/><circle cx="20" cy="17" r="1.5"/>',
 };
 
 /**
@@ -120,10 +122,14 @@ export const SECTION_DEFS: SectionDef[] = [
     // the areas they'd been filed in (Pipeline, To-do, Team › How we work), so
     // they're one click from anywhere. The job calculator isn't here: its
     // address now opens Labour rates.
-    id: "tools", label: "Daily tools", icon: "wrench", group: 1, blurb: "The job write-up, the trade tools and toolbox talks: what a day's work is done with",
+    id: "tools", label: "Daily tools", icon: "wrench", group: 1, blurb: "The job write-up, the ducted quote, the trade tools and toolbox talks: what a day's work is done with",
     pages: [
+      // First, so the area opens on a box per tool to pick from (Jake, 25 Nov).
+      { label: "All tools", href: "/portal/daily", icon: "box" },
       // A job's quote and invoice words, written from the job (19 Nov).
       { label: "Write-up", href: "/portal/jobs/write-up", icon: "file" },
+      // A ducted quote from a Trust Trade design or the layout, onto the job (24 Nov).
+      { label: "Ducted quote", href: "/portal/ducted", icon: "duct" },
       { label: "Trade tools", href: "/portal/tools/fault-codes", icon: "wrench" },
       { label: "Toolbox talks", href: "/portal/toolbox", icon: "book" },
     ],
