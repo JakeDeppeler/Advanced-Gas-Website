@@ -278,6 +278,81 @@ export function planDucted25(t: Tpl): Edit | null {
   return did.length ? { items, did } : null;
 }
 
+/* ------------------------------------------------------- 25 Nov, evening */
+
+/** Labour – Tech & 2 Apprentices (LAB-HR-3P): the crew of three by the hour, $360 (labour.ts CREW3). */
+export const LAB_3P = 303041417;
+/** The hours a ducted template starts on: two 8-hour days for the crew. The office changes it per job. */
+export const DUCTED_HOURS = 16;
+export type LabourLine = { name: string; description?: string | null; price: number };
+
+/**
+ * The ducted templates as Jake set them on the evening of 25 Nov, looking at a
+ * quote with the installation switched to Dynamic Pricing: "we need to have
+ * the material for the dynamic markup but the labour can change", "all of
+ * these should be chargeable", and asked, the hourly crew line at 16 hours.
+ *   - Every material on the installation chargeable. On Dynamic Pricing the
+ *     installation's price is its chargeable materials marked up by the
+ *     pricebook's cost bands, so a material left not chargeable is given away
+ *     (the quote he sent had the chipboard, timber, springs, PVC and ductwork
+ *     all switched off).
+ *   - The two-day labour ($5,000) off: a fixed figure is what "the labour can
+ *     change" replaces.
+ *   - Labour – Tech & 2 Apprentices under the installation, 16 hours at the
+ *     pricebook's rate, for the office to change on the job.
+ * The installation's own hours go to 0 in the pricebook (templateFixes.ts), so
+ * its price is the materials alone and the labour isn't counted twice.
+ * Supersedes planDucted25's labour; the temperature controls stay as
+ * planMitsubishiZoning left them (not chargeable, $0, the four the controller
+ * comes with).
+ */
+export function planDuctedHourly(t: Tpl, lab: LabourLine): Edit | null {
+  if (!DUCTED.includes(t.id)) return null;
+  let items = t.items.map((i) => ({ ...i }));
+  const head = items.find((i) => plain(i) && i.skuId === SKU.ductedInstall && i.id != null);
+  if (!head) return null;
+  const did: string[] = [];
+  // A rebate is a material with a negative price: left as the office set it.
+  const off = items.filter((i) => plain(i) && i.skuType === "Material" && i.chargeable === false && Number(i.unitPrice) >= 0);
+  for (const i of off) i.chargeable = true;
+  if (off.length) did.push(`${off.length} material${off.length === 1 ? "" : "s"} made chargeable`);
+  const two = items.filter((i) => plain(i) && i.skuId === SKU.ductedLabour);
+  if (two.length) {
+    items = items.filter((i) => !two.includes(i));
+    did.push(`two-day labour off ($${two.map((l) => l.unitPrice).join(", $")})`);
+  }
+  if (!items.some((i) => plain(i) && i.skuId === LAB_3P)) {
+    items = addUnder(items, head, { skuId: LAB_3P, skuType: "Service", skuName: lab.name, description: lab.description ?? null, quantity: DUCTED_HOURS, unitPrice: lab.price, itemGroupName: null });
+    did.push(`${lab.name.trim()} × ${DUCTED_HOURS} h under the installation`);
+  }
+  return did.length ? { items, did } : null;
+}
+
+/** The Dominator's installation line, and the return air parts on its two templates. */
+export const DOM = { install: 301165167, raBox: 301190015, grille600: 301189408, grille1200: 301217618 } as const;
+
+/**
+ * Jake, 25 Nov evening: "the Dominator we need to remove the return air box
+ * and make the grill 1000x400". The pricebook has no 1000 x 400 grille (the
+ * Profiler Eggcrate comes in 600 and 1200 x 400 there), and asked, he chose
+ * the 1200 x 400 for now. A $0 line (priced into the installation) stays $0;
+ * a priced one takes the 1200's pricebook price.
+ */
+export function planDominator25(t: Tpl, prices: Prices): Edit | null {
+  if (!t.items.some((i) => plain(i) && i.skuId === DOM.install)) return null;
+  let items = t.items.map((i) => ({ ...i }));
+  const did: string[] = [];
+  const boxes = items.filter((i) => plain(i) && i.skuId === DOM.raBox);
+  if (boxes.length) { items = items.filter((i) => !boxes.includes(i)); did.push("return air box off"); }
+  const small = items.find((i) => plain(i) && i.skuId === DOM.grille600);
+  if (small) {
+    const price = Number(small.unitPrice) ? prices.get(DOM.grille1200) ?? Number(small.unitPrice) : 0;
+    items[items.indexOf(small)] = { id: null, skuId: DOM.grille1200, skuType: "Material", skuName: "Profiler Eggcrate Black Filter 1200mm x 400mm", quantity: small.quantity, unitPrice: price, isAddOn: false, chargeable: small.chargeable ?? null, itemGroupParentId: small.itemGroupParentId ?? null };
+    did.push("600 x 400 return air grille → 1200 x 400");
+  }
+  return did.length ? { items, did } : null;
+}
+
 /* ------------------------------------------------------------- 24 Nov */
 
 /**

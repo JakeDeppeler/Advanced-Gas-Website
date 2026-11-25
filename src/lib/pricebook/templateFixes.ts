@@ -5,7 +5,7 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
 import { SERVICE_COPY } from "./wording";
-import { DUCTED, DUPLICATES, INTERNAL_ON_EXTERNAL, ITC_SKU, RENAME_24, SKU, ZC10, planDucted25, planDuctedFixed, planFixes, planFixes24, planMitsubishiZoning, type Prices, type Tpl, type ZoningText } from "./templateFixPlan";
+import { DUCTED, DUCTED_HOURS, DUPLICATES, INTERNAL_ON_EXTERNAL, ITC_SKU, LAB_3P, RENAME_24, SKU, ZC10, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, type LabourLine, type Prices, type Tpl, type ZoningText } from "./templateFixPlan";
 
 /**
  * Jake's 22 Nov template fixes (templateFixPlan.ts says what and why), written
@@ -156,12 +156,13 @@ export async function fixTemplates22Nov(until: number, all: Live[]): Promise<{ f
     await save();
   }
 
-  // 4. Ducted at a fixed price, once Dynamic Pricing is off on the installation.
+  // 4. Ducted at a fixed price, once Dynamic Pricing was off on the installation
+  // (24 Nov; all four done). Superseded on the evening of 25 Nov, when Jake put
+  // the installation back on Dynamic Pricing to carry its materials (step 8):
+  // so this no longer asks for it to be switched off, and on Dynamic Pricing it
+  // does nothing.
   const svc = await readService(SKU.ductedInstall).catch(() => null);
-  if (svc && svc.useStaticPrices === false) {
-    p.waiting = `Dynamic Pricing is still on for "${String(svc.displayName ?? "Ducted Refrigerated System - Installation")}" (it charges $${svc.calculatedPrice ?? svc.price}). Switch it off on the service in ServiceTitan's pricebook and the four ducted templates follow.`;
-  } else if (svc) {
-    delete p.waiting;
+  if (svc && svc.useStaticPrices !== false) {
     const fixedPrice = Number(svc.price);
     for (const id of DUCTED) {
       const t = byId.get(id);
@@ -240,6 +241,75 @@ export async function fixTemplates22Nov(until: number, all: Live[]): Promise<{ f
       const still = planMitsubishiZoning(tpl({ ...back, id, name: back.name ?? t.name }), zoning);
       if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
       if (!(back.items ?? []).some((i) => i.skuId === ZC10 && !!i.itemGroupName)) throw new Error("the Mitsubishi controller didn't land in a group of its own");
+      done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
+      fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // 8. Ducted on Dynamic Pricing with the crew's hours as the labour (Jake, 25 Nov
+  // evening; templateFixPlan.ts › planDuctedHourly). First the installation's
+  // own hours to 0 in the pricebook, so its price is the materials at the
+  // markup and nothing else. Only once it's on Dynamic Pricing: Jake switches
+  // that himself (the API can't), and while it's static its hours price nothing.
+  const install = await readService(SKU.ductedInstall).catch(() => null);
+  const hoursKey = `service:${SKU.ductedInstall}:hours0`;
+  if (install && install.useStaticPrices !== false) {
+    p.waiting = `"${String(install.displayName ?? "Ducted Refrigerated System - Installation").trim()}" is on a static price: switch Dynamic Pricing on for it in ServiceTitan's pricebook so it carries the materials at the markup, and its hours go to 0 on the next run.`;
+  } else if (install) {
+    delete p.waiting;
+    if (!done[hoursKey] && (tries[hoursKey] ?? 0) < MAX_TRIES && Date.now() <= until) {
+      try {
+        if (Number(install.hours) === 0) done[hoursKey] = "already 0 hours";
+        else {
+          await stSend("PATCH", stTenantPath("pricebook", `services/${SKU.ductedInstall}`), { hours: 0 });
+          const back = await readService(SKU.ductedInstall);
+          if (Number(back?.hours) !== 0) throw new Error(`ServiceTitan answered OK but kept ${String(back?.hours)} hours`);
+          done[hoursKey] = `hours ${String(install.hours)} → 0 (it charged $${String(install.calculatedPrice ?? install.price)}, now $${String(back?.calculatedPrice ?? back?.price)} before materials)`;
+          fixed.push(`Ducted installation: ${done[hoursKey]}`);
+        }
+      } catch (e) { tries[hoursKey] = (tries[hoursKey] ?? 0) + 1; notes[hoursKey] = (e as Error).message.slice(0, 300); failed.push("Ducted installation hours"); }
+      await save();
+    }
+  }
+  // Then the four templates: materials chargeable, the two-day labour off, the
+  // crew line on at 16 hours, at the crew line's own pricebook name, words and rate.
+  const crew = await readService(LAB_3P).catch(() => null);
+  const lab: LabourLine | null = crew && crew.active !== false && Number(crew.price) > 0
+    ? { name: String(crew.displayName ?? "Labour – Tech & 2 Apprentices").trim(), description: (crew.description as string | null) ?? null, price: Number(crew.price) }
+    : null;
+  for (const id of DUCTED) {
+    const t = byId.get(id);
+    const key = `${id}:hourly`;
+    if (!lab || !t || done[key] || (tries[key] ?? 0) >= MAX_TRIES || Date.now() > until) continue;
+    try {
+      const now = await stFetch<Live>(path(id));
+      const plan = planDuctedHourly(tpl({ ...now, id, name: now.name ?? t.name }), lab);
+      if (!plan) { done[key] = "nothing left to do"; await save(); continue; }
+      await stSend("PATCH", path(id), { items: templatePatchItems(plan.items) });
+      const back = await stFetch<Live>(path(id));
+      const still = planDuctedHourly(tpl({ ...back, id, name: back.name ?? t.name }), lab);
+      if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
+      const hourly = (back.items ?? []).find((i) => i.skuId === LAB_3P && !i.isAddOn);
+      if (Number(hourly?.quantity) !== DUCTED_HOURS) throw new Error(`the crew line came back at ${String(hourly?.quantity)} hours, not ${DUCTED_HOURS}`);
+      done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
+      fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // 9. The two Dominator templates: the return air box off, the grille to 1200 x 400
+  // (templateFixPlan.ts › planDominator25).
+  for (const t of all) {
+    const key = `${t.id}:dom25`;
+    if (done[key] || (tries[key] ?? 0) >= MAX_TRIES || !planDominator25(tpl(t), prices)) continue;
+    if (Date.now() > until) break;
+    try {
+      const now = await stFetch<Live>(path(t.id));
+      const plan = planDominator25(tpl({ ...now, id: t.id, name: now.name ?? t.name }), prices);
+      if (!plan) { done[key] = "nothing left to do"; await save(); continue; }
+      await stSend("PATCH", path(t.id), { items: templatePatchItems(plan.items) });
+      const back = await stFetch<Live>(path(t.id));
+      const still = planDominator25(tpl({ ...back, id: t.id, name: back.name ?? t.name }), prices);
+      if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
       done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
       fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
     } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
