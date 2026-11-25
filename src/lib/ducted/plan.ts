@@ -5,8 +5,9 @@
  *
  * Jake, 5 Nov 2026: every ducted install is at least two days. A standard
  * house is 8 outlets and 4 zones, and that's two days; more outlets or zones
- * add time, and so does a harder job. Labour is two people at the crew rate
- * (Our prices › Our hourly rate), because a ducted job takes the whole day.
+ * add time, and so does a harder job. Since 25 Nov the two days are $5,000 on
+ * the "Ducted Split - Labour (Two Days)" line under a $0 installation line,
+ * and time past them is Our hourly rate (addInstall).
  */
 
 import type { Fitting, Reducer } from "./fittings";
