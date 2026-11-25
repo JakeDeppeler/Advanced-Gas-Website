@@ -198,6 +198,47 @@ export const ITC_SKU = 303100775;
  * Re-added as a new line: ServiceTitan keeps an existing line's group when
  * only its group fields change (22 Nov, all four templates, twice each).
  */
+/** The Zonemate parts on the ducted templates, and the Mitsubishi Electric 10-zone controller that replaces them. */
+export const ZONEMATE = { bundle: 301216627, gateway: 301217096, sensor: 301190575 } as const;
+export const ZC10 = 303100757;
+export type ZoningText = { controllerPrice: number; controllerName: string; controllerText?: string | null; itcName: string; itcText?: string | null };
+
+/**
+ * The ducted templates on Mitsubishi Electric zoning. Jake, 24 Nov: "we will
+ * always go with a mitsubishi electric 10 zoning now and the controller is a
+ * equment so it stand out and its own item group"; 25 Nov: "yes swap them to
+ * the mitsubishi 10 zone".
+ *   - The Zonemate Touch Pro bundle becomes the Mitsubishi Electric zone
+ *     controller (PAC-ZC10, 10 zones), in its own group.
+ *   - The Zonemate gateway comes off: it's the Zonemate's link to the indoor
+ *     unit, and the Mitsubishi controller doesn't use one.
+ *   - Each ZoneMate wireless sensor, on the installation or in a zone add-on,
+ *     becomes a Mitsubishi temperature control (ITC) at $0, where it was.
+ * New lines, not edited ones: a line's item can't be changed in place.
+ */
+export function planMitsubishiZoning(t: Tpl, z: ZoningText): Edit | null {
+  if (!DUCTED.includes(t.id)) return null;
+  let items = t.items.map((i) => ({ ...i }));
+  const did: string[] = [];
+  const bundle = items.find((i) => i.skuId === ZONEMATE.bundle && !i.isAddOn);
+  if (bundle) {
+    items = items.map((i) => (i === bundle
+      ? { id: null, skuId: ZC10, skuType: "Equipment" as const, skuName: z.controllerName, description: z.controllerText ?? null, quantity: 1, unitPrice: z.controllerPrice, isAddOn: false, itemGroupName: z.controllerName, itemGroupParentId: null, parentItemId: null }
+      : i.itemGroupParentId === bundle.id ? { ...i, itemGroupParentId: null } : i));
+    did.push(`Zonemate Touch Pro bundle ($${bundle.unitPrice}) → Mitsubishi Electric zone controller ($${z.controllerPrice})`);
+  }
+  const gateway = items.filter((i) => i.skuId === ZONEMATE.gateway);
+  if (gateway.length) { items = items.filter((i) => !gateway.includes(i)); did.push(`Zonemate gateway off ($${gateway.map((g) => g.unitPrice).join(", $")})`); }
+  let sensors = 0;
+  items = items.map((i) => {
+    if (i.skuId !== ZONEMATE.sensor) return i;
+    sensors++;
+    return { ...i, id: null, skuId: ITC_SKU, skuType: "Equipment" as const, skuName: z.itcName, description: z.itcText ?? null, unitPrice: 0, unitCost: null };
+  });
+  if (sensors) did.push(`${sensors} ZoneMate sensor${sensors === 1 ? "" : "s"} → Mitsubishi temperature control${sensors === 1 ? "" : "s"} at $0`);
+  return did.length ? { items, did } : null;
+}
+
 export function planDucted25(t: Tpl): Edit | null {
   if (!DUCTED.includes(t.id)) return null;
   let items = t.items.map((i) => ({ ...i }));

@@ -5,7 +5,7 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
 import { SERVICE_COPY } from "./wording";
-import { DUCTED, DUPLICATES, INTERNAL_ON_EXTERNAL, RENAME_24, SKU, planDucted25, planDuctedFixed, planFixes, planFixes24, type Prices, type Tpl } from "./templateFixPlan";
+import { DUCTED, DUPLICATES, INTERNAL_ON_EXTERNAL, ITC_SKU, RENAME_24, SKU, ZC10, planDucted25, planDuctedFixed, planFixes, planFixes24, planMitsubishiZoning, type Prices, type Tpl, type ZoningText } from "./templateFixPlan";
 
 /**
  * Jake's 22 Nov template fixes (templateFixPlan.ts says what and why), written
@@ -45,6 +45,15 @@ const tpl = (t: Live): Tpl => ({ id: t.id, name: (t.name ?? "").trim(), items: t
 async function materialPrices(): Promise<Prices> {
   const rows = await sbSelect<{ id: number; price: string | null }>("st_pricebook_materials", "select=id,price:raw->>price&active=is.true&limit=2000").catch(() => []);
   return new Map(rows.filter((r) => r.price != null).map((r) => [Number(r.id), Number(r.price)]));
+}
+
+/** The Mitsubishi controller's and ITC's names, words and the controller's price, from the pricebook's synced copy. */
+async function zoningText(): Promise<ZoningText | null> {
+  const rows = await sbSelect<{ id: number; name: string; description: string | null; price: string | null }>("st_pricebook_equipment",
+    `select=id,name,description:raw->>description,price:raw->>price&id=in.(${ZC10},${ITC_SKU})&active=is.true`);
+  const zc = rows.find((r) => Number(r.id) === ZC10), itc = rows.find((r) => Number(r.id) === ITC_SKU);
+  if (!zc || !itc || !(Number(zc.price) > 0)) return null;
+  return { controllerPrice: Number(zc.price), controllerName: zc.name.trim(), controllerText: zc.description, itcName: itc.name.trim(), itcText: itc.description };
 }
 
 async function readService(id: number): Promise<Raw | null> {
@@ -209,6 +218,28 @@ export async function fixTemplates22Nov(until: number, all: Live[]): Promise<{ f
       const back = await stFetch<Live>(path(id));
       const still = planDucted25(tpl({ ...back, id, name: back.name ?? t.name }));
       if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
+      done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
+      fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // 7. The four ducted templates on Mitsubishi Electric zoning (templateFixPlan.ts ›
+  // planMitsubishiZoning), with the controller's and the ITC's own pricebook names,
+  // words and price. Read back like the rest.
+  const zoning = await zoningText().catch(() => null);
+  for (const id of DUCTED) {
+    const t = byId.get(id);
+    const key = `${id}:zc10`;
+    if (!zoning || !t || done[key] || (tries[key] ?? 0) >= MAX_TRIES || Date.now() > until) continue;
+    try {
+      const now = await stFetch<Live>(path(id));
+      const plan = planMitsubishiZoning(tpl({ ...now, id, name: now.name ?? t.name }), zoning);
+      if (!plan) { done[key] = "nothing left to do"; await save(); continue; }
+      await stSend("PATCH", path(id), { items: templatePatchItems(plan.items) });
+      const back = await stFetch<Live>(path(id));
+      const still = planMitsubishiZoning(tpl({ ...back, id, name: back.name ?? t.name }), zoning);
+      if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
+      if (!(back.items ?? []).some((i) => i.skuId === ZC10 && !!i.itemGroupName)) throw new Error("the Mitsubishi controller didn't land in a group of its own");
       done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
       fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
     } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }

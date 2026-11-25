@@ -15,7 +15,7 @@ import { evapProposals } from "../src/lib/pricebook/evapProposalSpecs";
 import { flatText, textHash, wordingAction } from "../src/lib/pricebook/summaryRule";
 import { summaryHtml } from "../src/lib/pricebook/wording";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
-import { DUCTED, DUCTED_LABOUR_PRICE, ITC_SKU, RENAME_24, SKU, SKU24, T, T24, planDucted25, planDuctedFixed, planFixes, planFixes24 } from "../src/lib/pricebook/templateFixPlan";
+import { DUCTED, DUCTED_LABOUR_PRICE, ITC_SKU, RENAME_24, SKU, SKU24, T, T24, ZC10, ZONEMATE, planDucted25, planDuctedFixed, planFixes, planFixes24, planMitsubishiZoning } from "../src/lib/pricebook/templateFixPlan";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -271,6 +271,26 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
   ok("…only the four ducted templates", planDucted25({ ...now25, id: 1 }) === null);
   ok("the pricebook follows: installation $0, two-day labour $5,000", SERVICE_PRICES.find((x) => x.skuId === SKU.ductedInstall)?.price === 0 && SERVICE_PRICES.find((x) => x.skuId === SKU.ductedLabour)?.price === DUCTED_LABOUR_PRICE);
   ok("a service price changed since it was set is set again", pricedAt("$5000 → $5000", 5000) && !pricedAt("$5000 → $5000", 0) && pricedAt("$5230 → $0", 0) && !pricedAt(undefined, 0));
+
+  // Jake, 25 Nov: "yes swap them to the mitsubishi 10 zone".
+  const zm = { id: DUCTED[0], name: "Mitsubishi Electric Ducted Split 18kW", items: [
+    L(110, 12, "Equipment", "Mitsubishi Electric 18kw Ducted Split", 6600, { itemGroupName: "Mitsubishi Electric 18kw Ducted Split" }),
+    L(111, ZONEMATE.bundle, "Equipment", "Zonemate Touch Pro Bundle + 4 Wireless Sensors", 1500, { itemGroupName: "  Zonemate Touch Pro Bundle + 4 Wireless Sensors" }),
+    L(112, SKU.ductedInstall, "Service", "Ducted Refrigerated System - Installation", 0, { itemGroupName: "Ducted Refrigerated System - Installation" }),
+    L(113, ZONEMATE.gateway, "Material", "Zonemate Touch Gateway Mits Elec", 400, { itemGroupParentId: 112 }),
+    L(114, ZONEMATE.sensor, "Material", "ZoneMate Wireless Temperature Sensor", 150, { itemGroupParentId: 112 }),
+    L(115, 301216670, "Service", "Zone 450mm Add-on", 0, { isAddOn: true, itemGroupParentId: 112 }),
+    L(116, ZONEMATE.sensor, "Material", "ZoneMate Wireless Temperature Sensor", 150, { itemGroupParentId: 112, parentItemId: 115 }),
+  ] };
+  const zt = { controllerPrice: 1550, controllerName: "Mitsubishi Electric Zone Controller", controllerText: "The Mitsubishi Electric Zone Controller…", itcName: "Mitsubishi Electric Individual Temperature Control", itcText: null };
+  const zp = planMitsubishiZoning(zm, zt);
+  const zc = zp?.items.find((i) => i.skuId === ZC10);
+  ok("ducted zoning: the Zonemate bundle becomes the Mitsubishi 10-zone controller, new, in its own group, at its price", !!zc && zc.id == null && zc.itemGroupName === "Mitsubishi Electric Zone Controller" && zc.unitPrice === 1550 && zc.itemGroupParentId == null, zp?.did);
+  ok("…the Zonemate gateway comes off, and no Zonemate part is left", !zp!.items.some((i) => (Object.values(ZONEMATE) as number[]).includes(i.skuId)));
+  const itcs = zp!.items.filter((i) => i.skuId === ITC_SKU);
+  ok("…each ZoneMate sensor becomes a Mitsubishi ITC at $0, where it was: on the installation and in the zone add-on", itcs.length === 2 && itcs.every((i) => i.unitPrice === 0 && i.id == null && i.itemGroupParentId === 112) && itcs.some((i) => i.parentItemId === 115));
+  ok("…and a template already swapped is left alone", planMitsubishiZoning({ ...zm, items: zp!.items.map((i, k) => (i.id == null ? { ...i, id: 950 + k } : i)) }, zt) === null);
+  ok("…only the four ducted templates", planMitsubishiZoning({ ...zm, id: 1 }, zt) === null);
 
   // Jake, 24 Nov.
   const m5 = planFixes24({ id: T24.mitsu5Btb, name: "Mitsubishi Electric 5kW Split System - Back to Back", items: [
