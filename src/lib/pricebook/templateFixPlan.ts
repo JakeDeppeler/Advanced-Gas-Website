@@ -188,3 +188,59 @@ export function planDuctedFixed(t: Tpl, servicePrice: number, prices: Prices): E
   if (n) did.push(`${n} materials at their pricebook price`);
   return did.length ? { items, did } : null;
 }
+
+/* ------------------------------------------------------------- 24 Nov */
+
+/**
+ * Jake's answers on 24 Nov to the second review:
+ *   - "the 5kW yes it needs a 1/4 1/2": the Mitsubishi 5kW back-to-back had
+ *     the 1/4 x 3/8 coil, where its roof and wall versions and the Kaden 5kW
+ *     back-to-back carry 1/4 x 1/2.
+ *   - "these need a wall bracket and all roof to wall bracket need 2 lengths of
+ *     hat section": the Mitsubishi 7.1kW roof-to-wall had a roof bracket, and
+ *     the Mitsubishi 2.5, 3.5 and 7.1kW one length where the rest carry two.
+ *     A 7.1kW takes the 550mm wall bracket, as the Kaden 7.1kW and Mitsubishi
+ *     5 and 6kW roof-to-wall do; 2.5 and 3.5kW the 420mm.
+ */
+export const SKU24 = { wall420: 148186787, wall550: 209621677, roof520: 209621685 } as const;
+export const T24 = { mitsu5Btb: 301070912 } as const;
+const isRoofToWall = (t: Tpl) => /Split System - Roof To Wall Bracket$/i.test(t.name.trim());
+const kw = (t: Tpl) => Number(/(\d+(?:\.\d+)?)\s*kW/i.exec(t.name)?.[1] ?? 0);
+
+export function planFixes24(t: Tpl): Edit | null {
+  let items = t.items.map((i) => ({ ...i }));
+  const did: string[] = [];
+  if (t.id === T24.mitsu5Btb) {
+    const coil = items.find((i) => plain(i) && i.skuId === SKU.coil38);
+    if (coil) {
+      items[items.indexOf(coil)] = { id: null, skuId: SKU.coil12, skuType: "Material", skuName: "Ardent Copper Pair Coil 1/4\" x 1/2\" R410A 20mtr", quantity: coil.quantity, unitPrice: Number(coil.unitPrice) || 0, isAddOn: false, itemGroupParentId: coil.itemGroupParentId ?? null };
+      did.push("coil 1/4 x 3/8 → 1/4 x 1/2");
+    }
+  }
+  if (isRoofToWall(t)) {
+    const roof = items.find((i) => plain(i) && i.skuId === SKU24.roof520);
+    if (roof) {
+      const big = kw(t) >= 5;
+      items[items.indexOf(roof)] = { id: null, skuId: big ? SKU24.wall550 : SKU24.wall420, skuType: "Material", skuName: `Rodigas Air Conditioner Wall Bracket 140Kg ${big ? 550 : 420}mm`, quantity: 1, unitPrice: Number(roof.unitPrice) || 0, isAddOn: false, itemGroupParentId: roof.itemGroupParentId ?? null };
+      did.push(`roof bracket → ${big ? 550 : 420}mm wall bracket`);
+    }
+    const hat = items.find((i) => plain(i) && i.skuId === SKU.hat);
+    if (hat && Number(hat.quantity) < 2) { did.push(`hat sections ${hat.quantity} → 2`); hat.quantity = 2; }
+    if (!hat) {
+      items = addUnder(items, headerOf(items), { skuId: SKU.hat, skuType: "Material", skuName: "Colorbond Hat Section - 2.4m", quantity: 2, unitPrice: 0 });
+      did.push("2 hat sections added");
+    }
+  }
+  return did.length ? { items, did } : null;
+}
+
+/**
+ * "Can [check] against the Brivis price list" (24 Nov): the two "Advanced Dump"
+ * Charcoal coolers are the price list's standard F46DSCHAR and F86DSCHAR at its
+ * cost, and every Advance includes Auto Refresh (the dump valve), so there's no
+ * separate dump model. Named as their Beige and Terra Red pairs are.
+ */
+export const RENAME_24 = [
+  { id: 301179968, from: "Brivis Advanced Dump F46DS Evaporative Cooler (Charcoal)", to: "Brivis Advance F46DS Evap Cooler (Charcoal)" },
+  { id: 301513673, from: "Brivis Advanced Dump F86DS Evaporative Cooler Char", to: "Brivis Advance F86DS Evap Cooler (Charcoal)" },
+];

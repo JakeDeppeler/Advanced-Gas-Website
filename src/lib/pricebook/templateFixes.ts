@@ -5,7 +5,7 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
 import { INSTALL_LINE } from "./wording";
-import { DUCTED, DUPLICATES, INTERNAL_ON_EXTERNAL, SKU, planDuctedFixed, planFixes, type Prices, type Tpl } from "./templateFixPlan";
+import { DUCTED, DUPLICATES, INTERNAL_ON_EXTERNAL, RENAME_24, SKU, planDuctedFixed, planFixes, planFixes24, type Prices, type Tpl } from "./templateFixPlan";
 
 /**
  * Jake's 22 Nov template fixes (templateFixPlan.ts says what and why), written
@@ -174,7 +174,45 @@ export async function fixTemplates22Nov(until: number, all: Live[]): Promise<{ f
     }
   }
 
-  if (fixed.length) log.push({ at: new Date().toISOString(), kind: "quoteTemplates", ok: true, title: `${fixed.length} quote template${fixed.length === 1 ? "" : "s"} fixed (Jake, 22 Nov)`, detail: fixed.join("; ").slice(0, 600) });
+  // 5. Jake's 24 Nov answers (templateFixPlan.ts › planFixes24), keyed apart
+  // from the 22 Nov ones so a template fixed then is still looked at.
+  for (const t of all) {
+    const key = `${t.id}:24nov`;
+    if (done[key] || (tries[key] ?? 0) >= MAX_TRIES || !planFixes24(tpl(t))) continue;
+    if (Date.now() > until) break;
+    try {
+      const now = await stFetch<Live>(path(t.id));
+      const plan = planFixes24(tpl({ ...now, id: t.id, name: now.name ?? t.name }));
+      if (!plan) { done[key] = "nothing left to do"; await save(); continue; }
+      await stSend("PATCH", path(t.id), { items: templatePatchItems(plan.items) });
+      const back = await stFetch<Live>(path(t.id));
+      const still = planFixes24(tpl({ ...back, id: t.id, name: back.name ?? t.name }));
+      if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
+      done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
+      fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // The two Brivis coolers named as the price list has them.
+  for (const r of RENAME_24) {
+    const key = `equipment:${r.id}`;
+    if (done[key] || (tries[key] ?? 0) >= MAX_TRIES || Date.now() > until) continue;
+    const ep = stTenantPath("pricebook", `equipment/${r.id}`);
+    try {
+      const now = await stFetch<Raw>(ep);
+      const name = String(now.displayName ?? "").trim();
+      if (name === r.to) { done[key] = "already named"; continue; }
+      if (name !== r.from) { done[key] = `left alone: now "${name}"`; continue; }
+      await stSend("PATCH", ep, { displayName: r.to });
+      const back = await stFetch<Raw>(ep);
+      if (String(back.displayName ?? "").trim() !== r.to) throw new Error(`ServiceTitan answered OK but kept "${String(back.displayName ?? "")}"`);
+      done[key] = `renamed "${r.to}"`;
+      fixed.push(`${r.from} → ${r.to}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push(r.from); }
+    await save();
+  }
+
+  if (fixed.length) log.push({ at: new Date().toISOString(), kind: "quoteTemplates", ok: true, title: `${fixed.length} quote template${fixed.length === 1 ? "" : "s"} fixed (Jake's review)`, detail: fixed.join("; ").slice(0, 600) });
   await save();
   await logAuto(log).catch(() => undefined);
   return { fixed, failed, left, ...(p.waiting ? { waiting: p.waiting } : {}) };
