@@ -60,6 +60,9 @@ type Progress = {
   equipment?: Record<string, { v?: string; h?: string }>;
   /** Installation services whose description is done, by id: the SERVICE_VERSION it was done at. */
   services?: Record<string, string>;
+  /** The SERVICE_VERSION every installation service is done at. Until it is,
+   *  a run goes on to step 2 even with no template or unit left to do. */
+  servicesDone?: string;
   /** The version whose first pass is done: from then on, nothing unrecorded is written over. */
   firstPassDone?: string;
   left?: Record<string, string>;
@@ -91,7 +94,11 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
   const templatesTodo = all.filter((t) => recs[t.id]?.v !== VERSION);
   const equipTodo = equipIds.filter((id) => eqRecs[id]?.v !== EQUIPMENT_VERSION);
   out.todo = templatesTodo.length + equipTodo.length;
-  if (!out.todo) return out;
+  // The services are counted apart: they're only known once listed, and a
+  // run that hit its write limit partway through them (25 Nov: 12 units and
+  // 13 of the 18 services) must not be followed by runs that stop here
+  // because the templates and units are done.
+  if (!out.todo && p.servicesDone === SERVICE_VERSION) return out;
 
   const log: AutoEntry[] = [];
   const backup: Backup = (await getSettings<Backup>(BACKUP).catch(() => null)) ?? {};
@@ -256,6 +263,7 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
   const remaining = all.filter((t) => recs[t.id]?.v !== VERSION).length + equipIds.filter((id) => eqRecs[id]?.v !== EQUIPMENT_VERSION).length
     + installServices.filter((s) => svcRecs[Number(s.id)] !== SERVICE_VERSION).length;
   if (!remaining && firstPass) p.firstPassDone = VERSION;
+  if (installServices.length && installServices.every((s) => svcRecs[Number(s.id)] === SERVICE_VERSION)) p.servicesDone = SERVICE_VERSION;
   out.left = Object.values(left).slice(0, 20);
   if (out.templates.length || out.equipment.length || out.services.length) {
     log.push({ at: at(), kind: "quoteTemplates", ok: true, title: `Quote wording: ${out.services.length ? `${out.services.length} installation service${out.services.length === 1 ? "" : "s"}, ` : ""}${out.templates.length} template${out.templates.length === 1 ? "" : "s"} and ${out.equipment.length} unit${out.equipment.length === 1 ? "" : "s"} updated`, detail: remaining ? `${remaining} to go` : "all done" });
