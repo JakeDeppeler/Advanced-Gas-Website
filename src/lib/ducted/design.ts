@@ -14,7 +14,7 @@
  */
 
 import { pickFitting } from "./fittings";
-import { addControls, addInstall, controlsText, DUCT_SIZES, ductedHours, lineBook, quoteTotal, type DuctSize, type DuctedCatalogue, type DuctedQuote, type Unit } from "./plan";
+import { addControls, addInstall, addItcs, controlsText, DUCT_SIZES, ductedHours, lineBook, quoteTotal, type DuctSize, type DuctedCatalogue, type DuctedQuote, type Unit } from "./plan";
 import { outletCount, zoneCount, type DesignTakeoff } from "./takeoff";
 
 export type DesignOptions = {
@@ -62,8 +62,8 @@ export function buildFromDesign(t: DesignTakeoff, o: DesignOptions, cat: DuctedC
   const unit = cat.units.find((u) => u.skuId === o.unitSkuId) ?? suggested;
   if (!unit) book.missing.push(`Choose the unit: nothing in the pricebook matches the design's ${t.indoor ?? "indoor unit"}${t.kw ? ` (${t.kw} kW)` : ""}`);
   else book.lines.push({ group: "unit", sku: unit, name: unit.name, quantity: 1, unitPrice: unit.price, ...(t.indoor ? { note: `design: ${t.indoor}` } : {}) });
-  const itcs = o.itcs ?? (t.itc || zones);
-  addControls(book, cat, zones, itcs);
+  const itcs = Math.max(0, Math.round(o.itcs ?? (t.itc || zones)));
+  addControls(book, cat, zones);
 
   const labour = addInstall(book, cat, h);
   add("install", cat.transition, "Ducted transition / plenum", t.transitions, "The ducted transition isn't in the pricebook");
@@ -112,6 +112,7 @@ export function buildFromDesign(t: DesignTakeoff, o: DesignOptions, cat: DuctedC
     add("install", size ? cat.damper[size] ?? null : null, `${k} mm zone damper`, n, `A ${k} mm zone damper isn't in the pricebook`);
   }
   add("install", cat.zoneCable, "Zone damper cable", t.cables || Object.values(t.dampers).reduce((a, n) => a + n, 0));
+  addItcs(book, cat, itcs);
 
   for (const k of unit?.kit ?? []) if (!FROM_DESIGN.test(k.sku.name)) add("install", k.sku, k.sku.name, k.quantity);
   add("extra", cat.certificate, "BPC Compliance Certificate", 1);

@@ -43,7 +43,7 @@ export type DuctedCatalogue = {
   zoneCable: Sku | null;
   /** The Mitsubishi Electric 10-zone controller, an equipment line in a group of its own. */
   controller: Sku | null;
-  /** Mitsubishi Electric individual temperature control (PAR-ZR01S-A), one per zone that has one. */
+  /** Mitsubishi Electric individual temperature control (PAR-ZR01S-A): with the installation's materials, not the controller. */
   itc: Sku | null;
   install: Sku | null;
   electrical: Sku | null;
@@ -121,11 +121,19 @@ export function lineBook() {
 }
 export type LineBook = ReturnType<typeof lineBook>;
 
-/** The zone controller in a group of its own, with the temperature controls under it. */
-export function addControls(book: LineBook, cat: DuctedCatalogue, zones: number, itcs: number | null) {
+/** The zone controller, alone in its own group so it stands out on the quote. */
+export function addControls(book: LineBook, cat: DuctedCatalogue, zones: number) {
   book.add("controls", cat.controller, "Mitsubishi Electric zone controller (10 zones)", 1, "The Mitsubishi Electric 10-zone controller isn't in the pricebook");
-  book.add("controls", cat.itc, "Mitsubishi Electric temperature control (ITC)", Math.max(0, Math.round(itcs ?? zones)), "The Mitsubishi Electric temperature control (ITC) isn't in the pricebook");
   if (zones > DUCTED.maxZones) book.missing.push(`The Mitsubishi Electric controller runs up to ${DUCTED.maxZones} zones and this has ${zones}`);
+}
+
+/**
+ * The temperature controls go with the installation's materials, under its
+ * head, not under the controller. Jake, 25 Nov: "the itc should be under the
+ * materials". Added after the head is on, so the head stays the installation.
+ */
+export function addItcs(book: LineBook, cat: DuctedCatalogue, count: number) {
+  book.add("install", cat.itc, "Mitsubishi Electric temperature control (ITC)", Math.max(0, Math.round(count)), "The Mitsubishi Electric temperature control (ITC) isn't in the pricebook");
 }
 
 /** Labour on the installation service line, and the electrician: the head of the installation group. */
@@ -153,7 +161,7 @@ export function buildDucted(input: DuctedInput, cat: DuctedCatalogue): DuctedQuo
   const unit = cat.units.find((u) => u.skuId === input.unitSkuId) ?? null;
   if (!unit) book.missing.push("Choose the unit");
   else book.lines.push({ group: "unit", sku: unit, name: unit.name, quantity: 1, unitPrice: unit.price });
-  addControls(book, cat, zonesUsed.length, input.itcs);
+  addControls(book, cat, zonesUsed.length);
 
   // The installation: labour, the electrician, and every material.
   const labour = addInstall(book, cat, h);
@@ -177,11 +185,12 @@ export function buildDucted(input: DuctedInput, cat: DuctedCatalogue): DuctedQuo
     if (n > 0) add("install", cat.damper[size] ?? null, `${size} mm zone damper`, n, `A ${size} mm zone damper isn't in the pricebook`);
   }
   add("install", cat.zoneCable, "Zone damper cable", zonesUsed.length);
+  const itcs = Math.max(0, Math.round(input.itcs ?? zonesUsed.length));
+  addItcs(book, cat, itcs);
   for (const k of unit?.kit ?? []) add("install", k.sku, k.sku.name, k.quantity);
 
   add("extra", cat.certificate, "BPC Compliance Certificate", 1);
 
-  const itcs = Math.max(0, Math.round(input.itcs ?? zonesUsed.length));
   return { hours: h, labour, lines: book.lines, total: quoteTotal(book.lines), missing: book.missing, summary: ductedSummary(input, unit, outlets, zonesUsed, itcs) };
 }
 

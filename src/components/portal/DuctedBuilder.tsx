@@ -211,7 +211,8 @@ function QuoteCard({ q, rate, source, hoursNote, extraReason }: { q: DuctedQuote
   const copy = async (text: string, what: string) => {
     try { await navigator.clipboard.writeText(text); setCopied(what); } catch { setCopied(null); }
   };
-  const materials = q.lines.filter((l) => l.group === "install" && l.sku?.skuType === "Material");
+  // Everything under the installation head bar the services: the ITCs are equipment but sit with the materials.
+  const materials = q.lines.filter((l) => l.group === "install" && l.sku && l.sku.skuType !== "Service");
   const linesText = q.lines.map((l) => `${l.quantity} × ${l.name}${l.missing ? " (not in pricebook)" : ""}  ${money(l.quantity * l.unitPrice)}`).join("\n");
 
   return (
