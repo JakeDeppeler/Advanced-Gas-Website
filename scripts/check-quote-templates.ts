@@ -9,13 +9,13 @@ import {
   EVAP_UNITS, OTHER_TEMPLATES, evapSellPrice, evapTemplate, evapUnitPrice, findUnit, lineTotal, pricedItems, type LiveSku,
 } from "../src/lib/pricebook/quoteTemplateSpecs";
 import { groupedItems, isGrouped, isTestTemplate, tidyCode, tidyName } from "../src/lib/pricebook/templateShape";
-import { HEATER_EVAP_DISCOUNTS, SERVICE_PRICES, sameName } from "../src/lib/pricebook/servicePricing";
+import { HEATER_EVAP_DISCOUNTS, SERVICE_PRICES, pricedAt, sameName } from "../src/lib/pricebook/servicePricing";
 import { GENERIC_REBATE_HEADER, REBATE_HEADERS, rebateGroup, swapHeader } from "../src/lib/pricebook/rebateSpecs";
 import { evapProposals } from "../src/lib/pricebook/evapProposalSpecs";
 import { flatText, textHash, wordingAction } from "../src/lib/pricebook/summaryRule";
 import { summaryHtml } from "../src/lib/pricebook/wording";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
-import { DUCTED, RENAME_24, SKU, SKU24, T, T24, planDuctedFixed, planFixes, planFixes24 } from "../src/lib/pricebook/templateFixPlan";
+import { DUCTED, DUCTED_LABOUR_PRICE, ITC_SKU, RENAME_24, SKU, SKU24, T, T24, planDucted25, planDuctedFixed, planFixes, planFixes24 } from "../src/lib/pricebook/templateFixPlan";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -61,7 +61,8 @@ ok("every template has lines and a summary", all.every((t) => t.lines.length > 0
 ok("service prices as Jake gave them, and the evap install at $900", SERVICE_PRICES.slice(0, 6).map((s) => s.price).join(",") === "250,350,300,400,250,900");
 // Jake, 22 Nov: Dominator labour $3,300, the ducted install $5,000, multi-heads at 1 tech + 1 apprentice ($350 an hour) for 6–14 h.
 const p22 = (id: number) => SERVICE_PRICES.find((s) => s.skuId === id)?.price;
-ok("Dominator labour $3,300 and the ducted install $5,000", p22(301165543) === 3300 && p22(209599911) === 5000);
+// The ducted $5,000 moved from the installation line to the two-day labour under it on 25 Nov.
+ok("Dominator labour $3,300, and the ducted $5,000 on the two-day labour with the installation at $0", p22(301165543) === 3300 && p22(301164889) === 5000 && p22(209599911) === 0);
 ok("multi-heads 2–6 at $2,100 to $4,900", [301089962, 301089572, 301090544, 301091980, 301089957].map(p22).join(",") === "2100,2800,3500,4200,4900");
 ok("multi-heads are 6, 8, 10, 12, 14 hours at $350", [2100, 2800, 3500, 4200, 4900].every((p, i) => p === (6 + 2 * i) * 350));
 ok("every priced item once", new Set(SERVICE_PRICES.map((s) => s.skuId)).size === SERVICE_PRICES.length);
@@ -241,14 +242,34 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
     L(74, 900002, "Material", "Zone damper", 0, { itemGroupParentId: 72, parentItemId: 75 }),
     L(76, SKU.bpc, "Service", "BPC", 65),
   ] };
-  const d = planFixes(duct, prices);
-  const lab = d?.items.find((i) => i.skuId === SKU.ductedLabour);
-  ok("ducted: the two-day labour comes out of the installation group onto its own, new line", !!lab && lab.id == null && lab.itemGroupParentId == null && !!lab.itemGroupName
-    && d!.items.indexOf(lab) > d!.items.findIndex((i) => i.id === 73) && d!.items.indexOf(lab) < d!.items.findIndex((i) => i.skuId === SKU.bpc));
-  const df = planDuctedFixed({ ...duct, items: d!.items }, 5000, prices);
+  ok("ducted: the 22 Nov rule taking the labour out of the group is gone (Jake reversed it on 25 Nov)", planFixes(duct, prices) === null);
+  const df = planDuctedFixed(duct, 5000, prices);
   ok("ducted at a fixed price: $5,000 on the installation, its materials at their pricebook price, add-on parts left alone",
     df?.items.find((i) => i.skuId === SKU.ductedInstall)?.unitPrice === 5000 && df.items.find((i) => i.id === 73)?.unitPrice === 55 && df.items.find((i) => i.id === 74)?.unitPrice === 0);
   ok("split and heat pump electrical at $450 in the pricebook", [209621215, 209607618].every((id) => SERVICE_PRICES.find((x) => x.skuId === id)?.price === 450));
+
+  // Jake, 25 Nov: the installation at $0, the two-day labour under it at $5,000, the ITCs at $0.
+  const now25 = { id: DUCTED[2], name: "Mitsubishi Electric Ducted Split 16kW", items: [
+    L(100, 12, "Equipment", "Mitsubishi Electric 16kw Ducted Split", 6100),
+    L(101, SKU.ductedInstall, "Service", "Ducted Refrigerated System - Installation", 5000, { itemGroupName: "Ducted Refrigerated System - Installation" }),
+    L(102, 301215982, "Service", "Ducted Split - Electrical Connection", 1000, { itemGroupParentId: 101 }),
+    L(103, 900001, "Material", "Bradflo duct", 62, { itemGroupParentId: 101, quantity: 6 }),
+    L(104, ITC_SKU, "Equipment", "Mitsubishi ITC", 90, { itemGroupParentId: 101, quantity: 4 }),
+    L(105, SKU.ductedLabour, "Service", "Ducted Split - Labour (Two Days)", 5230, { itemGroupName: "Ducted Split - Labour (Two Days)" }),
+    L(106, SKU.bpc, "Service", "BPC", 65),
+  ] };
+  const p25 = planDucted25(now25);
+  const lab25 = p25?.items.filter((i) => i.skuId === SKU.ductedLabour) ?? [];
+  const sum = (xs: TemplateItem[]) => xs.filter((i) => !i.isAddOn).reduce((a, i) => a + i.quantity * i.unitPrice, 0);
+  ok("ducted 25 Nov: the installation at $0", p25?.items.find((i) => i.id === 101)?.unitPrice === 0, p25?.did);
+  ok("…one two-day labour line, new, under the installation, at $5,000", lab25.length === 1 && lab25[0].id == null && lab25[0].itemGroupParentId === 101 && !lab25[0].itemGroupName && lab25[0].unitPrice === DUCTED_LABOUR_PRICE);
+  ok("…placed after the group's last line, before the certificate", p25!.items.indexOf(lab25[0]) > p25!.items.findIndex((i) => i.id === 104) && p25!.items.indexOf(lab25[0]) < p25!.items.findIndex((i) => i.id === 106));
+  ok("…the ITCs at $0, the materials and electrical left at their prices", p25?.items.find((i) => i.id === 104)?.unitPrice === 0 && p25?.items.find((i) => i.id === 103)?.unitPrice === 62 && p25?.items.find((i) => i.id === 102)?.unitPrice === 1000);
+  ok("…so the labour is charged once: the template drops by the $5,230 line and the ITCs", sum(now25.items) - sum(p25!.items) === 5230 + 5000 - 5000 + 360, { before: sum(now25.items), after: sum(p25!.items) });
+  ok("…and a template already laid out is left alone", planDucted25({ ...now25, items: p25!.items.map((i, k) => (i.id == null ? { ...i, id: 900 + k } : i)) }) === null);
+  ok("…only the four ducted templates", planDucted25({ ...now25, id: 1 }) === null);
+  ok("the pricebook follows: installation $0, two-day labour $5,000", SERVICE_PRICES.find((x) => x.skuId === SKU.ductedInstall)?.price === 0 && SERVICE_PRICES.find((x) => x.skuId === SKU.ductedLabour)?.price === DUCTED_LABOUR_PRICE);
+  ok("a service price changed since it was set is set again", pricedAt("$5000 → $5000", 5000) && !pricedAt("$5000 → $5000", 0) && pricedAt("$5230 → $0", 0) && !pricedAt(undefined, 0));
 
   // Jake, 24 Nov.
   const m5 = planFixes24({ id: T24.mitsu5Btb, name: "Mitsubishi Electric 5kW Split System - Back to Back", items: [

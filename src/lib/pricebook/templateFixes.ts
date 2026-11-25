@@ -5,7 +5,7 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
 import { SERVICE_COPY } from "./wording";
-import { DUCTED, DUPLICATES, INTERNAL_ON_EXTERNAL, RENAME_24, SKU, planDuctedFixed, planFixes, planFixes24, type Prices, type Tpl } from "./templateFixPlan";
+import { DUCTED, DUPLICATES, INTERNAL_ON_EXTERNAL, RENAME_24, SKU, planDucted25, planDuctedFixed, planFixes, planFixes24, type Prices, type Tpl } from "./templateFixPlan";
 
 /**
  * Jake's 22 Nov template fixes (templateFixPlan.ts says what and why), written
@@ -187,6 +187,27 @@ export async function fixTemplates22Nov(until: number, all: Live[]): Promise<{ f
       await stSend("PATCH", path(t.id), { items: templatePatchItems(plan.items) });
       const back = await stFetch<Live>(path(t.id));
       const still = planFixes24(tpl({ ...back, id: t.id, name: back.name ?? t.name }));
+      if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
+      done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
+      fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // 6. The four ducted templates laid out as Jake laid out 20867 on 25 Nov
+  // (templateFixPlan.ts › planDucted25): the installation at $0, the two-day
+  // labour under it, the temperature controls at $0. Read back, and a line
+  // ServiceTitan didn't take as sent is a failure, not a done.
+  for (const id of DUCTED) {
+    const t = byId.get(id);
+    const key = `${id}:25nov`;
+    if (!t || done[key] || (tries[key] ?? 0) >= MAX_TRIES || Date.now() > until) continue;
+    try {
+      const now = await stFetch<Live>(path(id));
+      const plan = planDucted25(tpl({ ...now, id, name: now.name ?? t.name }));
+      if (!plan) { done[key] = "nothing left to do"; await save(); continue; }
+      await stSend("PATCH", path(id), { items: templatePatchItems(plan.items) });
+      const back = await stFetch<Live>(path(id));
+      const still = planDucted25(tpl({ ...back, id, name: back.name ?? t.name }));
       if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
       done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
       fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);

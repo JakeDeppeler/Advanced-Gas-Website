@@ -149,20 +149,8 @@ export function planFixes(t: Tpl, prices: Prices): Edit | null {
     if (drop.length) { items = items.filter((i) => !drop.includes(i)); did.push(`add-ons removed: ${drop.map((d) => (d.skuName ?? "").trim()).join(", ")}`); }
   }
 
-  if (DUCTED.includes(t.id)) {
-    const lab = items.find((i) => plain(i) && i.skuId === SKU.ductedLabour && i.itemGroupParentId != null);
-    if (lab) {
-      // Out of the installation's group, to sit after it as its own line. As a
-      // new line: ServiceTitan kept the existing one in the group when only its
-      // group fields changed (22 Nov, all four ducted templates, twice each).
-      const rest = items.filter((i) => i !== lab);
-      const head = rest.find((i) => i.id === lab.itemGroupParentId) ?? null;
-      let at = head ? rest.indexOf(head) : rest.length - 1;
-      rest.forEach((x, k) => { if (head && x.itemGroupParentId === head.id) at = Math.max(at, k); });
-      items = [...rest.slice(0, at + 1), { ...lab, id: null, itemGroupParentId: null, itemGroupName: (lab.skuName ?? "Ducted Split - Labour (Two Days)").trim() }, ...rest.slice(at + 1)];
-      did.push("two-day labour moved to its own line");
-    }
-  }
+  // The 22 Nov "two-day labour on its own line" rule was here. Jake reversed it
+  // on 25 Nov (planDucted25): the labour goes back under the installation.
 
   return did.length ? { items, did } : null;
 }
@@ -186,6 +174,57 @@ export function planDuctedFixed(t: Tpl, servicePrice: number, prices: Prices): E
     if (p != null && p > 0 && Math.abs(Number(i.unitPrice) - p) >= 0.005) { i.unitPrice = p; n++; }
   }
   if (n) did.push(`${n} materials at their pricebook price`);
+  return did.length ? { items, did } : null;
+}
+
+/* ------------------------------------------------------------- 25 Nov */
+
+/** What the two-day labour carries on a ducted quote: the $5,000 Jake set for a ducted install on 22 Nov. */
+export const DUCTED_LABOUR_PRICE = 5000;
+/** Mitsubishi Electric Individual Temperature Control (PAR-ZR01S-A). */
+export const ITC_SKU = 303100775;
+
+/**
+ * The ducted templates as Jake laid out job 20867's quote on 25 Nov: "the
+ * labour should be under the installation not by it self and be a service",
+ * and the installation line itself at $0, because its price hid what the
+ * materials come to.
+ *   - The installation at $0.
+ *   - The two-day labour under it at $5,000. It had been its own line at
+ *     $5,230 *as well as* the installation's $5,000 since 22 Nov, so every
+ *     quote from these templates charged the labour twice.
+ *   - The temperature controls (ITCs), if any, at $0 under it.
+ * The materials stay in the group at their pricebook prices, so they show.
+ * Re-added as a new line: ServiceTitan keeps an existing line's group when
+ * only its group fields change (22 Nov, all four templates, twice each).
+ */
+export function planDucted25(t: Tpl): Edit | null {
+  if (!DUCTED.includes(t.id)) return null;
+  let items = t.items.map((i) => ({ ...i }));
+  const head = items.find((i) => plain(i) && i.skuId === SKU.ductedInstall && i.id != null);
+  if (!head) return null;
+  const did: string[] = [];
+  if (Number(head.unitPrice) !== 0) { did.push(`installation $${head.unitPrice} → $0`); head.unitPrice = 0; }
+  const labs = items.filter((i) => plain(i) && i.skuId === SKU.ductedLabour);
+  const under = labs.find((i) => i.itemGroupParentId === head.id);
+  const loose = labs.filter((i) => i !== under);
+  if (loose.length) {
+    items = items.filter((i) => !loose.includes(i));
+    did.push(`two-day labour off its own line ($${loose.map((l) => l.unitPrice).join(", $")})`);
+  }
+  if (under) {
+    if (Number(under.unitPrice) !== DUCTED_LABOUR_PRICE) { did.push(`two-day labour $${under.unitPrice} → $${DUCTED_LABOUR_PRICE}`); under.unitPrice = DUCTED_LABOUR_PRICE; }
+  } else {
+    const from = loose[0];
+    items = addUnder(items, head, {
+      skuId: SKU.ductedLabour, skuType: "Service", skuName: (from?.skuName ?? "Ducted Split - Labour (Two Days)").trim(), description: from?.description ?? null,
+      quantity: 1, unitPrice: DUCTED_LABOUR_PRICE, itemGroupName: null,
+    });
+    did.push(`two-day labour under the installation at $${DUCTED_LABOUR_PRICE}`);
+  }
+  for (const i of items) {
+    if (plain(i) && i.skuId === ITC_SKU && i.itemGroupParentId === head.id && Number(i.unitPrice) !== 0) { i.unitPrice = 0; did.push("temperature controls at $0"); }
+  }
   return did.length ? { items, did } : null;
 }
 

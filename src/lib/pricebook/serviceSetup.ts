@@ -3,7 +3,7 @@ import { q, sbSelect } from "@/lib/dashboard/db";
 import { stFetch, stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
-import { HEATER_EVAP_DISCOUNTS, MULTI_SPLIT, SERVICE_PRICES, sameName } from "./servicePricing";
+import { HEATER_EVAP_DISCOUNTS, MULTI_SPLIT, SERVICE_PRICES, pricedAt, sameName } from "./servicePricing";
 
 /**
  * Jake's 16 Nov service prices into ServiceTitan's pricebook (servicePricing.ts):
@@ -91,8 +91,8 @@ async function priceService(id: number, target: number): Promise<{ ok: boolean; 
 
 export async function setUpServices(until: number): Promise<{ priced: string[]; made: string[]; failed: string[]; skipped?: string }> {
   const p: Progress = (await getSettings<Progress>(KEY).catch(() => null)) ?? {};
-  // Done, unless a price has been added to the list since: then just that one.
-  if (p.done && SERVICE_PRICES.every((t) => p.priced?.[t.skuId])) return { priced: [], made: [], failed: [], skipped: "all done" };
+  // Done, unless a price has been added to the list or changed since: then just that one.
+  if (p.done && SERVICE_PRICES.every((t) => pricedAt(p.priced?.[t.skuId], t.price))) return { priced: [], made: [], failed: [], skipped: "all done" };
   const made = (p.made ??= {}), priced = (p.priced ??= {}), fails = (p.fails ??= {}), notes = (p.notes ??= {});
   const log: AutoEntry[] = [], done: string[] = [], madeNow: string[] = [], failed: string[] = [];
   const save = () => saveSettings(KEY, p);
@@ -101,7 +101,7 @@ export async function setUpServices(until: number): Promise<{ priced: string[]; 
   // --- 1. Each service to Jake's price ---------------------------------------------
   if ((fails.price ?? 0) < 3) {
     for (const t of SERVICE_PRICES) {
-      if (priced[t.skuId] || !timeLeft()) continue;
+      if (pricedAt(priced[t.skuId], t.price) || !timeLeft()) continue;
       try {
         const s = await readService(t.skuId);
         // Matched by id, checked by name: an id that now names something else is never repriced.
@@ -202,7 +202,7 @@ export async function setUpServices(until: number): Promise<{ priced: string[]; 
     }
   }
 
-  const allPriced = SERVICE_PRICES.every((t) => priced[t.skuId]) && !!multiId && !!priced[multiId];
+  const allPriced = SERVICE_PRICES.every((t) => pricedAt(priced[t.skuId], t.price)) && !!multiId && !!priced[multiId];
   const allMade = HEATER_EVAP_DISCOUNTS.every((d) => made[d.code] && !notes[d.code]);
   if (allPriced && allMade) p.done = at();
   if (done.length) log.push({ at: at(), kind: "quoteTemplates", ok: true, title: `Jake's prices set in ServiceTitan`, detail: done.join("; ").slice(0, 400) });

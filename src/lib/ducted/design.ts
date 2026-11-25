@@ -118,6 +118,7 @@ export function buildFromDesign(t: DesignTakeoff, o: DesignOptions, cat: DuctedC
   add("extra", cat.certificate, "BPC Compliance Certificate", 1);
 
   for (const r of t.unread) if (!/^(Linear|Floor|Side-blow|Supply grille)/i.test(r.item)) book.missing.push(`Not on the quote: ${r.qty} × ${r.item}${r.detail ? ` (${r.detail})` : ""}`);
+  for (const c of t.checks ?? []) book.missing.push(c);
 
   return {
     hours: h, labour, lines: book.lines, total: quoteTotal(book.lines), missing: book.missing, outlets, zones, unit, suggested,

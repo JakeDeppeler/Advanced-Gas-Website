@@ -2,9 +2,12 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { buildDucted, DUCT_SIZES, DUCTED, GROUPS, standardLayout, type DuctSize, type DuctedCatalogue, type DuctedInput, type DuctedQuote, type Group, type Outlet, type Zone } from "@/lib/ducted/plan";
-import { buildFromDesign, type DesignOptions } from "@/lib/ducted/design";
-import { readTakeoff } from "@/lib/ducted/takeoff";
-import { lookUpJob, putQuoteOnJob, type PutResult, type QuoteSource } from "@/app/portal/ducted/actions";
+import { buildFromDesign, matchUnit, type DesignOptions } from "@/lib/ducted/design";
+import { readTakeoff, type DesignTakeoff } from "@/lib/ducted/takeoff";
+import type { PlanRead } from "@/lib/ducted/planShape";
+import { lookUpJob, putQuoteOnJob, readDuctPlan, type PutResult, type QuoteSource } from "@/app/portal/ducted/actions";
+
+type PlanZones = PlanRead["zones"];
 import type { QuoteJob } from "@/lib/ducted/stQuote";
 
 const money = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -12,17 +15,17 @@ const hrs = (n: number) => `${Number.isInteger(n) ? n : n.toFixed(2).replace(/0$
 const GROUP_LABEL: Record<Group, string> = { unit: "Unit", controls: "Zone controller", install: "Installation", extra: "Certificate" };
 
 /**
- * Pipeline › Ducted quote. Two ways in: the Trust Trade designer's materials
- * list (the design's own sizes, take-offs and zones), or the house laid out by
- * hand. Either way the quote is priced live from the pricebook as it changes,
- * and goes onto a job in ServiceTitan by its number.
+ * Daily tools › Ducted quote. Two ways in: a Trust Trade plan (its drawing,
+ * read by Claude with the office's notes, or its exact materials CSV), or the
+ * house laid out by hand. Either way the quote is priced live from the
+ * pricebook as it changes, and goes onto a job in ServiceTitan by its number.
  */
 export function DuctedBuilder({ cat }: { cat: DuctedCatalogue }) {
   const [mode, setMode] = useState<"design" | "hand">("design");
   return (
     <>
       <div className="pk-seg pk-du-mode" role="tablist" aria-label="How to build the quote">
-        <button type="button" role="tab" aria-selected={mode === "design"} className={mode === "design" ? "on" : ""} onClick={() => setMode("design")}>From a Trust Trade design</button>
+        <button type="button" role="tab" aria-selected={mode === "design"} className={mode === "design" ? "on" : ""} onClick={() => setMode("design")}>From a duct plan</button>
         <button type="button" role="tab" aria-selected={mode === "hand"} className={mode === "hand" ? "on" : ""} onClick={() => setMode("hand")}>By hand</button>
       </div>
       {mode === "design" ? <DesignQuote cat={cat} /> : <HandQuote cat={cat} />}
@@ -32,8 +35,31 @@ export function DuctedBuilder({ cat }: { cat: DuctedCatalogue }) {
 
 /* ------------------------------------------------------------------ design */
 
+type Picked = { name: string; kind: "csv" | "drawing"; text?: string; data?: string; mime?: string; preview?: string };
+
+/** A drawing shrunk to 2400px on its long side and sent as JPEG: Claude reads it as well, and it uploads in a moment. */
+async function shrink(f: File): Promise<{ data: string; mime: string; preview: string }> {
+  const url = URL.createObjectURL(f);
+  try {
+    const img = await new Promise<HTMLImageElement>((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => bad(new Error("not an image")); i.src = url; });
+    const k = Math.min(1, 2400 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    const g = c.getContext("2d")!;
+    g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(img, 0, 0, c.width, c.height);
+    const jpeg = c.toDataURL("image/jpeg", 0.9);
+    return { data: jpeg.split(",")[1], mime: "image/jpeg", preview: jpeg };
+  } finally { URL.revokeObjectURL(url); }
+}
+const base64 = (f: File) => new Promise<string>((ok, bad) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1] ?? ""); r.onerror = () => bad(r.error); r.readAsDataURL(f); });
+
 function DesignQuote({ cat }: { cat: DuctedCatalogue }) {
-  const [file, setFile] = useState<{ name: string; text: string } | null>(null);
+  const [file, setFile] = useState<Picked | null>(null);
+  const [info, setInfo] = useState("");
+  const [read, setRead] = useState<{ takeoff: DesignTakeoff | null; zones: PlanZones } | null>(null);
+  const [readError, setReadError] = useState<string | null>(null);
+  const [reading, startRead] = useTransition();
   const [unitSkuId, setUnit] = useState<number | null>(null);
   const [doubleStorey, setDouble] = useState(false);
   const [extraHours, setExtraHours] = useState("");
@@ -42,33 +68,72 @@ function DesignQuote({ cat }: { cat: DuctedCatalogue }) {
   const [notes, setNotes] = useState("");
   const [drag, setDrag] = useState(false);
 
-  const t = useMemo(() => (file ? readTakeoff(file.text) : null), [file]);
+  // The designer's CSV reads here as it drops; a drawing is read by Claude when asked.
+  const t: DesignTakeoff | null = useMemo(() => (file?.kind === "csv" && file.text ? readTakeoff(file.text) : read?.takeoff ?? null), [file, read]);
   const options: DesignOptions = { unitSkuId, doubleStorey, extraHours: Number(extraHours) || 0, extraReason, itcs: itcs === "" ? null : Number(itcs), notes };
   const q = useMemo(() => (t && !t.problem ? buildFromDesign(t, options, cat) : null), [t, JSON.stringify(options), cat]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const take = async (f: File | undefined | null) => {
     if (!f) return;
-    if (f.size > 300_000) { setFile({ name: f.name, text: "" }); return; }
-    setFile({ name: f.name, text: await f.text() });
-    setUnit(null); setItcs("");
+    setRead(null); setReadError(null); setUnit(null); setItcs("");
+    if (/\.csv$/i.test(f.name) || f.type === "text/csv") {
+      setFile(f.size > 300_000 ? { name: f.name, kind: "csv", text: "" } : { name: f.name, kind: "csv", text: await f.text() });
+      return;
+    }
+    if (f.type === "application/pdf") {
+      if (f.size > 5_000_000) { setReadError("That PDF is over 5 MB: export the plan as a PNG instead."); return; }
+      setFile({ name: f.name, kind: "drawing", data: await base64(f), mime: "application/pdf" });
+      return;
+    }
+    if (!f.type.startsWith("image/")) { setReadError("Drop the plan as a PNG, JPEG or PDF, or the designer's materials CSV."); return; }
+    try { setFile({ name: f.name, kind: "drawing", ...(await shrink(f)) }); } catch { setReadError("That image couldn't be opened."); }
   };
+
+  const readIt = () => startRead(async () => {
+    setReadError(null);
+    const r = await readDuctPlan({ file: file?.kind === "drawing" && file.data && file.mime ? { data: file.data, mime: file.mime } : null, notes: info });
+    if (!r.ok) { setReadError(r.error); return; }
+    setRead({ takeoff: r.takeoff ?? (file?.kind === "drawing" ? null : read?.takeoff ?? null), zones: r.zones });
+    // What the notes said, into the fields, where they say something.
+    const o = r.options;
+    const unit = matchUnit({ indoor: o.unitModel, outdoor: null, kw: o.unitKw }, cat.units);
+    if (unit && (o.unitKw || o.unitModel)) setUnit(unit.skuId);
+    setDouble(o.doubleStorey);
+    if (o.extraHours > 0) { setExtraHours(String(o.extraHours)); setExtraReason(o.extraReason); }
+    if (o.notes) setNotes(o.notes);
+  });
   const ductM = t ? Object.values(t.runMetres).reduce((a, n) => a + n, 0) : 0;
+  const source: QuoteSource | null = !t ? null : file?.kind === "csv" && file.text
+    ? { kind: "design", csv: file.text, fileName: file.name, options }
+    : { kind: "plan", takeoff: t, fileName: file?.name ?? "", options };
 
   return (
     <div className="pk-du">
       <section className="pk-card pk-pad">
-        <div className="pk-card-h"><b>The design</b><span>in the designer: Outputs › Materials › CSV</span></div>
+        <div className="pk-card-h"><b>The plan</b><span>the designer&rsquo;s drawing, or Outputs › Materials › CSV</span></div>
         <label
           htmlFor="du-file" className={`pk-du-drop${drag ? " on" : ""}`}
           onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
           onDrop={(e) => { e.preventDefault(); setDrag(false); take(e.dataTransfer.files?.[0]); }}
         >
-          <input id="du-file" type="file" accept=".csv,text/csv" onChange={(e) => take(e.target.files?.[0])} />
-          <b>{file ? file.name : "Drop the materials CSV here"}</b>
-          <span>{file ? "Drop another to replace it" : "or tap to choose it"}</span>
+          <input id="du-file" type="file" accept="image/png,image/jpeg,image/webp,application/pdf,.csv,text/csv" onChange={(e) => take(e.target.files?.[0])} />
+          {file?.preview && <img src={file.preview} alt="" className="pk-du-thumb" />}
+          <b>{file ? file.name : "Drop the duct plan here"}</b>
+          <span>{file ? "Drop another to replace it" : "the drawing (PNG, JPEG or PDF) or the materials CSV · or tap to choose"}</span>
         </label>
+        <label className="pk-du-f pk-du-gap" htmlFor="du-info"><span>Information about the job</span>
+          <textarea id="du-info" className="pk-in" rows={4} value={info} onChange={(e) => setInfo(e.target.value)}
+            placeholder="e.g. Mitsubishi 16kW. Single storey, tile roof. Remove the old Brivis ducted heater and all its ducting. Customer wants it done before Christmas." />
+        </label>
+        <div className="pk-btns pk-du-gap" style={{ alignItems: "center" }}>
+          <button type="button" className="pk-btn" disabled={reading || (!file && !info.trim()) || (file?.kind === "csv" && !info.trim())} onClick={readIt}>
+            {reading ? "Reading the plan…" : file?.kind === "csv" ? "Read the notes" : "Read the plan"}
+          </button>
+          {reading && <span className="pk-du-dim" role="status">Counting outlets and following the runs: up to a minute.</span>}
+        </div>
+        {readError && <p className="pk-du-miss" role="alert">{readError}</p>}
         {t?.problem && <p className="pk-du-miss" role="alert">{t.problem}</p>}
-        {file && !file.text && <p className="pk-du-miss" role="alert">That file is too big to be the designer&rsquo;s materials list.</p>}
+        {file?.kind === "csv" && !file.text && <p className="pk-du-miss" role="alert">That file is too big to be the designer&rsquo;s materials list.</p>}
 
         {t && !t.problem && q && (
           <>
@@ -79,10 +144,26 @@ function DesignQuote({ cat }: { cat: DuctedCatalogue }) {
               <div><dt>Take-offs</dt><dd>{t.takeoffs.reduce((a, f) => a + f.qty, 0)}</dd></div>
               <div><dt>Duct runs</dt><dd>{Math.round(ductM)} m</dd></div>
             </dl>
+            {read?.zones && read.zones.length > 0 && (
+              <div className="pk-tbl-wrap pk-du-gap">
+                <table className="pk-tbl pk-du-zones">
+                  <thead><tr><th>Zone</th><th>Damper</th><th>Outlets read off the plan</th></tr></thead>
+                  <tbody>
+                    {read.zones.map((z) => (
+                      <tr key={z.number}>
+                        <td>{z.number} · {z.name}</td>
+                        <td>{z.damper ? `Ø${z.damper}` : "—"}</td>
+                        <td>{z.outlets.map((o) => `${o.room} Ø${o.size} · ${o.metres} m`).join("; ") || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             <h3 className="pk-du-h">On this job</h3>
             <div className="pk-du-row">
-              <label className="pk-du-f grow" htmlFor="du-dunit"><span>Unit{q.suggested ? "" : " · nothing matched the design's"}</span>
+              <label className="pk-du-f grow" htmlFor="du-dunit"><span>Unit{q.suggested || unitSkuId ? "" : " · nothing matched: choose it"}</span>
                 <select id="du-dunit" className="pk-in" value={q.unit?.skuId ?? ""} onChange={(e) => setUnit(Number(e.target.value) || null)}>
                   {!q.unit && <option value="">Choose the unit</option>}
                   {cat.units.map((u) => <option key={u.skuId} value={u.skuId}>{u.name.trim()} · {money(u.price)}{q.suggested?.skuId === u.skuId ? " · matches the design" : ""}</option>)}
@@ -95,19 +176,19 @@ function DesignQuote({ cat }: { cat: DuctedCatalogue }) {
               <label className="pk-du-f" htmlFor="du-dxh"><span>Extra hours</span><input id="du-dxh" className="pk-in num" inputMode="decimal" placeholder="0" value={extraHours} onChange={(e) => setExtraHours(e.target.value.replace(/[^0-9.]/g, ""))} /></label>
               <label className="pk-du-f grow" htmlFor="du-dxr"><span>For</span><input id="du-dxr" className="pk-in" placeholder="e.g. a tight roof space, or taking the old ducting out" value={extraReason} onChange={(e) => setExtraReason(e.target.value)} /></label>
             </div>
-            <label className="pk-du-f" htmlFor="du-dnotes"><span>Notes for the summary (from the site visit, the Condition Report)</span>
+            <label className="pk-du-f" htmlFor="du-dnotes"><span>Notes for the quote&rsquo;s summary</span>
               <textarea id="du-dnotes" className="pk-in" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
             </label>
           </>
         )}
-        {!file && <p className="pk-note pk-du-gap">The designer&rsquo;s materials list has every duct size, take-off, outlet and damper the design needs. Each is priced from the pricebook at its own size; the hours come from the outlets and zones, on the same rules as a quote by hand.</p>}
+        {!file && <p className="pk-note pk-du-gap">Drop the designer&rsquo;s plan drawing and say what you know about the job: the plan is read for its outlets, duct sizes, take-offs and zones, and each is priced from the pricebook. The materials CSV from the designer works too, and is exact.</p>}
       </section>
 
-      {q ? (
-        <QuoteCard q={q} rate={cat.rate} source={{ kind: "design", csv: file!.text, fileName: file!.name, options }}
+      {q && source ? (
+        <QuoteCard q={q} rate={cat.rate} source={source}
           hoursNote={`${DUCTED.baseHours} base + ${q.outlets} outlets × ${DUCTED.perOutlet} + ${q.zones} zones × ${DUCTED.perZone} = ${hrs(q.hours.layout)}`} extraReason={extraReason} />
       ) : (
-        <section className="pk-card pk-pad"><div className="pk-card-h"><b>The quote</b><span>before GST</span></div><p className="pk-note">Drop the design&rsquo;s materials list and the quote follows.</p></section>
+        <section className="pk-card pk-pad"><div className="pk-card-h"><b>The quote</b><span>before GST</span></div><p className="pk-note">{file?.kind === "drawing" && !read ? "Read the plan and the quote follows." : "Drop the plan and the quote follows."}</p></section>
       )}
     </div>
   );
@@ -213,10 +294,10 @@ function QuoteCard({ q, rate, source, hoursNote, extraReason }: { q: DuctedQuote
   };
   // Everything under the installation head bar the services: the ITCs are equipment but sit with the materials.
   const materials = q.lines.filter((l) => l.group === "install" && l.sku && l.sku.skuType !== "Service");
-  // As ServiceTitan gets it: each group's head carries the group's price, the lines under it $0.
   const groupSum = (g: Group) => q.lines.filter((l) => l.group === g).reduce((a, l) => a + l.quantity * l.unitPrice, 0);
+  // As ServiceTitan gets it: each line at its own price, in its group.
   const linesText = GROUPS.flatMap((g) => q.lines.filter((l) => l.group === g).map((l, i) =>
-    `${i ? "    " : ""}${l.quantity} × ${l.name.trim()}${l.missing ? " (not in pricebook)" : ""}  ${money(i === 0 ? groupSum(g) : 0)}`)).join("\n");
+    `${i ? "    " : ""}${l.quantity} × ${l.name.trim()}${l.missing ? " (not in pricebook)" : ""}  ${money(l.quantity * l.unitPrice)}`)).join("\n");
 
   return (
     <section className="pk-card pk-pad">
@@ -230,7 +311,7 @@ function QuoteCard({ q, rate, source, hoursNote, extraReason }: { q: DuctedQuote
         Hours: {hoursNote}
         {q.hours.floor ? `, so the two-day minimum of ${DUCTED.minHours} h applies` : ""}
         {q.hours.doubleStorey ? `, + ${q.hours.doubleStorey} h double storey` : ""}
-        {q.hours.extra ? `, + ${hrs(q.hours.extra)} ${extraReason.trim() || "extra"}` : ""}. Two people at {rate ? money(rate) : "Our hourly rate"} an hour.
+        {q.hours.extra ? `, + ${hrs(q.hours.extra)} ${extraReason.trim() || "extra"}` : ""}. Two days&rsquo; labour is {money(DUCTED.twoDayPrice)}, and time past two days is {rate ? money(rate) : "Our hourly rate"} an hour.
       </p>
       {q.missing.length > 0 && (
         <div className="pk-du-warn" role="status"><b>Check before it goes on</b><ul>{q.missing.map((m, i) => <li key={i}>{m}</li>)}</ul></div>
@@ -242,24 +323,17 @@ function QuoteCard({ q, rate, source, hoursNote, extraReason }: { q: DuctedQuote
             {GROUPS.map((g) => {
               const ls = q.lines.filter((l) => l.group === g);
               if (!ls.length) return null;
-              const sum = groupSum(g);
-              // The quote as it lands in ServiceTitan: the head line carries the whole group (Jake, 25 Nov:
-              // "they should all push into the one main header"), every line under it is $0, and what each
-              // line puts into the head is written under its name so the price can still be checked.
+              // As it lands in ServiceTitan (Jake, 25 Nov, job 20867): the customer sees the group's
+              // total; inside it every line keeps its own price, so the materials' cost shows, with the
+              // installation line at $0 and the temperature controls at $0.
               return [
-                <tr key={`${g}-h`} className="pk-du-grp"><td colSpan={3}>{GROUP_LABEL[g]}</td><td>{money(sum)}</td></tr>,
-                ...ls.map((l, i) => {
-                  const own = l.quantity * l.unitPrice;
-                  const head = i === 0;
-                  const into = !head && !l.missing && own > 0 ? `${money(own)} in the ${GROUP_LABEL[g].toLowerCase()} price` : null;
-                  const takes = head && ls.length > 1 ? `takes the ${ls.length - 1} line${ls.length === 2 ? "" : "s"} under it` : null;
-                  return (
-                    <tr key={`${g}-${i}`} className={l.missing ? "pk-du-bad" : !head ? "pk-du-kid" : undefined}>
-                      <td>{l.name.trim()}{l.missing ? " · not in the pricebook" : ""}{[l.note, takes, into].filter(Boolean).map((n, k) => <span key={k} className="pk-du-note">{n}</span>)}</td>
-                      <td>{l.quantity}</td><td>{money(head ? sum / l.quantity : 0)}</td><td>{money(head ? sum : 0)}</td>
-                    </tr>
-                  );
-                }),
+                <tr key={`${g}-h`} className="pk-du-grp"><td colSpan={3}>{GROUP_LABEL[g]}</td><td>{money(groupSum(g))}</td></tr>,
+                ...ls.map((l, i) => (
+                  <tr key={`${g}-${i}`} className={l.missing ? "pk-du-bad" : i > 0 ? "pk-du-kid" : undefined}>
+                    <td>{l.name.trim()}{l.missing ? " · not in the pricebook" : ""}{l.note && <span className="pk-du-note">{l.note}</span>}</td>
+                    <td>{l.quantity}</td><td>{money(l.unitPrice)}</td><td>{money(l.quantity * l.unitPrice)}</td>
+                  </tr>
+                )),
               ];
             })}
           </tbody>

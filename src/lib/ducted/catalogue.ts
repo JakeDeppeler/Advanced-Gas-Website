@@ -80,6 +80,7 @@ export async function loadDuctedCatalogue(): Promise<DuctedCatalogue> {
     raBoxes: sized(/^Return Air Box\b.*?(\d{3,4})mm x (\d{3,4})mm/i),
     collar: bySize((s) => new RegExp(`^starting collar metal ${s}mm`, "i")),
     install: svc("AC-DUCTED-2DAYS"),
+    labour: svc("AC-DUCTED-LAB"),
     electrical: svc("AC-DUCTED-ELE"),
     certificate: (() => { const s = services.find((x) => /^bpc compliance certificate$/i.test(String(x.displayName ?? x.code ?? "").trim())); return s ? sku(s, "Service") : null; })(),
     rate: normalisePricing(pricing).hourly,

@@ -36,7 +36,14 @@ export const SERVICE_PRICES = [
   // for 5). All taken out of the labour run, which would price them from the
   // hours again and, for the ducted line, put back its $5,230 floor.
   { skuId: 301165543, name: "Dominator - Labour (One Day)", price: 3300 },
-  { skuId: 209599911, name: "Ducted Refrigerated System - Installation", price: 5000 },
+  // Jake, 25 Nov, on job 20867's quote: "the labour should be under the
+  // installation not by it self and be a service". The $5,000 moves from the
+  // installation line to the two-day labour under it, and the installation
+  // line goes to $0, so its price no longer hides what the materials come to.
+  // The two-day labour leaves the labour run (labour.ts PAIR) for the same
+  // reason the installation did: it would price it from the hours again.
+  { skuId: 209599911, name: "Ducted Refrigerated System - Installation", price: 0 },
+  { skuId: 301164889, name: "Ducted Split - Labour (Two Days)", price: 5000 },
   { skuId: 301089962, name: "Multi Head Labour (2 head)", price: 2100 },
   { skuId: 301089572, name: "Multi Head Labour (3 head)", price: 2800 },
   { skuId: 301090544, name: "Multi Head Labour (4 Head)", price: 3500 },
@@ -93,3 +100,10 @@ export const HEATER_EVAP_DISCOUNTS = [
   price: -heaterEvapDiscount(d.evap),
   description: "10% off the heater service and the evaporative cooler service when both are done at the same visit.",
 }));
+
+/**
+ * Whether a service was set to this price: `priced` records "$before → $after",
+ * so a price Jake changes later (the ducted installation, $5,000 → $0 on 25 Nov)
+ * is set again rather than counted as done.
+ */
+export const pricedAt = (was: string | undefined, price: number) => !!was && Number(/→ \$(-?[\d.]+)\s*$/.exec(was)?.[1]) === price;

@@ -56,10 +56,10 @@ const PART_DAY = [
   "DECOMMISSION-DISPOSAL",
 ];
 const PAIR = [
-  // A day or more on one job. Not the multi-head labour lines, AC-DUCTED-2DAYS
-  // or AC-DOM-LAB: Jake set those prices on 22 Nov (servicePricing.ts), and
-  // this run would price them from the hours again.
-  "AC-DUCTED-LAB", "AC-DUCTED-LAB-1DAY",
+  // A day or more on one job. Not the multi-head labour lines, AC-DUCTED-2DAYS,
+  // AC-DUCTED-LAB or AC-DOM-LAB: Jake set those prices (servicePricing.ts, 22
+  // and 25 Nov), and this run would price them from the hours again.
+  "AC-DUCTED-LAB-1DAY",
   "LAB-HR-2P",
 ];
 const CREW3 = ["LAB-HR-3P"];
