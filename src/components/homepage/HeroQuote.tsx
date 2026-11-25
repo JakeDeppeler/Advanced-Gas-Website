@@ -6,7 +6,7 @@ import {
   FSVC, QB, SIZE_NOTE, PHOTO_TIP, ICON, findSystem, pickSummary, answerMap, shownOpts,
   type Answers, type Question, type System,
 } from "@/lib/homepage/data";
-import { onIntent } from "@/lib/homepage/intent";
+import { onIntent, sendIntent } from "@/lib/homepage/intent";
 import { AddressField, type Address } from "./AddressField";
 import { readUtm, trackLead } from "@/lib/track";
 
@@ -26,7 +26,16 @@ type Photo = { name: string; type: string; data: string; preview: string };
 
 const MAX_PHOTOS = 4;
 
-export function HeroQuote() {
+/**
+ * `installsToFinder`: the home page's form (Jake, 25 Nov 2026: "if its an
+ * instal it moves down to Find your system and all the others stay and use
+ * the top one"). A new cooling, heating or hot water system goes to the
+ * finder below, opened at that system, where the options sit side by side;
+ * its "Book" brings the pick back up here for the details. Services, repairs,
+ * and gas or commercial installs (which the finder has no options for) carry
+ * on in this form. Other pages have no finder to send to, so they leave it off.
+ */
+export function HeroQuote({ installsToFinder = false }: { installsToFinder?: boolean } = {}) {
   const [svc, setSvc] = useState<number | null>(null);
   const [type, setType] = useState<number | null>(null);
   const [intent, setIntent] = useState<number | null>(null);
@@ -281,14 +290,21 @@ export function HeroQuote() {
         <div className="qf__step qf__step--fill">
           <div><span className="qf__crumb">{[fs?.t, ft.label].join(" · ")}</span><h2 className="qf__h">What do you need?</h2></div>
           <div className="qf__opts">
-            {ft.intents.map((x, i) => (
-              <button key={x.label} type="button" className={`qf__opt qf__opt--big${intent === i ? " qf__opt--on" : ""}`} style={{ animationDelay: `${i * 0.07}s` }}
-                onClick={() => { setIntent(i); setAns({}); go(at + 1); }}>
-                <span className="qf__ti qf__ti--line"><Svg d={x.icon} size={20} /></span>
-                <span className="qf__optt"><strong>{x.label}</strong><small>{x.sub}</small></span>
-                <span className="qf__go" aria-hidden="true">→</span>
-              </button>
-            ))}
+            {ft.intents.map((x, i) => {
+              // The form stays where it is, so Back up here still offers a service or repair.
+              const down = installsToFinder && x.install && !!ft.system;
+              return (
+                <button key={x.label} type="button" className={`qf__opt qf__opt--big${intent === i ? " qf__opt--on" : ""}`} style={{ animationDelay: `${i * 0.07}s` }}
+                  onClick={() => {
+                    if (down) { sendIntent({ kind: "find", system: ft.system }, "find"); return; }
+                    setIntent(i); setAns({}); go(at + 1);
+                  }}>
+                  <span className="qf__ti qf__ti--line"><Svg d={x.icon} size={20} /></span>
+                  <span className="qf__optt"><strong>{x.label}</strong><small>{down ? "Compare the options side by side, just below" : x.sub}</small></span>
+                  <span className="qf__go" aria-hidden="true">{down ? "↓" : "→"}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

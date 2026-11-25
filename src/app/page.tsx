@@ -85,7 +85,7 @@ export default async function HomePage() {
               <Link href="/rebates"><strong>Up to $6,000 →</strong><small>Aircon rebates</small></Link>
             </div>
           </div>
-          <HeroQuote />
+          <HeroQuote installsToFinder />
         </div>
       </section>
 

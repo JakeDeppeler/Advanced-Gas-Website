@@ -1038,6 +1038,8 @@ export const reviewTitle = (k: FaqKey) =>
 /** Install, service or repair: the third tap, which decides the questions that follow. */
 export type FormIntent = {
   label: string; sub: string; icon: string; qs: Question[];
+  /** A new system, as opposed to a service or a repair. On the home page, a finder system's install goes to the finder. */
+  install?: boolean;
   /** Overrides the `service` the lead is filed under; an install of a finder system files under that system. */
   service?: string; biz?: boolean;
 };
@@ -1061,7 +1063,7 @@ export type FormService = {
 };
 
 const install = (qs: Question[], extra?: Partial<FormIntent>): FormIntent =>
-  ({ label: "New install or replacement", sub: "Something new, or swap out the old one", icon: ICON.plus, qs, ...extra });
+  ({ label: "New install or replacement", sub: "Something new, or swap out the old one", icon: ICON.plus, qs, install: true, ...extra });
 const servicing = (qs: Question[], extra?: Partial<FormIntent>): FormIntent =>
   ({ label: "Service", sub: "A clean and health check", icon: ICON.wrench, qs, service: "service", ...extra });
 const repair = (qs: Question[], extra?: Partial<FormIntent>): FormIntent =>
