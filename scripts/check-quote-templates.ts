@@ -171,12 +171,13 @@ ok("real ones aren't taken for tests", !isTestTemplate("Brivis Buffalo 3 Star 20
 const unit = (series: "Advance" | "Promina" | "Contour" | "Balaero", model: string) => EVAP_UNITS.find((u) => u.series === series && u.model === model && (u.colour === "Charcoal"))!;
 const pro = evapTemplate(unit("Promina", "P46"), 0, 0), bal = evapTemplate(unit("Balaero", "50"), 0, 0);
 const paras = (t: { summary: string }) => t.summary.split("\n\n");
-const FOUR = ["What we're doing:", "What we're removing:", "What's included:", "What's not included:"];
-ok("an evap summary is the four parts, in order", paras(pro).length === 4 && paras(pro).every((p, k) => p.startsWith(FOUR[k])), paras(pro).map((p) => p.slice(0, 24)));
+const LABELLED = /^(What we're doing|What we're removing|What's included|What's not included):/m;
+ok("an evap summary is three plain paragraphs, no labels (Jake, 25 Nov)", paras(pro).length === 3 && !LABELLED.test(pro.summary), paras(pro).map((p) => p.slice(0, 24)));
+ok("and its wall controller comes with the cooler", /its wall controller is fitted/.test(pro.summary) && /The price includes the new cooler and its wall controller/.test(pro.summary));
 ok("it names the unit and colour, and doesn't sell it", /new Brivis Promina P46 evaporative cooler in Charcoal/.test(pro.summary) && !/AquaSave|winter seal|best value|Choose the/.test(pro.summary));
-ok("the Balaero reads the same way", paras(bal).length === 4 && /Brivis Balaero 50 evaporative cooler in Charcoal/.test(bal.summary));
+ok("the Balaero reads the same way", paras(bal).length === 3 && /Brivis Balaero 50 evaporative cooler in Charcoal/.test(bal.summary));
 const installs = OTHER_TEMPLATES.filter((t) => /Replacement|Gas Storage$/.test(t.name) && !/Valve|Motor|Capacitor|Controller|Pump Replacement/.test(t.name));
-ok("every install the code makes has the four parts", installs.length >= 9 && installs.every((t) => FOUR.every((l) => t.summary.includes(l))), installs.filter((t) => !FOUR.every((l) => t.summary.includes(l))).map((t) => t.name));
+ok("every install the code makes is three plain paragraphs", installs.length >= 9 && installs.every((t) => paras(t).length === 3 && !LABELLED.test(t.summary) && /The price includes the /.test(t.summary)), installs.filter((t) => paras(t).length !== 3 || LABELLED.test(t.summary)).map((t) => t.name));
 ok("the Add Unit template doesn't name itself as the unit", /with a new evaporative cooler,/.test(OTHER_TEMPLATES.find((t) => t.code === "EVAP-REPLACE-ADD-UNIT")!.summary));
 
 // When wording may be written over (summaryRule.ts).
@@ -184,7 +185,7 @@ const html = (t: string) => summaryHtml(t);
 const want = pro.summary, h = (t: string) => textHash(flatText(t));
 ok("already right: nothing to do", wordingAction(html(want), want, undefined, true) === "same");
 ok("ServiceTitan's escaped apostrophes still read as the same", wordingAction(html(want).replace(/'/g, "&#39;"), want, undefined, false) === "same");
-ok("the labels go in bold and still read as the same", html(want).includes("<strong>What we're doing:</strong>") && wordingAction(html(want), want, undefined, false) === "same");
+ok("a unit's warranty label goes in bold and still reads as the same", summaryHtml("Warranty: 5 years.").includes("<strong>Warranty:</strong>") && wordingAction(summaryHtml("A.\n\nWarranty: 5 years."), "A.\n\nWarranty: 5 years.", undefined, false) === "same");
 ok("first pass: whatever is there is written over", wordingAction(html("The office's old words."), want, undefined, true) === "write");
 ok("after it: words nobody recorded are left alone", wordingAction(html("Typed by the office."), want, undefined, false) === "leave");
 ok("words this code wrote are written over", wordingAction(html("Older words.\n\nOurs."), want, h("Older words.\n\nOurs."), false) === "write");

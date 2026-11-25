@@ -37,16 +37,18 @@ import { INSTALL_CODES, lineCopy, plainText, SERVICE_COPY, summaryHtml, template
 // 2026-11-22: so it goes on the installation services themselves (step 2
 // below, wording.ts INSTALL_CODES), and the templates' lines are left to
 // follow them.
-export const VERSION = "2026-11-22";
+// 2026-11-25 (Jake, "update the summary as well so it's not dot points"): the
+// summaries become three plain paragraphs with no labels.
+export const VERSION = "2026-11-25";
 // The units' own descriptions didn't change with it, so they stay on the
 // 17 Nov pass: a new pass would treat any description nobody recorded as
 // fair to write over, and nobody asked for the units to be looked at again.
-const EQUIPMENT_VERSION = "2026-11-25";
+const EQUIPMENT_VERSION = "2026-11-25-prose";
 // The installation services' own descriptions (step 2). Kept apart from VERSION so
 // new install wording (Jake, 25 Nov: say what the installation covers) goes on
 // the 18 services without walking all 199 templates again: a template's service
 // line shows the service's description whatever the template holds.
-const SERVICE_VERSION = "2026-11-25";
+const SERVICE_VERSION = "2026-11-25-prose";
 const KEY = "quote_wording";
 const BACKUP = "quote_wording_backup";
 /** ServiceTitan's limit on ids in one call. */
