@@ -26,9 +26,12 @@ const sum = (name: string, items: ReturnType<typeof svc | typeof eq | typeof mat
 const k = sum("Kaden 3.5kW Split System - Roof To Wall Bracket", [svc("AC-SPLIT-RTW"), eq("Kaden KSI 3.5kw V3 Split Air Conditioner")]);
 ok("a Kaden roof-to-wall says Kaden, never Mitsubishi", /new Kaden 3\.5kW split system/.test(k.s) && !/Mitsubishi/.test(k.s), k.s.slice(0, 120));
 ok("roof-to-wall: the bracket on another wall", k.f.placement === "rtw" && /bracket on another outside wall/.test(k.s));
-ok("every split says what's removed", /What we're removing: Your old split system/.test(k.s));
-const FOUR = ["What we're doing:", "What we're removing:", "What's included:", "What's not included:"];
-ok("the summary is the four labelled parts, in order (Jake, 17 Nov)", k.s.split("\n\n").length === 4 && k.s.split("\n\n").every((p, i) => p.startsWith(FOUR[i])), k.s.split("\n\n").map((p) => p.slice(0, 30)));
+ok("every split says what's removed", /If we're replacing an old split system, a licensed technician recovers its refrigerant/.test(k.s));
+// Jake, 25 Nov: "not dot points". Three paragraphs of sentences, no labels:
+// the job; what comes out and what the price covers; what it doesn't.
+const LABELLED = /^(What we're doing|What we're removing|What's included|What's not included):/m;
+ok("the summary is three plain paragraphs, with no labels", k.s.split("\n\n").length === 3 && !LABELLED.test(k.s), k.s.split("\n\n").map((p) => p.slice(0, 30)));
+ok("it opens with what we'll do, and says what the price includes", /^We'll (supply and install|replace) /.test(k.s) && /The price includes the /.test(k.s.split("\n\n")[1]));
 ok("no brand selling in a summary: that's the equipment line's", !/premium range|value range|relied on/.test(k.s));
 const btb = sum("Mitsubishi Electric 3.5kW Split System - Back to Back", [svc("AC-SPLIT-BTB"), eq("Mitsubishi Electric 3.5kw Split System"), mat('Ardent Copper Pair Coil 1/4" x 3/8" R410A 20mtr', 0.5)]);
 ok("pipe included is what's on the template: half a 20 m coil is 10 m", btb.f.pipeM === 10 && /up to 10 m of Ardent copper/.test(btb.s) && /beyond the 10 m included/.test(btb.s));
@@ -106,7 +109,7 @@ ok("the plug-in heat pump says no electrician is needed", /no electrician is nee
 ok("where the labour has its own line, the install doesn't claim all labour", ["AC-SPLIT-MULTI", "AC-DUCTED-2DAYS", "AC-DOM-INSTALL"].every((c) => !/all labour/.test(INSTALL_COPY[c]) && /labour/.test(INSTALL_COPY[c])));
 ok("everywhere else it includes all labour", INSTALL_CODES.filter((c) => !["AC-SPLIT-MULTI", "AC-DUCTED-2DAYS", "AC-DOM-INSTALL"].includes(c)).every((c) => /all labour/.test(INSTALL_COPY[c])));
 ok("roof-to-wall says two lengths of cover (24 Nov: two hat sections)", /two lengths of Colorbond cover/.test(INSTALL_COPY["AC-SPLIT-RTW"]));
-ok("the evap drain runs to the gutter, and no controller is promised", /new PVC drain run to the gutter/.test(INSTALL_COPY["EVAP-INSTALL"]) && !/controller/i.test(INSTALL_COPY["EVAP-INSTALL"]));
+ok("the evap drain runs to the gutter, and the cooler's wall controller is included (Jake, 25 Nov)", /new PVC drain run to the gutter/.test(INSTALL_COPY["EVAP-INSTALL"]) && /the new cooler and its wall controller/.test(INSTALL_COPY["EVAP-INSTALL"]));
 ok("no gas heater promises a controller the templates don't carry", !/controller/i.test(INSTALL_COPY["GAS-DUCT-INT"] + INSTALL_COPY["GAS-DUCT-EXT"]));
 ok("no install names an equipment brand", INSTALL_CODES.every((c) => !/Mitsubishi|Kaden|Rinnai|Brivis|Braemar|Thermann|Reclaim|iStore|Bosch|Beko|Westinghouse/i.test(INSTALL_COPY[c])));
 ok("the internal heater on the external service reads as internal", SERVICE_COPY["GAS-DUCT-EXT#internal"] === INSTALL_COPY["GAS-DUCT-INT"] && lineCopy("GAS-DUCT-EXT", { name: "x", kind: "heater", brand: "Brivis", size: null, heater: "internal" } as never) === INSTALL_COPY["GAS-DUCT-INT"]);

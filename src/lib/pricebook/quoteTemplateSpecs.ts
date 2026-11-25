@@ -189,8 +189,8 @@ export type TemplateSpec = { name: string; code: string; summary: string; lines:
 const L = (s: { skuId: number; skuType: string; code?: string }, unitPrice: number, quantity = 1): Line => ({ ...s, quantity, unitPrice });
 
 /**
- * An install template's summary, in the four parts every install summary has
- * (wording.ts): the same words the office's own templates get, so a template
+ * An install template's summary, in the three plain paragraphs every install
+ * summary has (wording.ts): the same words the office's own templates get, so a template
  * made here reads like the rest. What sells the unit is on its equipment line
  * (equipmentCopy.ts), not here.
  */
