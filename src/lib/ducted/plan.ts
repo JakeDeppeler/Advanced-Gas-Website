@@ -5,8 +5,9 @@
  *
  * Jake, 5 Nov 2026: every ducted install is at least two days. A standard
  * house is 8 outlets and 4 zones, and that's two days; more outlets or zones
- * add time, and so does a harder job. Labour is two people at the crew rate
- * (Our prices › Our hourly rate), because a ducted job takes the whole day.
+ * add time, and so does a harder job. Since 25 Nov the two days are $5,000 on
+ * the "Ducted Split - Labour (Two Days)" line under a $0 installation line,
+ * and time past them is Our hourly rate (addInstall).
  */
 
 import type { Fitting, Reducer } from "./fittings";
@@ -27,6 +28,13 @@ export const DUCTED = {
    * controller is a equment so it stand out and its own item group".
    */
   maxZones: 10,
+  /**
+   * Two days' labour for the crew: the "Ducted Split - Labour (Two Days)" line,
+   * under a $0 installation line (Jake, 25 Nov, as on job 20867's quote and the
+   * ducted templates; servicePricing.ts). Time past the two days is added at
+   * Our hourly rate.
+   */
+  twoDayPrice: 5000,
 } as const;
 
 export const DUCT_SIZES = [150, 200, 250, 300, 350, 400, 450] as const;
@@ -45,7 +53,10 @@ export type DuctedCatalogue = {
   controller: Sku | null;
   /** Mitsubishi Electric individual temperature control (PAR-ZR01S-A): with the installation's materials, not the controller. */
   itc: Sku | null;
+  /** The installation: the group's head, at $0 since 25 Nov. */
   install: Sku | null;
+  /** "Ducted Split - Labour (Two Days)": the labour, under the installation. */
+  labour: Sku | null;
   electrical: Sku | null;
   certificate: Sku | null;
   rate: number | null;
@@ -134,15 +145,30 @@ export function addControls(book: LineBook, cat: DuctedCatalogue, zones: number)
  */
 export function addItcs(book: LineBook, cat: DuctedCatalogue, count: number) {
   book.add("install", cat.itc, "Mitsubishi Electric temperature control (ITC)", Math.max(0, Math.round(count)), "The Mitsubishi Electric temperature control (ITC) isn't in the pricebook");
+  // At $0, as the office quotes them (20803, 12 Nov) and as Jake asked on 25 Nov.
+  const itc = book.lines.find((l) => l.group === "install" && cat.itc && l.sku?.skuId === cat.itc.skuId);
+  if (itc) { itc.unitPrice = 0; itc.note = "included, $0"; }
 }
 
 /** Labour on the installation service line, and the electrician: the head of the installation group. */
+/**
+ * The installation group's head and its labour, as Jake laid out job 20867 on
+ * 25 Nov: the installation line at $0, so it no longer hides what the
+ * materials come to, and the two-day labour under it at $5,000, with any time
+ * past two days at Our hourly rate. Then the electrician.
+ */
 export function addInstall(book: LineBook, cat: DuctedCatalogue, h: ReturnType<typeof ductedHours>) {
   const rate = cat.rate ?? 0;
-  if (!cat.rate) book.missing.push("Our hourly rate isn't set on Our prices");
-  const labour = cents(h.total * rate);
-  if (cat.install) book.lines.push({ group: "install", sku: cat.install, name: `${cat.install.name} · ${h.total} h × $${rate}`, quantity: 1, unitPrice: labour });
+  const over = Math.max(0, h.total - DUCTED.minHours);
+  if (over > 0 && !cat.rate) book.missing.push("Our hourly rate isn't set on Our prices, so the time past two days is $0");
+  const labour = cents(DUCTED.twoDayPrice + over * rate);
+  if (cat.install) book.lines.push({ group: "install", sku: cat.install, name: cat.install.name, quantity: 1, unitPrice: 0, note: "$0: the labour and materials under it carry the price" });
   else book.add("install", null, "Ducted installation service", 1, "The ducted installation service isn't in the pricebook");
+  if (cat.labour) book.lines.push({
+    group: "install", sku: cat.labour, name: cat.labour.name, quantity: 1, unitPrice: labour,
+    note: over > 0 ? `${h.total} h: two days $${DUCTED.twoDayPrice.toLocaleString("en-AU")} + ${over} h × $${rate}` : `${h.total} h: two days`,
+  });
+  else book.add("install", null, "Ducted Split - Labour (Two Days)", 1, "The ducted two-day labour isn't in the pricebook");
   book.add("install", cat.electrical, "Electrical connection", 1);
   return labour;
 }

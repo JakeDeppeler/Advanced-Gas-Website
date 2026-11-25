@@ -601,6 +601,9 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-du-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .pk-du-drop b { font-size: 15px; overflow-wrap: anywhere; }
 .pk-du-drop span { font-size: 13px; color: var(--ink3); }
+.pk-du-thumb { max-width: 100%; max-height: 220px; object-fit: contain; border-radius: 8px; background: #fff; margin-bottom: 6px; }
+.pk-du-zones td { font-size: 13px; vertical-align: top; }
+.pk-du-zones td:last-child { color: var(--ink2); }
 .pk-du-gap { margin-top: 12px; }
 .pk-du-read { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin: 14px 0 0; }
 .pk-du-read > div { padding: 8px 10px; border-radius: 10px; background: var(--quiet); min-width: 0; }

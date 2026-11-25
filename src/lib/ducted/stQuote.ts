@@ -4,12 +4,14 @@ import { stFetch, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { GROUPS, type DuctedQuote, type Line } from "./plan";
 
 /**
- * A ducted quote written onto a job in ServiceTitan, in the shape the office
- * builds by hand (20803): each group's head is the line the customer sees and
- * carries the group's whole price; everything under it is listed at $0 so the
- * crew, the install pack and the ordering see the materials without the
- * customer seeing forty prices. Jake, 24 Nov: "i would put the job number in
- * and it would create a quote".
+ * A ducted quote written onto a job in ServiceTitan, in its item groups: the
+ * customer sees one line per group, with its total. Since 25 Nov each line
+ * goes on at its own price, as Jake laid out job 20867: the installation head
+ * at $0, the two-day labour, the electrician and every material priced under
+ * it so the office can see what they cost, the temperature controls at $0.
+ * (Until then every price was put on the head and the lines under it at $0,
+ * which hid the materials, the thing Jake wanted to see.) Jake, 24 Nov: "i
+ * would put the job number in and it would create a quote".
  *
  * ServiceTitan takes the estimate first and the lines under each head after,
  * because a line can only point at its head once the head has an id. Each
@@ -92,8 +94,8 @@ export async function writeDuctedQuote(job: QuoteJob, quote: DuctedQuote, name: 
   if (twin) return { ok: false, error: `"${name}" was already put on job ${job.number} a few minutes ago (quote ${twin.id}). Open it in ServiceTitan rather than making a second.` };
 
   const text = await descriptions(lines);
-  const heads = groups.map((ls) => ({ line: ls[0], under: ls.slice(1), price: cents(ls.reduce((a, l) => a + l.quantity * l.unitPrice, 0)) }));
-  const expected = cents(heads.reduce((a, h) => a + h.price, 0));
+  const heads = groups.map((ls) => ({ line: ls[0], under: ls.slice(1) }));
+  const expected = cents(lines.reduce((a, l) => a + l.quantity * l.unitPrice, 0));
   // Both spellings of quantity and price: ServiceTitan reads estimate lines back as qty/unitRate, and its
   // create documentation isn't public. Unknown fields are ignored, so sending both costs nothing.
   const body = (l: Line, qty: number, rate: number) => ({
@@ -104,7 +106,7 @@ export async function writeDuctedQuote(job: QuoteJob, quote: DuctedQuote, name: 
   try {
     created = await stSend<Estimate>("POST", stTenantPath("sales", "estimates"), {
       jobId: job.id, name, summary: quote.summary, businessUnitId: job.businessUnitId ?? undefined,
-      items: heads.map((h) => ({ ...body(h.line, 1, h.price), itemGroupName: h.line.sku!.name.trim() })),
+      items: heads.map((h) => ({ ...body(h.line, h.line.quantity, h.line.unitPrice), itemGroupName: h.line.sku!.name.trim() })),
     });
   } catch (e) {
     return { ok: false, error: `ServiceTitan didn't take the quote: ${(e as Error).message}` };
@@ -125,21 +127,30 @@ export async function writeDuctedQuote(job: QuoteJob, quote: DuctedQuote, name: 
   if (items.length < heads.length) problems.push(`Only ${items.length} of the ${heads.length} group heads are on the quote.`);
   if (items.length && !items.some((i) => i.itemGroupName)) problems.push("ServiceTitan didn't make the heads into item groups, so the lines under them couldn't be grouped.");
 
-  // The lines under each head, at $0, pointing at their head.
+  // The lines under each head, at their own prices, pointing at their head.
   let underLanded = 0;
+  let short = false;
   const under = heads.reduce((a, h) => a + h.under.length, 0);
   outer: for (const [i, h] of heads.entries()) {
     const root = headIds[i];
     if (!root) continue;
     for (const l of h.under) {
       try {
-        await stSend("PUT", stTenantPath("sales", `estimates/${estimateId}/items`), { ...body(l, l.quantity, 0), chargeable: false, itemGroupRootId: root });
+        await stSend("PUT", stTenantPath("sales", `estimates/${estimateId}/items`), { ...body(l, l.quantity, l.unitPrice), itemGroupRootId: root });
         underLanded++;
       } catch (e) {
-        problems.push(`The lines under "${h.line.sku!.name.trim()}" didn't go on: ${(e as Error).message}. The price is all on the group heads, so the total stands; add the materials by hand.`);
+        problems.push(`The lines under "${h.line.sku!.name.trim()}" didn't go on: ${(e as Error).message}.`);
+        short = true;
         break outer;
       }
     }
+  }
+
+  // Each line carries its own price now, so a quote missing lines is short of
+  // labour or materials. It's dismissed rather than left on the job looking real.
+  if (short) {
+    const gone = await stSend("PUT", stTenantPath("sales", `estimates/${estimateId}/dismiss`), {}).then(() => true, () => false);
+    return { ok: false, error: `${problems.join(" ")} ${gone ? "The half-made quote was dismissed, so nothing short is left on the job." : `The half-made quote (${estimateId}) couldn't be dismissed: dismiss it in ServiceTitan.`}` };
   }
 
   const last = await read();

@@ -47,6 +47,8 @@ export type DesignTakeoff = {
   kitLines: number;
   /** Every line not read into the above, as the designer wrote it. */
   unread: TakeoffRow[];
+  /** Things to check before the quote goes on, from a plan read off its drawing (planShape.ts). */
+  checks?: string[];
   /** Set when the file isn't a ducted materials list at all. */
   problem: string | null;
 };
@@ -96,7 +98,7 @@ const bump = (m: Record<number, number>, k: number, n: number) => { if (Number.i
 export function readTakeoff(text: string): DesignTakeoff {
   const out: DesignTakeoff = {
     indoor: null, outdoor: null, kw: null, duct: {}, runMetres: {}, takeoffs: [], transitions: 0, diffusers: {}, otherOutlets: 0,
-    returnGrilles: [], returnBoxes: 0, collars: {}, joiners: {}, dampers: {}, cables: 0, zones: null, itc: 0, kitLines: 0, unread: [], problem: null,
+    returnGrilles: [], returnBoxes: 0, collars: {}, joiners: {}, dampers: {}, cables: 0, zones: null, itc: 0, kitLines: 0, unread: [], checks: [], problem: null,
   };
   const rows = takeoffRows(text);
   if (!rows) return { ...out, problem: "This isn't the designer's materials list: it needs the Group, Item and Qty columns. In the designer, Outputs › Materials › CSV." };
