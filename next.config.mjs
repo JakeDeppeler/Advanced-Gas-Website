@@ -147,6 +147,12 @@ const nextConfig = {
       // the same pump and only muddied the range, so its page 301s to the
       // Reclaim hub.
       { source: "/brands/reclaim/co2-split-215-5kw", destination: "/brands/reclaim", permanent: true },
+      // The old compare and models pages, folded into the Reclaim brand page
+      // (Nov 2026). They were pages calling permanentRedirect(); prerendered,
+      // `next start` served their 308 with no Location header, so the
+      // redirect lives here, where it always carries one.
+      { source: "/brands/reclaim/compare", destination: "/brands/reclaim", permanent: true },
+      { source: "/brands/reclaim/models", destination: "/brands/reclaim", permanent: true },
 
       // ---- WEB-010: legacy Wix URLs ----
       // /plumbing-services/ held rankings and inbound links on the old
