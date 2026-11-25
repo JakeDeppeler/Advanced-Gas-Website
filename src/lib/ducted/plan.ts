@@ -9,6 +9,8 @@
  * (Our prices › Our hourly rate), because a ducted job takes the whole day.
  */
 
+import type { Fitting, Reducer } from "./fittings";
+
 export const DUCTED = {
   /** Unit, plenum, return air, controller, commissioning. */
   baseHours: 8,
@@ -19,8 +21,12 @@ export const DUCTED = {
   doubleStorey: 4,
   /** Metres of duct in a 6 m length. */
   lengthM: 6,
-  /** Wireless sensors the Zonemate bundle comes with. */
-  bundleSensors: 4,
+  /**
+   * The Mitsubishi Electric zone controller (PAC-ZC10, 10 zones). Jake, 24 Nov:
+   * "we will always go with a mitsubishi electric 10 zoning now and the
+   * controller is a equment so it stand out and its own item group".
+   */
+  maxZones: 10,
 } as const;
 
 export const DUCT_SIZES = [150, 200, 250, 300, 350, 400, 450] as const;
@@ -28,18 +34,28 @@ export type DuctSize = (typeof DUCT_SIZES)[number];
 
 /** What the builder needs from the pricebook. Plain data, so it can go to the browser. */
 export type Sku = { skuId: number; skuType: "Service" | "Material" | "Equipment"; name: string; price: number };
+export type Unit = Sku & { model: string | null; kit: { sku: Sku; quantity: number }[] };
 export type DuctedCatalogue = {
-  units: (Sku & { kit: { sku: Sku; quantity: number }[] })[];
+  units: Unit[];
   duct: Partial<Record<DuctSize, Sku>>;
   downjet: Partial<Record<DuctSize, Sku>>;
   damper: Partial<Record<DuctSize, Sku>>;
   zoneCable: Sku | null;
-  sensor: Sku | null;
+  /** The Mitsubishi Electric 10-zone controller, an equipment line in a group of its own. */
   controller: Sku | null;
+  /** Mitsubishi Electric individual temperature control (PAR-ZR01S-A), one per zone that has one. */
+  itc: Sku | null;
   install: Sku | null;
   electrical: Sku | null;
   certificate: Sku | null;
   rate: number | null;
+  /** What a Trust Trade design is priced from as well: take-offs, reducers, the transition, return air, collars. */
+  fittings: Fitting[];
+  reducers: Reducer[];
+  transition: Sku | null;
+  raGrilles: (Sku & { w: number; h: number })[];
+  raBoxes: (Sku & { w: number; h: number })[];
+  collar: Partial<Record<DuctSize, Sku>>;
 };
 
 export type Outlet = { room: string; size: DuctSize; metres: number; zone: number };
@@ -51,11 +67,18 @@ export type DuctedInput = {
   doubleStorey: boolean;
   extraHours: number;
   extraReason: string;
-  extraSensors: number;
+  /** Temperature controls; null is one for every zone. */
+  itcs: number | null;
   notes: string;
 };
 
-export type Line = { group: "unit" | "install" | "extra"; sku: Sku | null; name: string; quantity: number; unitPrice: number; missing?: string };
+/**
+ * Each group is one item group on the quote in ServiceTitan: its first line is
+ * the group's root, the line the customer sees, and the rest sit under it.
+ */
+export type Group = "unit" | "controls" | "install" | "extra";
+export const GROUPS: Group[] = ["unit", "controls", "install", "extra"];
+export type Line = { group: Group; sku: Sku | null; name: string; quantity: number; unitPrice: number; missing?: string; note?: string };
 export type DuctedQuote = {
   hours: { base: number; outlets: number; zones: number; layout: number; floor: boolean; doubleStorey: number; extra: number; total: number };
   labour: number;
@@ -79,33 +102,61 @@ export function ductedHours(outlets: number, zones: number, doubleStorey: boolea
   };
 }
 
-export function buildDucted(input: DuctedInput, cat: DuctedCatalogue): DuctedQuote {
-  const missing: string[] = [];
+/**
+ * The quote's lines, built up in order. A SKU added twice to the same group
+ * is one line with the quantities summed, so the same reducer under three
+ * take-offs reads as three of it, not three lines.
+ */
+export function lineBook() {
   const lines: Line[] = [];
-  const add = (group: Line["group"], sku: Sku | null, name: string, quantity: number, why?: string) => {
-    if (quantity <= 0) return;
+  const missing: string[] = [];
+  const add = (group: Group, sku: Sku | null, name: string, quantity: number, why?: string, note?: string) => {
+    if (!(quantity > 0)) return;
     if (!sku) { missing.push(why ?? name); lines.push({ group, sku: null, name, quantity, unitPrice: 0, missing: why ?? name }); return; }
-    lines.push({ group, sku, name: sku.name, quantity, unitPrice: sku.price });
+    const have = lines.find((l) => l.group === group && l.sku?.skuId === sku.skuId);
+    if (have) { have.quantity += quantity; if (note) have.note = have.note ? `${have.note}; ${note}` : note; return; }
+    lines.push({ group, sku, name: sku.name, quantity, unitPrice: sku.price, ...(note ? { note } : {}) });
   };
+  return { lines, missing, add };
+}
+export type LineBook = ReturnType<typeof lineBook>;
+
+/** The zone controller in a group of its own, with the temperature controls under it. */
+export function addControls(book: LineBook, cat: DuctedCatalogue, zones: number, itcs: number | null) {
+  book.add("controls", cat.controller, "Mitsubishi Electric zone controller (10 zones)", 1, "The Mitsubishi Electric 10-zone controller isn't in the pricebook");
+  book.add("controls", cat.itc, "Mitsubishi Electric temperature control (ITC)", Math.max(0, Math.round(itcs ?? zones)), "The Mitsubishi Electric temperature control (ITC) isn't in the pricebook");
+  if (zones > DUCTED.maxZones) book.missing.push(`The Mitsubishi Electric controller runs up to ${DUCTED.maxZones} zones and this has ${zones}`);
+}
+
+/** Labour on the installation service line, and the electrician: the head of the installation group. */
+export function addInstall(book: LineBook, cat: DuctedCatalogue, h: ReturnType<typeof ductedHours>) {
+  const rate = cat.rate ?? 0;
+  if (!cat.rate) book.missing.push("Our hourly rate isn't set on Our prices");
+  const labour = cents(h.total * rate);
+  if (cat.install) book.lines.push({ group: "install", sku: cat.install, name: `${cat.install.name} · ${h.total} h × $${rate}`, quantity: 1, unitPrice: labour });
+  else book.add("install", null, "Ducted installation service", 1, "The ducted installation service isn't in the pricebook");
+  book.add("install", cat.electrical, "Electrical connection", 1);
+  return labour;
+}
+
+export const quoteTotal = (lines: Line[]) => cents(lines.reduce((a, l) => a + l.quantity * l.unitPrice, 0));
+
+export function buildDucted(input: DuctedInput, cat: DuctedCatalogue): DuctedQuote {
+  const book = lineBook();
+  const { add } = book;
 
   const outlets = input.outlets.filter((o) => o.metres >= 0);
   const zonesUsed = input.zones.filter((_, i) => outlets.some((o) => o.zone === i + 1));
   const h = ductedHours(outlets.length, zonesUsed.length, input.doubleStorey, input.extraHours);
-  const rate = cat.rate ?? 0;
-  if (!cat.rate) missing.push("Our hourly rate isn't set on Our prices");
-  const labour = cents(h.total * rate);
 
-  // The unit, and the controller every ducted job gets.
+  // The unit, then the zone controller as its own group.
   const unit = cat.units.find((u) => u.skuId === input.unitSkuId) ?? null;
-  if (!unit) missing.push("Choose the unit");
-  else lines.push({ group: "unit", sku: unit, name: unit.name, quantity: 1, unitPrice: unit.price });
-  add("unit", cat.controller, "Zonemate Touch Pro bundle (wifi, controller, gateway, zone box, 4 sensors)", 1);
-  add("unit", cat.sensor, "Extra wireless sensors", Math.max(0, Math.round(input.extraSensors) || 0));
+  if (!unit) book.missing.push("Choose the unit");
+  else book.lines.push({ group: "unit", sku: unit, name: unit.name, quantity: 1, unitPrice: unit.price });
+  addControls(book, cat, zonesUsed.length, input.itcs);
 
   // The installation: labour, the electrician, and every material.
-  if (cat.install) lines.push({ group: "install", sku: cat.install, name: `${cat.install.name} · ${h.total} h × $${rate}`, quantity: 1, unitPrice: labour });
-  else add("install", null, "Ducted installation service", 1, "The ducted installation service isn't in the pricebook");
-  add("install", cat.electrical, "Electrical connection", 1);
+  const labour = addInstall(book, cat, h);
 
   const metres = new Map<DuctSize, number>();
   const jets = new Map<DuctSize, number>();
@@ -130,12 +181,12 @@ export function buildDucted(input: DuctedInput, cat: DuctedCatalogue): DuctedQuo
 
   add("extra", cat.certificate, "BPC Compliance Certificate", 1);
 
-  const total = cents(lines.reduce((a, l) => a + l.quantity * l.unitPrice, 0));
-  return { hours: h, labour, lines, total, missing, summary: ductedSummary(input, unit, outlets, zonesUsed, h) };
+  const itcs = Math.max(0, Math.round(input.itcs ?? zonesUsed.length));
+  return { hours: h, labour, lines: book.lines, total: quoteTotal(book.lines), missing: book.missing, summary: ductedSummary(input, unit, outlets, zonesUsed, itcs) };
 }
 
 /** The quote's summary, written from the layout and the notes, in the templates' own voice. */
-export function ductedSummary(input: DuctedInput, unit: Sku | null, outlets: Outlet[], zones: Zone[], h: ReturnType<typeof ductedHours>): string {
+export function ductedSummary(input: DuctedInput, unit: Sku | null, outlets: Outlet[], zones: Zone[], itcs: number): string {
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
   const zoneText = zones.map((z) => {
     const i = input.zones.indexOf(z) + 1;
@@ -144,13 +195,19 @@ export function ductedSummary(input: DuctedInput, unit: Sku | null, outlets: Out
   });
   const parts = [
     `Supply and installation of a new ${unit ? unit.name : "ducted reverse-cycle system"}, with ${plural(outlets.length, "outlet")} across ${plural(zones.length, "zone")}${zoneText.length ? `: ${zoneText.join("; ")}` : ""}.`,
-    "Covers the indoor fan coil and outdoor unit, insulated ductwork run through the roof space to a ceiling outlet in each room, the return air, zone dampers and the Zonemate Touch controller with wifi, so each zone can be run on its own from the wall or your phone.",
+    `Covers the indoor fan coil and outdoor unit, insulated ductwork run through the roof space to a ceiling outlet in each room, the return air, and a motorised damper on each zone run from the Mitsubishi Electric zone controller${controlsText(itcs, zones.length)}, so each zone can be run on its own.`,
     "Includes the electrical connection by a licensed electrician with a Certificate of Electrical Safety, commissioning, airflow balancing to every outlet, full operational testing and a compliance certificate on completion.",
     input.doubleStorey ? "Allows for the extra work of a double-storey home." : "",
     input.extraHours > 0 && input.extraReason.trim() ? `Allows for ${input.extraReason.trim().replace(/\.$/, "")}.` : "",
     input.notes.trim(),
   ];
   return parts.filter(Boolean).join(" ");
+}
+
+/** ", with a temperature control in each zone", or in some of them, as the quote has it. */
+export function controlsText(itcs: number, zones: number): string {
+  if (itcs <= 0) return "";
+  return itcs >= zones ? ", with a temperature control in each zone" : `, with a temperature control in ${itcs} of the ${zones} zones`;
 }
 
 /** A standard house to start from: 8 outlets over 4 zones, the layout two days is priced on. */
