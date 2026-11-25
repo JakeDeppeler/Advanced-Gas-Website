@@ -45,7 +45,13 @@ const copies = UNITS.map(([name, model]) => ({ name, model, c: equipmentCopy({ n
 ok("every unit on a quote template has its description", copies.every((x) => x.c), copies.filter((x) => !x.c).map((x) => x.name));
 const LABELS = Object.values(EQUIPMENT_LABELS);
 const texts = copies.filter((x) => x.c).map((x) => ({ name: x.name, family: x.c!.family, t: x.c!.text, paras: x.c!.text.split("\n\n") }));
-ok("each is the unit's name, then the four labelled parts in order", texts.every((x) => x.paras.length === 5 && LABELS.every((l, k) => x.paras[k + 1].startsWith(l))), texts.filter((x) => x.paras.length !== 5).map((x) => x.name));
+// Jake, 25 Nov: "more wording, not so much dot points; the only [label] should be the warranty".
+ok("each is two paragraphs of prose, then the warranty under its label", texts.every((x) => x.paras.length === 3 && x.paras[2].startsWith(LABELS[0]) && !/^[A-Z][a-z ]+:/.test(x.paras[0]) && !/^[A-Z][a-z ]+:/.test(x.paras[1])), texts.filter((x) => x.paras.length !== 3).map((x) => x.name));
+ok("no old labels left anywhere", texts.every((x) => !/Why it saves you money:|Key features:|Why choose it:/.test(x.t)));
+ok("each opens with a sentence naming the unit", texts.every((x) => /^(The |This is )/.test(x.paras[0])), texts.filter((x) => !/^(The |This is )/.test(x.paras[0])).map((x) => x.paras[0].slice(0, 40)));
+// A run of three or more short verbless fragments is the dot-point style Jake asked to lose.
+const choppy = (p: string) => p.split(/(?<=\.)\s+/).filter((sn) => sn.split(/\s+/).length <= 4).length >= 3;
+ok("the prose isn't a string of short fragments", texts.every((x) => !choppy(x.paras[0]) && !choppy(x.paras[1])), texts.filter((x) => choppy(x.paras[0]) || choppy(x.paras[1])).map((x) => x.name));
 ok("each ends with our 6-year workmanship warranty", texts.every((x) => x.t.endsWith(WORKMANSHIP)));
 ok("no prices, sales or anything left unconfirmed", texts.every((x) => !/\$\d[\d,]*(?!\s*a year)|on sale|RRP|UNCONFIRMED|\{|\}/i.test(x.t.replace(/\$\d+ a year/g, ""))), texts.filter((x) => /on sale|RRP|UNCONFIRMED|\{|\}/i.test(x.t)).map((x) => x.name));
 ok("no install scope on the unit: that's the summary's", texts.every((x) => !/removal of your old|includes installation|supply and installation/i.test(x.t)));
@@ -55,12 +61,28 @@ ok("short enough to read on a quote (under 190 words)", words.every((w) => w.n <
 
 const by = (name: string) => texts.find((x) => x.name.trim() === name.trim())!;
 ok("the titles use the maker's real outputs: the '26kW' Buffalos are 28 and 30kW", /Buffalo 28kW 3-star/.test(by("Brivis Buffalo 3 Star 26kW").t) && /Buffalo 30kW 5-star/.test(by("Brivis Buffalo 5 Star 26kW").t));
-ok("Mitsubishi never claims a warranty edge over Kaden (Kaden is 7 years, Mitsubishi 5)", texts.filter((x) => x.family.startsWith("mitsubishi")).every((x) => !/longer warranty/i.test(x.t)) && /7 years against 5/.test(by("Kaden KSI 7kw V3 Split Air Conditioner").t));
+ok("Mitsubishi never claims a warranty edge", texts.filter((x) => x.family.startsWith("mitsubishi")).every((x) => !/longer warranty/i.test(x.t)) && /7-year warranty/.test(by("Kaden KSI 7kw V3 Split Air Conditioner").t));
+
+// Jake, 25 Nov: "on the brand we should only talk about that brand, not compare
+// it to other brands". A unit's words name its own maker only. The exceptions
+// are where another name is part of the product, not a comparison: Reclaim's
+// Panasonic-powered range, Kaden's warranty (serviced through Rinnai's network)
+// and ZoneMate, which says which ducted systems it works with.
+const BRANDS: [string, RegExp][] = [
+  ["mitsubishi", /Mitsubishi/i], ["kaden", /Kaden/i], ["rinnai", /Rinnai/i], ["zonemate", /Zone ?Mate/i], ["reclaim", /Reclaim/i], ["panasonic", /Panasonic/i],
+  ["thermann", /Thermann/i], ["istore", /iStore/i], ["brivis", /Brivis/i], ["braemar", /Braemar/i], ["seeley", /Seeley/i], ["bosch", /Bosch/i],
+  ["beko", /Beko/i], ["westinghouse", /Westinghouse/i], ["daikin", /Daikin/i], ["fujitsu", /Fujitsu/i], ["rheem", /Rheem/i], ["dux", /\bDux\b/], ["breezair", /Breezair/i], ["coolair", /Coolair/i],
+];
+const ALLOWED: Record<string, string[]> = { "reclaim-x-panasonic": ["panasonic"], "zonemate-touch-pro": ["mitsubishi", "kaden"] };
+const ownBrand = (family: string) => BRANDS.map(([b]) => b).filter((b) => family.startsWith(b) || family.includes(b));
+const others = texts.map((x) => ({ name: x.name.trim(), family: x.family, hits: BRANDS.filter(([b, re]) => re.test(x.t) && !ownBrand(x.family).includes(b) && !(ALLOWED[x.family] ?? []).includes(b) && !(b === "rinnai" && x.family.startsWith("kaden") && /Rinnai service/.test(x.t))).map(([b]) => b) })).filter((x) => x.hits.length);
+ok("each unit talks about its own brand only, no comparison with another", others.length === 0, others);
+ok("same-brand comparisons stay: Buffalo 3-star against 5-star", /Compared with the 5-star Buffalo/.test(by("Brivis Buffalo 3 Star 26kW").t));
 ok("the KM60 is a multi-split, not the ducted text it had", /multi-split outdoor unit, for up to 6 rooms/.test(by("Kaden Multi Condenser KM60").t));
 ok("the StarPro says StarPro, not the Ecostar text it had", /StarPro 6/.test(by("Brivis Starpro SP615in V4").t) && !/Ecostar/.test(by("Brivis Starpro SP615in V4").t));
 ok("the Bosch cooktop lost its 'on sale' line", !/sale/i.test(by("Bosch Series 4 60cm Gas Cooktop with Wok Burner").t));
-ok("the Promina's winter seal is an add-on, the Advance's and Contour's built in", /winter seal is available as an add-on/.test(by("Brivis Promina P56 Evap Cooler (Beige)").t) && /Motorised winter seal/.test(by("Brivis Advance F46DS Evap Cooler (Charcoal)").t));
-ok("colours read the same however the pricebook spells them", /L46 slimline evaporative cooler, Terra Red/.test(by("Brivis Contour L46 Evaporative Cooler (T'cotta Red)").t) && /F86DS evaporative cooler, Charcoal/.test(by("Brivis Advanced Dump F86DS Evaporative Cooler Char").t));
+ok("the Promina's winter seal is an add-on, the Advance's and Contour's built in", /winter seal is available as an add-on/.test(by("Brivis Promina P56 Evap Cooler (Beige)").t) && /motorised winter seal/i.test(by("Brivis Advance F46DS Evap Cooler (Charcoal)").t));
+ok("colours read the same however the pricebook spells them", /L46 is a slimline evaporative cooler in Terra Red/.test(by("Brivis Contour L46 Evaporative Cooler (T'cotta Red)").t) && /F86DS is an evaporative cooler in Charcoal/.test(by("Brivis Advanced Dump F86DS Evaporative Cooler Char").t));
 ok("the Contour 7 gets its own words, not the standard Contour's", by("Brivis Contour L77 Evap Cooler (Beige)").family === "brivis-contour-7");
 ok("the V1 Reclaim makes no wifi or 10-year heat pump claim", !/wifi|10 years parts and labour/i.test(by("Reclaim Split - Glass Lined - 160L V1 ").t.replace("adds app control", "")));
 ok("the Rinnai 11kW condenser carries no figures until its part is confirmed", !/\d+(\.\d+)?kW cooling/.test(by("Rinnai Multi Condenser 11kw").t));

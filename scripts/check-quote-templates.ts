@@ -9,13 +9,13 @@ import {
   EVAP_UNITS, OTHER_TEMPLATES, evapSellPrice, evapTemplate, evapUnitPrice, findUnit, lineTotal, pricedItems, type LiveSku,
 } from "../src/lib/pricebook/quoteTemplateSpecs";
 import { groupedItems, isGrouped, isTestTemplate, tidyCode, tidyName } from "../src/lib/pricebook/templateShape";
-import { HEATER_EVAP_DISCOUNTS, SERVICE_PRICES, sameName } from "../src/lib/pricebook/servicePricing";
+import { HEATER_EVAP_DISCOUNTS, SERVICE_PRICES, pricedAt, sameName } from "../src/lib/pricebook/servicePricing";
 import { GENERIC_REBATE_HEADER, REBATE_HEADERS, rebateGroup, swapHeader } from "../src/lib/pricebook/rebateSpecs";
 import { evapProposals } from "../src/lib/pricebook/evapProposalSpecs";
 import { flatText, textHash, wordingAction } from "../src/lib/pricebook/summaryRule";
 import { summaryHtml } from "../src/lib/pricebook/wording";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
-import { DUCTED, SKU, T, planDuctedFixed, planFixes } from "../src/lib/pricebook/templateFixPlan";
+import { DUCTED, DUCTED_LABOUR_PRICE, ITC_SKU, RENAME_24, SKU, SKU24, T, T24, ZC10, ZONEMATE, planDucted25, planDuctedFixed, planFixes, planFixes24, planMitsubishiZoning } from "../src/lib/pricebook/templateFixPlan";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -61,7 +61,8 @@ ok("every template has lines and a summary", all.every((t) => t.lines.length > 0
 ok("service prices as Jake gave them, and the evap install at $900", SERVICE_PRICES.slice(0, 6).map((s) => s.price).join(",") === "250,350,300,400,250,900");
 // Jake, 22 Nov: Dominator labour $3,300, the ducted install $5,000, multi-heads at 1 tech + 1 apprentice ($350 an hour) for 6–14 h.
 const p22 = (id: number) => SERVICE_PRICES.find((s) => s.skuId === id)?.price;
-ok("Dominator labour $3,300 and the ducted install $5,000", p22(301165543) === 3300 && p22(209599911) === 5000);
+// The ducted $5,000 moved from the installation line to the two-day labour under it on 25 Nov.
+ok("Dominator labour $3,300, and the ducted $5,000 on the two-day labour with the installation at $0", p22(301165543) === 3300 && p22(301164889) === 5000 && p22(209599911) === 0);
 ok("multi-heads 2–6 at $2,100 to $4,900", [301089962, 301089572, 301090544, 301091980, 301089957].map(p22).join(",") === "2100,2800,3500,4200,4900");
 ok("multi-heads are 6, 8, 10, 12, 14 hours at $350", [2100, 2800, 3500, 4200, 4900].every((p, i) => p === (6 + 2 * i) * 350));
 ok("every priced item once", new Set(SERVICE_PRICES.map((s) => s.skuId)).size === SERVICE_PRICES.length);
@@ -170,12 +171,13 @@ ok("real ones aren't taken for tests", !isTestTemplate("Brivis Buffalo 3 Star 20
 const unit = (series: "Advance" | "Promina" | "Contour" | "Balaero", model: string) => EVAP_UNITS.find((u) => u.series === series && u.model === model && (u.colour === "Charcoal"))!;
 const pro = evapTemplate(unit("Promina", "P46"), 0, 0), bal = evapTemplate(unit("Balaero", "50"), 0, 0);
 const paras = (t: { summary: string }) => t.summary.split("\n\n");
-const FOUR = ["What we're doing:", "What we're removing:", "What's included:", "What's not included:"];
-ok("an evap summary is the four parts, in order", paras(pro).length === 4 && paras(pro).every((p, k) => p.startsWith(FOUR[k])), paras(pro).map((p) => p.slice(0, 24)));
+const LABELLED = /^(What we're doing|What we're removing|What's included|What's not included):/m;
+ok("an evap summary is three plain paragraphs, no labels (Jake, 25 Nov)", paras(pro).length === 3 && !LABELLED.test(pro.summary), paras(pro).map((p) => p.slice(0, 24)));
+ok("and its wall controller comes with the cooler", /its wall controller is fitted/.test(pro.summary) && /The price includes the new cooler and its wall controller/.test(pro.summary));
 ok("it names the unit and colour, and doesn't sell it", /new Brivis Promina P46 evaporative cooler in Charcoal/.test(pro.summary) && !/AquaSave|winter seal|best value|Choose the/.test(pro.summary));
-ok("the Balaero reads the same way", paras(bal).length === 4 && /Brivis Balaero 50 evaporative cooler in Charcoal/.test(bal.summary));
+ok("the Balaero reads the same way", paras(bal).length === 3 && /Brivis Balaero 50 evaporative cooler in Charcoal/.test(bal.summary));
 const installs = OTHER_TEMPLATES.filter((t) => /Replacement|Gas Storage$/.test(t.name) && !/Valve|Motor|Capacitor|Controller|Pump Replacement/.test(t.name));
-ok("every install the code makes has the four parts", installs.length >= 9 && installs.every((t) => FOUR.every((l) => t.summary.includes(l))), installs.filter((t) => !FOUR.every((l) => t.summary.includes(l))).map((t) => t.name));
+ok("every install the code makes is three plain paragraphs", installs.length >= 9 && installs.every((t) => paras(t).length === 3 && !LABELLED.test(t.summary) && /The price includes the /.test(t.summary)), installs.filter((t) => paras(t).length !== 3 || LABELLED.test(t.summary)).map((t) => t.name));
 ok("the Add Unit template doesn't name itself as the unit", /with a new evaporative cooler,/.test(OTHER_TEMPLATES.find((t) => t.code === "EVAP-REPLACE-ADD-UNIT")!.summary));
 
 // When wording may be written over (summaryRule.ts).
@@ -183,7 +185,7 @@ const html = (t: string) => summaryHtml(t);
 const want = pro.summary, h = (t: string) => textHash(flatText(t));
 ok("already right: nothing to do", wordingAction(html(want), want, undefined, true) === "same");
 ok("ServiceTitan's escaped apostrophes still read as the same", wordingAction(html(want).replace(/'/g, "&#39;"), want, undefined, false) === "same");
-ok("the labels go in bold and still read as the same", html(want).includes("<strong>What we're doing:</strong>") && wordingAction(html(want), want, undefined, false) === "same");
+ok("a unit's warranty label goes in bold and still reads as the same", summaryHtml("Warranty: 5 years.").includes("<strong>Warranty:</strong>") && wordingAction(summaryHtml("A.\n\nWarranty: 5 years."), "A.\n\nWarranty: 5 years.", undefined, false) === "same");
 ok("first pass: whatever is there is written over", wordingAction(html("The office's old words."), want, undefined, true) === "write");
 ok("after it: words nobody recorded are left alone", wordingAction(html("Typed by the office."), want, undefined, false) === "leave");
 ok("words this code wrote are written over", wordingAction(html("Older words.\n\nOurs."), want, h("Older words.\n\nOurs."), false) === "write");
@@ -241,14 +243,77 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
     L(74, 900002, "Material", "Zone damper", 0, { itemGroupParentId: 72, parentItemId: 75 }),
     L(76, SKU.bpc, "Service", "BPC", 65),
   ] };
-  const d = planFixes(duct, prices);
-  const lab = d?.items.find((i) => i.skuId === SKU.ductedLabour);
-  ok("ducted: the two-day labour comes out of the installation group onto its own, new line", !!lab && lab.id == null && lab.itemGroupParentId == null && !!lab.itemGroupName
-    && d!.items.indexOf(lab) > d!.items.findIndex((i) => i.id === 73) && d!.items.indexOf(lab) < d!.items.findIndex((i) => i.skuId === SKU.bpc));
-  const df = planDuctedFixed({ ...duct, items: d!.items }, 5000, prices);
+  ok("ducted: the 22 Nov rule taking the labour out of the group is gone (Jake reversed it on 25 Nov)", planFixes(duct, prices) === null);
+  const df = planDuctedFixed(duct, 5000, prices);
   ok("ducted at a fixed price: $5,000 on the installation, its materials at their pricebook price, add-on parts left alone",
     df?.items.find((i) => i.skuId === SKU.ductedInstall)?.unitPrice === 5000 && df.items.find((i) => i.id === 73)?.unitPrice === 55 && df.items.find((i) => i.id === 74)?.unitPrice === 0);
   ok("split and heat pump electrical at $450 in the pricebook", [209621215, 209607618].every((id) => SERVICE_PRICES.find((x) => x.skuId === id)?.price === 450));
+
+  // Jake, 25 Nov: the installation at $0, the two-day labour under it at $5,000, the ITCs at $0.
+  const now25 = { id: DUCTED[2], name: "Mitsubishi Electric Ducted Split 16kW", items: [
+    L(100, 12, "Equipment", "Mitsubishi Electric 16kw Ducted Split", 6100),
+    L(101, SKU.ductedInstall, "Service", "Ducted Refrigerated System - Installation", 5000, { itemGroupName: "Ducted Refrigerated System - Installation" }),
+    L(102, 301215982, "Service", "Ducted Split - Electrical Connection", 1000, { itemGroupParentId: 101 }),
+    L(103, 900001, "Material", "Bradflo duct", 62, { itemGroupParentId: 101, quantity: 6 }),
+    L(104, ITC_SKU, "Equipment", "Mitsubishi ITC", 90, { itemGroupParentId: 101, quantity: 4 }),
+    L(105, SKU.ductedLabour, "Service", "Ducted Split - Labour (Two Days)", 5230, { itemGroupName: "Ducted Split - Labour (Two Days)" }),
+    L(106, SKU.bpc, "Service", "BPC", 65),
+  ] };
+  const p25 = planDucted25(now25);
+  const lab25 = p25?.items.filter((i) => i.skuId === SKU.ductedLabour) ?? [];
+  const sum = (xs: TemplateItem[]) => xs.filter((i) => !i.isAddOn).reduce((a, i) => a + i.quantity * i.unitPrice, 0);
+  ok("ducted 25 Nov: the installation at $0", p25?.items.find((i) => i.id === 101)?.unitPrice === 0, p25?.did);
+  ok("…one two-day labour line, new, under the installation, at $5,000", lab25.length === 1 && lab25[0].id == null && lab25[0].itemGroupParentId === 101 && !lab25[0].itemGroupName && lab25[0].unitPrice === DUCTED_LABOUR_PRICE);
+  ok("…placed after the group's last line, before the certificate", p25!.items.indexOf(lab25[0]) > p25!.items.findIndex((i) => i.id === 104) && p25!.items.indexOf(lab25[0]) < p25!.items.findIndex((i) => i.id === 106));
+  ok("…the ITCs at $0, the materials and electrical left at their prices", p25?.items.find((i) => i.id === 104)?.unitPrice === 0 && p25?.items.find((i) => i.id === 103)?.unitPrice === 62 && p25?.items.find((i) => i.id === 102)?.unitPrice === 1000);
+  ok("…so the labour is charged once: the template drops by the $5,230 line and the ITCs", sum(now25.items) - sum(p25!.items) === 5230 + 5000 - 5000 + 360, { before: sum(now25.items), after: sum(p25!.items) });
+  ok("…and a template already laid out is left alone", planDucted25({ ...now25, items: p25!.items.map((i, k) => (i.id == null ? { ...i, id: 900 + k } : i)) }) === null);
+  ok("…only the four ducted templates", planDucted25({ ...now25, id: 1 }) === null);
+  ok("the pricebook follows: installation $0, two-day labour $5,000", SERVICE_PRICES.find((x) => x.skuId === SKU.ductedInstall)?.price === 0 && SERVICE_PRICES.find((x) => x.skuId === SKU.ductedLabour)?.price === DUCTED_LABOUR_PRICE);
+  ok("a service price changed since it was set is set again", pricedAt("$5000 → $5000", 5000) && !pricedAt("$5000 → $5000", 0) && pricedAt("$5230 → $0", 0) && !pricedAt(undefined, 0));
+
+  // Jake, 25 Nov: "yes swap them to the mitsubishi 10 zone".
+  const zm = { id: DUCTED[0], name: "Mitsubishi Electric Ducted Split 18kW", items: [
+    L(110, 12, "Equipment", "Mitsubishi Electric 18kw Ducted Split", 6600, { itemGroupName: "Mitsubishi Electric 18kw Ducted Split" }),
+    L(111, ZONEMATE.bundle, "Equipment", "Zonemate Touch Pro Bundle + 4 Wireless Sensors", 1500, { itemGroupName: "  Zonemate Touch Pro Bundle + 4 Wireless Sensors" }),
+    L(112, SKU.ductedInstall, "Service", "Ducted Refrigerated System - Installation", 0, { itemGroupName: "Ducted Refrigerated System - Installation" }),
+    L(113, ZONEMATE.gateway, "Material", "Zonemate Touch Gateway Mits Elec", 400, { itemGroupParentId: 112 }),
+    L(114, ZONEMATE.sensor, "Material", "ZoneMate Wireless Temperature Sensor", 150, { itemGroupParentId: 112 }),
+    L(115, 301216670, "Service", "Zone 450mm Add-on", 0, { isAddOn: true, itemGroupParentId: 112 }),
+    L(116, ZONEMATE.sensor, "Material", "ZoneMate Wireless Temperature Sensor", 150, { itemGroupParentId: 112, parentItemId: 115 }),
+  ] };
+  const zt = { controllerPrice: 1550, controllerName: "Mitsubishi Electric Zone Controller", controllerText: "The Mitsubishi Electric Zone Controller…", itcName: "Mitsubishi Electric Individual Temperature Control", itcText: null };
+  const zp = planMitsubishiZoning(zm, zt);
+  const zc = zp?.items.find((i) => i.skuId === ZC10);
+  ok("ducted zoning: the Zonemate bundle becomes the Mitsubishi 10-zone controller, new, in its own group, at its price", !!zc && zc.id == null && zc.itemGroupName === "Mitsubishi Electric Zone Controller" && zc.unitPrice === 1550 && zc.itemGroupParentId == null, zp?.did);
+  ok("…the Zonemate gateway comes off, and no Zonemate part is left on the template's own lines", !zp!.items.some((i) => i.parentItemId == null && (Object.values(ZONEMATE) as number[]).includes(i.skuId)));
+  const itcs = zp!.items.filter((i) => i.skuId === ITC_SKU);
+  ok("…the ZoneMate sensor on the installation becomes a Mitsubishi ITC at $0, not chargeable, where it was", itcs.length === 1 && itcs[0].unitPrice === 0 && itcs[0].chargeable === false && itcs[0].id == null && itcs[0].itemGroupParentId === 112);
+  ok("…the sensor that's the zone add-on's own part is left for the add-on", zp!.items.some((i) => i.skuId === ZONEMATE.sensor && i.parentItemId === 115));
+  const at90 = { ...zm, items: zp!.items.map((i, k) => (i.id == null ? { ...i, id: 950 + k, ...(i.skuId === ITC_SKU ? { unitPrice: 90, chargeable: null } : {}) } : i)) };
+  ok("…an ITC ServiceTitan priced from the pricebook ($90) goes back to $0, not chargeable", planMitsubishiZoning(at90, zt)?.items.find((i) => i.skuId === ITC_SKU)?.chargeable === false);
+  ok("…and a template already swapped is left alone", planMitsubishiZoning({ ...zm, items: zp!.items.map((i, k) => (i.id == null ? { ...i, id: 950 + k } : i)) }, zt) === null);
+  ok("…with the add-on's own sensor (negative id) left as it is", planMitsubishiZoning({ ...zm, items: [...zp!.items.map((i, k) => (i.id == null ? { ...i, id: 950 + k } : i)).filter((i) => i.parentItemId == null), { ...zm.items[6], id: -2 }] }, zt) === null);
+  ok("…only the four ducted templates", planMitsubishiZoning({ ...zm, id: 1 }, zt) === null);
+
+  // Jake, 24 Nov.
+  const m5 = planFixes24({ id: T24.mitsu5Btb, name: "Mitsubishi Electric 5kW Split System - Back to Back", items: [
+    L(80, 209600004, "Service", "Split System Install - Back To Back", 1280, { itemGroupName: "Installation" }),
+    L(81, SKU.coil38, "Material", "Coil 1/4 x 3/8", 0, { quantity: 0.5, itemGroupParentId: 80 })] });
+  const c12 = m5?.items.find((i) => i.skuId === SKU.coil12);
+  ok("Mitsubishi 5kW back-to-back: 1/4 x 1/2 coil, half a coil, in the group", !!c12 && c12.quantity === 0.5 && c12.itemGroupParentId === 80 && !m5!.items.some((i) => i.skuId === SKU.coil38));
+  const rtw = { id: 9, name: "Mitsubishi Electric 7.1kW Split System - Roof To Wall Bracket", items: [
+    L(90, 209624835, "Service", "Split System Installation - Wall Bracket", 1850, { itemGroupName: "Installation" }),
+    L(91, SKU24.roof520, "Material", "Rodigas Roof Bracket 520mm", 0, { itemGroupParentId: 90 }),
+    L(92, SKU.hat, "Material", "Colorbond Hat Section", 0, { itemGroupParentId: 90 })] };
+  const r7 = planFixes24(rtw);
+  ok("roof-to-wall 7.1kW: the roof bracket becomes the 550mm wall bracket, and two hat sections", r7?.items.some((i) => i.skuId === SKU24.wall550 && i.itemGroupParentId === 90) === true
+    && !r7!.items.some((i) => i.skuId === SKU24.roof520) && r7!.items.find((i) => i.skuId === SKU.hat)?.quantity === 2, r7?.did);
+  ok("…and a fixed one is left alone", planFixes24({ ...rtw, items: r7!.items }) === null);
+  const r25 = planFixes24({ ...rtw, name: "Mitsubishi Electric 2.5kW Split System - Roof To Wall Bracket" });
+  ok("a 2.5kW roof-to-wall takes the 420mm wall bracket", r25?.items.some((i) => i.skuId === SKU24.wall420) === true);
+  ok("back-to-back and roof-mounted templates aren't roof-to-wall", planFixes24({ ...rtw, name: "Kaden 5kW Split System - Roof Mounted" }) === null);
+  ok("the two Brivis Charcoal coolers named as the price list has them", RENAME_24.every((r) => /^Brivis Advance F[48]6DS Evap Cooler \(Charcoal\)$/.test(r.to)));
 }
 
 console.log("\nTemplates, at the prices quoted by hand:");

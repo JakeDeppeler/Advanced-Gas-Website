@@ -37,11 +37,18 @@ import { INSTALL_CODES, lineCopy, plainText, SERVICE_COPY, summaryHtml, template
 // 2026-11-22: so it goes on the installation services themselves (step 2
 // below, wording.ts INSTALL_CODES), and the templates' lines are left to
 // follow them.
-export const VERSION = "2026-11-22";
+// 2026-11-25 (Jake, "update the summary as well so it's not dot points"): the
+// summaries become three plain paragraphs with no labels.
+export const VERSION = "2026-11-25";
 // The units' own descriptions didn't change with it, so they stay on the
 // 17 Nov pass: a new pass would treat any description nobody recorded as
 // fair to write over, and nobody asked for the units to be looked at again.
-const EQUIPMENT_VERSION = "2026-11-17";
+const EQUIPMENT_VERSION = "2026-11-25-prose";
+// The installation services' own descriptions (step 2). Kept apart from VERSION so
+// new install wording (Jake, 25 Nov: say what the installation covers) goes on
+// the 18 services without walking all 199 templates again: a template's service
+// line shows the service's description whatever the template holds.
+const SERVICE_VERSION = "2026-11-25-prose";
 const KEY = "quote_wording";
 const BACKUP = "quote_wording_backup";
 /** ServiceTitan's limit on ids in one call. */
@@ -53,8 +60,11 @@ type Rec = { v?: string; s?: string; l?: Record<string, string> };
 type Progress = {
   templates?: Record<string, Rec>;
   equipment?: Record<string, { v?: string; h?: string }>;
-  /** Installation services whose description is done, by id: the VERSION it was done at. */
+  /** Installation services whose description is done, by id: the SERVICE_VERSION it was done at. */
   services?: Record<string, string>;
+  /** The SERVICE_VERSION every installation service is done at. Until it is,
+   *  a run goes on to step 2 even with no template or unit left to do. */
+  servicesDone?: string;
   /** The version whose first pass is done: from then on, nothing unrecorded is written over. */
   firstPassDone?: string;
   left?: Record<string, string>;
@@ -86,7 +96,11 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
   const templatesTodo = all.filter((t) => recs[t.id]?.v !== VERSION);
   const equipTodo = equipIds.filter((id) => eqRecs[id]?.v !== EQUIPMENT_VERSION);
   out.todo = templatesTodo.length + equipTodo.length;
-  if (!out.todo) return out;
+  // The services are counted apart: they're only known once listed, and a
+  // run that hit its write limit partway through them (25 Nov: 12 units and
+  // 13 of the 18 services) must not be followed by runs that stop here
+  // because the templates and units are done.
+  if (!out.todo && p.servicesDone === SERVICE_VERSION) return out;
 
   const log: AutoEntry[] = [];
   const backup: Backup = (await getSettings<Backup>(BACKUP).catch(() => null)) ?? {};
@@ -156,12 +170,12 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
   const installServices = services.filter((s) => installCodes.has(String(s.code ?? "").trim().toUpperCase()));
   for (const s of installServices) {
     const id = Number(s.id);
-    if (svcRecs[id] === VERSION) continue;
+    if (svcRecs[id] === SERVICE_VERSION) continue;
     if (Date.now() > until || writes >= maxWrites || out.failed.length) break;
     const code = String(s.code ?? "").trim().toUpperCase();
     const want = SERVICE_COPY[code];
     const name = String(s.displayName ?? code).trim();
-    if (plainText(s.description as string | null) === flatText(want)) { svcRecs[id] = VERSION; continue; }
+    if (plainText(s.description as string | null) === flatText(want)) { svcRecs[id] = SERVICE_VERSION; continue; }
     if (!bS[id]) { bS[id] = { at: at(), code, description: plainText(s.description as string | null) }; backupDirty = true; }
     // As the 17 Nov service wording went on (labourSync.ts applyWording): plain text, read back.
     const path = stTenantPath("pricebook", `services/${id}`);
@@ -171,7 +185,7 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
       writes++;
       const back = await stFetch<Raw>(path);
       if (plainText(back.description as string | null) !== flatText(want)) throw new Error("the description reads back different");
-      svcRecs[id] = VERSION;
+      svcRecs[id] = SERVICE_VERSION;
       out.services.push(name);
       await saveSettings(KEY, p);
     } catch (e) {
@@ -249,8 +263,9 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
   }
 
   const remaining = all.filter((t) => recs[t.id]?.v !== VERSION).length + equipIds.filter((id) => eqRecs[id]?.v !== EQUIPMENT_VERSION).length
-    + installServices.filter((s) => svcRecs[Number(s.id)] !== VERSION).length;
+    + installServices.filter((s) => svcRecs[Number(s.id)] !== SERVICE_VERSION).length;
   if (!remaining && firstPass) p.firstPassDone = VERSION;
+  if (installServices.length && installServices.every((s) => svcRecs[Number(s.id)] === SERVICE_VERSION)) p.servicesDone = SERVICE_VERSION;
   out.left = Object.values(left).slice(0, 20);
   if (out.templates.length || out.equipment.length || out.services.length) {
     log.push({ at: at(), kind: "quoteTemplates", ok: true, title: `Quote wording: ${out.services.length ? `${out.services.length} installation service${out.services.length === 1 ? "" : "s"}, ` : ""}${out.templates.length} template${out.templates.length === 1 ? "" : "s"} and ${out.equipment.length} unit${out.equipment.length === 1 ? "" : "s"} updated`, detail: remaining ? `${remaining} to go` : "all done" });

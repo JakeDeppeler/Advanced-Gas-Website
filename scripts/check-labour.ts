@@ -27,10 +27,11 @@ ok("split repair is one person by the hour", crewFor("AC-SPLIT-REPAIR") === "sol
 ok("servicing is left at its own price", crewFor("SVC-AS-SPLIT") === null && crewFor("AC-SPLIT-DEEPCLEAN") === null && crewFor("EVAP-MAINT-DS") === null);
 ok("a split install is the part-day rate", crewFor("AC-SPLIT-RTR") === "partDay");
 ok("heat pump, split hot water and cooktop installs are part-day", ["HW-HP-HARD", "HW-HP-SPLIT", "GAS-COOKTOP-INSTALL", "HW-CF-INS"].every((c) => crewFor(c) === "partDay"));
-ok("the ducted labour lines are the crew rate", ["AC-DUCTED-LAB", "AC-DUCTED-LAB-1DAY", "LAB-HR-2P"].every((c) => crewFor(c) === "pair"));
+ok("the ducted one-day and hourly labour lines are the crew rate", ["AC-DUCTED-LAB-1DAY", "LAB-HR-2P"].every((c) => crewFor(c) === "pair"));
 // Jake, 22 Nov: his own prices (servicePricing.ts), so this run never prices them from hours.
-ok("multi-heads, the ducted install and the Dominator labour are Jake's prices, not the run's", ["AC-SPLIT-MULTI-2", "AC-SPLIT-MULTI-4", "AC-SPLIT-MULTI-6", "AC-DUCTED-2DAYS", "AC-DOM-LAB"].every((c) => crewFor(c) === null));
-ok("codes with stray spaces still match", crewFor(" GAS-DUCT-EXT") === "partDay" && crewFor("AC-DUCTED-LAB ") === "pair");
+// And 25 Nov: the ducted two-day labour carries the $5,000 under a $0 installation.
+ok("multi-heads, the ducted install, the ducted two-day labour and the Dominator labour are Jake's prices, not the run's", ["AC-SPLIT-MULTI-2", "AC-SPLIT-MULTI-4", "AC-SPLIT-MULTI-6", "AC-DUCTED-2DAYS", "AC-DUCTED-LAB", "AC-DOM-LAB"].every((c) => crewFor(c) === null));
+ok("codes with stray spaces still match", crewFor(" GAS-DUCT-EXT") === "partDay" && crewFor("AC-DUCTED-LAB-1DAY ") === "pair");
 ok("a hot water repair filed under Split System – Repair is left alone", crewFor("HW-CF-REPAIR") === null);
 ok("electrical connections are the electrician's price, left alone", crewFor("AC-SPLIT-ELEC") === null);
 ok("the three-person hourly line follows the install rate", crewFor("LAB-HR-3P") === "crew3");

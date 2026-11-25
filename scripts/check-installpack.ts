@@ -11,9 +11,9 @@
  *   npm run check:installpack -- out.pdf photo1.jpg photo2.jpg   (also writes the PDF)
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { beforeLeaving, buildPack, fingerprint, kindOf, packParts, photosToTake, plainText, rebatesOn, whatChanged, type PackFacts, type QuoteItem } from "../src/lib/installpack/build";
+import { beforeLeaving, buildPack, fingerprint, kindOf, packDue, packParts, photosToTake, plainText, rebatesOn, whatChanged, type PackFacts, type QuoteItem } from "../src/lib/installpack/build";
 import { packPdf } from "../src/lib/installpack/pdf";
-import { SUMMARY_SCHEMA, listed, parseSummary, summaryInput, type InstallSummary, type VisitReport } from "../src/lib/installpack/summaryText";
+import { SUMMARY_SCHEMA, keepNote, listed, parseSummary, summaryInput, type InstallSummary, type VisitReport } from "../src/lib/installpack/summaryText";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -62,6 +62,8 @@ const p = buildPack(facts);
 const names = (ls: { name: string }[]) => ls.map((l) => l.name);
 console.log("-- what's listed --");
 ok("the unit is under Going in", names(p.units).join() === "Braemar Dominator Series 2 - Internal", names(p.units));
+ok("the pack's own notes are kept out of its words, whatever the case (24 Nov)", ["Install pack updated to v6: the crew changed. The new PDF is attached; use it rather than earlier versions.", "INSTALL PACK: Job 20881 Install Pack.pdf is attached", "install pack on job 20769", "Email from bob@example.com: re quote", "EMAILS ABOUT THE QUOTE (3)"].every((t) => !keepNote(t)));
+ok("…and the office's own notes are kept", ["Keys left no one home", "Install the packing strip under the fan coil", "Customer emailed about parking"].every(keepNote));
 ok("a rebate is never a material", !names(p.materials).some((n) => /rebate|VEEC/i.test(n)));
 ok("materials keep the quote's order", names(p.materials)[0] === "Bradflo Insulated Duct R1.0 350mm x 6 Metre" && p.materials.length + p.zoning.length === 6, names(p.materials));
 ok("names are tidied of ServiceTitan's stray spaces", names([...p.materials, ...p.zoning]).includes("Multivent MDO 4-Way 230mm x 230mm"));
@@ -158,6 +160,12 @@ ok("a rebate job's photos have the trailer one, marked", photosToTake("hotwater"
 ok("…and before leaving, the sign-off and Alitsy, marked", beforeLeaving("hotwater", true).filter((c) => c.must).map((c) => c.text).join("|") === "Customer signs off the rebate before you leave|Data plate details, old and new unit, entered into Alitsy");
 ok("a job without a rebate has neither", !photosToTake("split", false).some((c) => c.must) && !beforeLeaving("split", false).some((c) => c.must));
 const aioPack = buildPack({ ...facts, jobType: "Installation - AIO Heat Pump (Plug)", summary: { from: "x", ok: { overview: "o", locations: [{ label: "Indoor unit", text: "x" }, { label: "Heat pump", text: "On the old pad" }] } } });
+// Wed 25 Nov 7:00am Melbourne (AEDT) is 24 Nov 20:00 UTC; midday Tue 24 Nov Melbourne is 01:00 UTC.
+const wed7 = "2026-11-24T20:00:00Z";
+ok("a confirmed visit's pack is due straight away", packDue({ confirmed: true, visitStart: wed7 }, Date.parse("2026-11-20T00:00:00Z")).why === "confirmed");
+ok("an unconfirmed one isn't, two days out", !packDue({ confirmed: false, visitStart: wed7 }, Date.parse("2026-11-23T05:00:00Z")).due);
+ok("…nor at 11:59am the day before", !packDue({ confirmed: false, visitStart: wed7 }, Date.parse("2026-11-24T00:59:00Z")).due);
+ok("…but is from midday the day before", packDue({ confirmed: false, visitStart: wed7 }, Date.parse("2026-11-24T01:00:00Z")).why === "day before");
 ok("an all-in-one has no indoor unit to place", aioPack.locations.length === 1 && aioPack.locations[0].label === "Heat pump", aioPack.locations);
 
 // What a summary for this job might say: for the layout, not from Claude.

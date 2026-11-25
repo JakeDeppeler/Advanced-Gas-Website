@@ -4,6 +4,7 @@ import { getSettings } from "@/lib/portal/db";
 import { normalisePricing } from "@/lib/portal/pricingTypes";
 import { normCode } from "@/lib/pricebook/labour";
 import { DUCT_SIZES, type DuctSize, type DuctedCatalogue, type Sku } from "@/lib/ducted/plan";
+import { asFitting, asReducers, type Fitting } from "@/lib/ducted/fittings";
 
 type Raw = Record<string, unknown>;
 type TemplateItem = { skuId: number; skuType: string; skuName?: string | null; quantity: number; isAddOn?: boolean; parentItemId?: number | null };
@@ -55,20 +56,31 @@ export async function loadDuctedCatalogue(): Promise<DuctedCatalogue> {
         .filter((i) => i.skuType === "Material" && !i.isAddOn && i.parentItemId == null)
         .map((i) => ({ sku: materialById.get(i.skuId), quantity: Number(i.quantity) || 0 }))
         .filter((k): k is { sku: Sku; quantity: number } => !!k.sku && k.quantity > 0 && !fromLayout.test(k.sku.name));
-      return { ...unit, kit };
+      return { ...unit, model: typeof e.model === "string" && e.model.trim() ? e.model.trim() : null, kit };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const controller = equipment.find((e) => /zonemate touch pro bundle/i.test(String(e.displayName ?? "")));
+  // Mitsubishi Electric zoning on every ducted job now (Jake, 24 Nov), by model so a renamed line still matches.
+  const eq = (re: RegExp) => { const e = equipment.find((x) => re.test(`${x.model ?? ""} ${x.code ?? ""}`)); return e ? sku(e, "Equipment") : null; };
+  const allMaterials = materials.map((m) => sku(m, "Material"));
+  const sized = (re: RegExp) => allMaterials.flatMap((m) => { const x = re.exec(m.name.replace(/\s+/g, " ")); return x ? [{ ...m, w: Number(x[1]), h: Number(x[2]) }] : []; });
+  const transition = materials.find((m) => normCode(m.code) === "MAT-DUCT-TRANSITION");
   return {
     units,
     duct: bySize((s) => new RegExp(`^bradflo insulated duct r1\\.5 ${s}mm`, "i")),
     downjet: bySize((s) => new RegExp(`^downjet ${s}mm`, "i")),
     damper: bySize((s) => new RegExp(`^zoneboss damper 24v\\s+${s}mm`, "i")),
     zoneCable: matByName(/^zoneboss blue 24v cable/i),
-    sensor: matByName(/^zonemate wireless temperature sensor/i),
-    controller: controller ? sku(controller, "Equipment") : null,
+    controller: eq(/PAC-?ZC10/i),
+    itc: eq(/PAR-?ZR01S/i),
+    fittings: allMaterials.map(asFitting).filter((f): f is Fitting => !!f),
+    reducers: allMaterials.flatMap(asReducers),
+    transition: transition ? sku(transition, "Material") : null,
+    raGrilles: sized(/^Profiler Eggcrate .*?(\d{3,4})mm x (\d{3,4})mm/i),
+    raBoxes: sized(/^Return Air Box\b.*?(\d{3,4})mm x (\d{3,4})mm/i),
+    collar: bySize((s) => new RegExp(`^starting collar metal ${s}mm`, "i")),
     install: svc("AC-DUCTED-2DAYS"),
+    labour: svc("AC-DUCTED-LAB"),
     electrical: svc("AC-DUCTED-ELE"),
     certificate: (() => { const s = services.find((x) => /^bpc compliance certificate$/i.test(String(x.displayName ?? x.code ?? "").trim())); return s ? sku(s, "Service") : null; })(),
     rate: normalisePricing(pricing).hourly,

@@ -7,7 +7,7 @@
  *
  *   npm run check:wording
  */
-import { INSTALL_CODES, INSTALL_LINE, lineCopy, plainText, SERVICE_COPY, summaryHtml, templateFacts, templateSummary } from "../src/lib/pricebook/wording";
+import { INSTALL_CODES, INSTALL_COPY, INSTALL_LINE, lineCopy, plainText, SERVICE_COPY, summaryHtml, templateFacts, templateSummary } from "../src/lib/pricebook/wording";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -26,9 +26,12 @@ const sum = (name: string, items: ReturnType<typeof svc | typeof eq | typeof mat
 const k = sum("Kaden 3.5kW Split System - Roof To Wall Bracket", [svc("AC-SPLIT-RTW"), eq("Kaden KSI 3.5kw V3 Split Air Conditioner")]);
 ok("a Kaden roof-to-wall says Kaden, never Mitsubishi", /new Kaden 3\.5kW split system/.test(k.s) && !/Mitsubishi/.test(k.s), k.s.slice(0, 120));
 ok("roof-to-wall: the bracket on another wall", k.f.placement === "rtw" && /bracket on another outside wall/.test(k.s));
-ok("every split says what's removed", /What we're removing: Your old split system/.test(k.s));
-const FOUR = ["What we're doing:", "What we're removing:", "What's included:", "What's not included:"];
-ok("the summary is the four labelled parts, in order (Jake, 17 Nov)", k.s.split("\n\n").length === 4 && k.s.split("\n\n").every((p, i) => p.startsWith(FOUR[i])), k.s.split("\n\n").map((p) => p.slice(0, 30)));
+ok("every split says what's removed", /If we're replacing an old split system, a licensed technician recovers its refrigerant/.test(k.s));
+// Jake, 25 Nov: "not dot points". Three paragraphs of sentences, no labels:
+// the job; what comes out and what the price covers; what it doesn't.
+const LABELLED = /^(What we're doing|What we're removing|What's included|What's not included):/m;
+ok("the summary is three plain paragraphs, with no labels", k.s.split("\n\n").length === 3 && !LABELLED.test(k.s), k.s.split("\n\n").map((p) => p.slice(0, 30)));
+ok("it opens with what we'll do, and says what the price includes", /^We'll (supply and install|replace) /.test(k.s) && /The price includes the /.test(k.s.split("\n\n")[1]));
 ok("no brand selling in a summary: that's the equipment line's", !/premium range|value range|relied on/.test(k.s));
 const btb = sum("Mitsubishi Electric 3.5kW Split System - Back to Back", [svc("AC-SPLIT-BTB"), eq("Mitsubishi Electric 3.5kw Split System"), mat('Ardent Copper Pair Coil 1/4" x 3/8" R410A 20mtr', 0.5)]);
 ok("pipe included is what's on the template: half a 20 m coil is 10 m", btb.f.pipeM === 10 && /up to 10 m of Ardent copper/.test(btb.s) && /beyond the 10 m included/.test(btb.s));
@@ -64,7 +67,7 @@ ok("Wombat is internal, not an external cabinet", wom.f.heater === "internal" &&
 ok("Wombat no longer says Compact Classic", !/Compact Classic/.test(wom.s));
 const womInt = sum("Brivis Wombat 3 Star 20kW Ducted Gas Heater", [svc("GAS-DUCT-INT"), eq("Brivis Classic 2P Wombat 20NG")]);
 ok("a heater on the new internal service reads as internal", womInt.f.heater === "internal" && /internal heater/.test(womInt.s));
-ok("the internal service carries the installation sentence (the summary says internal)", SERVICE_COPY["GAS-DUCT-INT"] === INSTALL_LINE);
+ok("the internal service carries the internal installation wording", SERVICE_COPY["GAS-DUCT-INT"] === INSTALL_COPY["GAS-DUCT-INT"] && /internal ducted gas heater/.test(SERVICE_COPY["GAS-DUCT-INT"]));
 const sp = sum("Brivis StarPro 6 Star 15kW Ducted Gas Heater", [svc("GAS-DUCT-EXT"), eq("Brivis Starpro SP615in V4")]);
 ok("StarPro SP615in is internal", sp.f.heater === "internal");
 const buf = sum("Brivis Buffalo 5 Star 20kW Ducted Gas Heater", [svc("GAS-DUCT-EXT"), eq("Brivis Buffalo 5 Star 20kW")]);
@@ -92,11 +95,26 @@ ok("summaries go in as paragraphs, escaped", html === "<p>One &amp; two.</p><p>T
 ok("and read back to the same text", plainText(html) === "One & two.\nThree < four.");
 
 
-// The labour line on every template (Jake, 19 Nov): the installation services carry one plain sentence.
-ok("the sentence", INSTALL_LINE === "All labour and materials required to complete the works described in the Job Summary.");
-ok("every installation service carries it", INSTALL_CODES.every((c) => SERVICE_COPY[c] === INSTALL_LINE), INSTALL_CODES.filter((c) => SERVICE_COPY[c] !== INSTALL_LINE));
-ok("the internal heater's line too", SERVICE_COPY["GAS-DUCT-EXT#internal"] === INSTALL_LINE && lineCopy("GAS-DUCT-EXT", { name: "x", kind: "heater", brand: "Brivis", size: null, heater: "internal" } as never) === INSTALL_LINE);
-ok("a template's roof bracket line asks for it", lineCopy("AC-SPLIT-RTR", null) === INSTALL_LINE);
+// The installation lines (Jake, 25 Nov): each kind of install says what it
+// covers — the labour, the materials, the old unit out — and where the
+// electrician or the labour is priced on its own line, says so rather than
+// claiming it.
+ok("every installation service has its own wording", INSTALL_CODES.every((c) => SERVICE_COPY[c] === INSTALL_COPY[c] && INSTALL_COPY[c].length > 150), INSTALL_CODES.filter((c) => SERVICE_COPY[c] !== INSTALL_COPY[c]));
+ok("no two installs read the same", new Set(INSTALL_CODES.map((c) => INSTALL_COPY[c])).size === INSTALL_CODES.length);
+ok("each says what it includes", INSTALL_CODES.every((c) => /Includes/.test(INSTALL_COPY[c])), INSTALL_CODES.filter((c) => !/Includes/.test(INSTALL_COPY[c])));
+const ELEC_LINE = ["AC-SPLIT-BTB", "AC-SPLIT-RTW", "AC-SPLIT-RTR", "AC-SPLIT-MULTI", "AC-DUCTED-2DAYS", "AC-DOM-INSTALL", "HW-HP-HARD", "HW-HP-SPLIT"];
+ok("where the electrician has a line, the install points to it", ELEC_LINE.every((c) => /electrical (connection|work) by our licensed electrician (is|are) on (its|their) own line|electrical connection by our licensed electrician are on their own lines/.test(INSTALL_COPY[c])), ELEC_LINE.filter((c) => !/licensed electrician/.test(INSTALL_COPY[c])));
+ok("and nowhere else claims an electrician", INSTALL_CODES.filter((c) => !ELEC_LINE.includes(c)).every((c) => !/licensed electrician/.test(INSTALL_COPY[c])));
+ok("the plug-in heat pump says no electrician is needed", /no electrician is needed/.test(INSTALL_COPY["HW-HP-PLUG"]));
+ok("where the labour has its own line, the install doesn't claim all labour", ["AC-SPLIT-MULTI", "AC-DUCTED-2DAYS", "AC-DOM-INSTALL"].every((c) => !/all labour/.test(INSTALL_COPY[c]) && /labour/.test(INSTALL_COPY[c])));
+ok("everywhere else it includes all labour", INSTALL_CODES.filter((c) => !["AC-SPLIT-MULTI", "AC-DUCTED-2DAYS", "AC-DOM-INSTALL"].includes(c)).every((c) => /all labour/.test(INSTALL_COPY[c])));
+ok("roof-to-wall says two lengths of cover (24 Nov: two hat sections)", /two lengths of Colorbond cover/.test(INSTALL_COPY["AC-SPLIT-RTW"]));
+ok("the evap drain runs to the gutter, and the cooler's wall controller is included (Jake, 25 Nov)", /new PVC drain run to the gutter/.test(INSTALL_COPY["EVAP-INSTALL"]) && /the new cooler and its wall controller/.test(INSTALL_COPY["EVAP-INSTALL"]));
+ok("no gas heater promises a controller the templates don't carry", !/controller/i.test(INSTALL_COPY["GAS-DUCT-INT"] + INSTALL_COPY["GAS-DUCT-EXT"]));
+ok("no install names an equipment brand", INSTALL_CODES.every((c) => !/Mitsubishi|Kaden|Rinnai|Brivis|Braemar|Thermann|Reclaim|iStore|Bosch|Beko|Westinghouse/i.test(INSTALL_COPY[c])));
+ok("the internal heater on the external service reads as internal", SERVICE_COPY["GAS-DUCT-EXT#internal"] === INSTALL_COPY["GAS-DUCT-INT"] && lineCopy("GAS-DUCT-EXT", { name: "x", kind: "heater", brand: "Brivis", size: null, heater: "internal" } as never) === INSTALL_COPY["GAS-DUCT-INT"]);
+ok("a template's roof bracket line asks for the roof bracket wording", lineCopy("AC-SPLIT-RTR", null) === INSTALL_COPY["AC-SPLIT-RTR"]);
+ok("the job write-up's own labour sentence is kept", INSTALL_LINE === "All labour and materials required to complete the works described in the Job Summary.");
 ok("the electricians' lines keep their own words", ["AC-SPLIT-ELEC", "AC-MULTI-ELEC", "AC-DUCTED-ELE", "DOM-ELEC", "ELEC-HP"].every((c) => /licensed electrician/.test(SERVICE_COPY[c])));
 ok("the crew-and-hours lines keep theirs", /two technicians/.test(SERVICE_COPY["AC-DOM-LAB"]) && /two technicians/.test(SERVICE_COPY["AC-DUCTED-LAB"]));
 ok("the call-outs, repairs and zones keep theirs", /first hour on site/.test(SERVICE_COPY["AC-SPLIT-DIAG"]) && /motorised damper/.test(SERVICE_COPY["ZONE 250MM ADD-ON"]));

@@ -4,8 +4,8 @@ import { stFetch, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
-import { INSTALL_LINE } from "./wording";
-import { DUCTED, DUPLICATES, INTERNAL_ON_EXTERNAL, SKU, planDuctedFixed, planFixes, type Prices, type Tpl } from "./templateFixPlan";
+import { SERVICE_COPY } from "./wording";
+import { DUCTED, DUPLICATES, INTERNAL_ON_EXTERNAL, ITC_SKU, RENAME_24, SKU, ZC10, planDucted25, planDuctedFixed, planFixes, planFixes24, planMitsubishiZoning, type Prices, type Tpl, type ZoningText } from "./templateFixPlan";
 
 /**
  * Jake's 22 Nov template fixes (templateFixPlan.ts says what and why), written
@@ -47,6 +47,15 @@ async function materialPrices(): Promise<Prices> {
   return new Map(rows.filter((r) => r.price != null).map((r) => [Number(r.id), Number(r.price)]));
 }
 
+/** The Mitsubishi controller's and ITC's names, words and the controller's price, from the pricebook's synced copy. */
+async function zoningText(): Promise<ZoningText | null> {
+  const rows = await sbSelect<{ id: number; name: string; description: string | null; price: string | null }>("st_pricebook_equipment",
+    `select=id,name,description:raw->>description,price:raw->>price&id=in.(${ZC10},${ITC_SKU})&active=is.true`);
+  const zc = rows.find((r) => Number(r.id) === ZC10), itc = rows.find((r) => Number(r.id) === ITC_SKU);
+  if (!zc || !itc || !(Number(zc.price) > 0)) return null;
+  return { controllerPrice: Number(zc.price), controllerName: zc.name.trim(), controllerText: zc.description, itcName: itc.name.trim(), itcText: itc.description };
+}
+
 async function readService(id: number): Promise<Raw | null> {
   const r = await stFetch<{ data?: Raw[] }>(stTenantPath("pricebook", "services"), { ids: String(id), calculatePrices: "true" });
   return r.data?.[0] ?? null;
@@ -64,7 +73,7 @@ async function swapToInternal(t: Live): Promise<string> {
   const oldIds = new Set(items.map((i) => i.id).filter((x) => x != null));
   const groupName = (ext.itemGroupName ?? "Gas Ducted Heater - Internal").trim();
   const first = items.map((i) => (i === ext
-    ? { id: null, skuId: SKU.gasInternal, skuType: "Service" as const, skuName: String(svc.displayName ?? "Gas Ducted Heater - Internal"), description: INSTALL_LINE, quantity: 1, unitPrice: price, isAddOn: false, itemGroupName: groupName }
+    ? { id: null, skuId: SKU.gasInternal, skuType: "Service" as const, skuName: String(svc.displayName ?? "Gas Ducted Heater - Internal"), description: SERVICE_COPY["GAS-DUCT-INT"], quantity: 1, unitPrice: price, isAddOn: false, itemGroupName: groupName }
     : i.itemGroupParentId === ext.id ? { ...i, itemGroupParentId: null } : i));
   await stSend("PATCH", path(t.id), { items: templatePatchItems(first) });
   let back = await stFetch<Live>(path(t.id));
@@ -174,7 +183,88 @@ export async function fixTemplates22Nov(until: number, all: Live[]): Promise<{ f
     }
   }
 
-  if (fixed.length) log.push({ at: new Date().toISOString(), kind: "quoteTemplates", ok: true, title: `${fixed.length} quote template${fixed.length === 1 ? "" : "s"} fixed (Jake, 22 Nov)`, detail: fixed.join("; ").slice(0, 600) });
+  // 5. Jake's 24 Nov answers (templateFixPlan.ts › planFixes24), keyed apart
+  // from the 22 Nov ones so a template fixed then is still looked at.
+  for (const t of all) {
+    const key = `${t.id}:24nov`;
+    if (done[key] || (tries[key] ?? 0) >= MAX_TRIES || !planFixes24(tpl(t))) continue;
+    if (Date.now() > until) break;
+    try {
+      const now = await stFetch<Live>(path(t.id));
+      const plan = planFixes24(tpl({ ...now, id: t.id, name: now.name ?? t.name }));
+      if (!plan) { done[key] = "nothing left to do"; await save(); continue; }
+      await stSend("PATCH", path(t.id), { items: templatePatchItems(plan.items) });
+      const back = await stFetch<Live>(path(t.id));
+      const still = planFixes24(tpl({ ...back, id: t.id, name: back.name ?? t.name }));
+      if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
+      done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
+      fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // 6. The four ducted templates laid out as Jake laid out 20867 on 25 Nov
+  // (templateFixPlan.ts › planDucted25): the installation at $0, the two-day
+  // labour under it, the temperature controls at $0. Read back, and a line
+  // ServiceTitan didn't take as sent is a failure, not a done.
+  for (const id of DUCTED) {
+    const t = byId.get(id);
+    const key = `${id}:25nov`;
+    if (!t || done[key] || (tries[key] ?? 0) >= MAX_TRIES || Date.now() > until) continue;
+    try {
+      const now = await stFetch<Live>(path(id));
+      const plan = planDucted25(tpl({ ...now, id, name: now.name ?? t.name }));
+      if (!plan) { done[key] = "nothing left to do"; await save(); continue; }
+      await stSend("PATCH", path(id), { items: templatePatchItems(plan.items) });
+      const back = await stFetch<Live>(path(id));
+      const still = planDucted25(tpl({ ...back, id, name: back.name ?? t.name }));
+      if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
+      done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
+      fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // 7. The four ducted templates on Mitsubishi Electric zoning (templateFixPlan.ts ›
+  // planMitsubishiZoning), with the controller's and the ITC's own pricebook names,
+  // words and price. Read back like the rest.
+  const zoning = await zoningText().catch(() => null);
+  for (const id of DUCTED) {
+    const t = byId.get(id);
+    const key = `${id}:zc10`;
+    if (!zoning || !t || done[key] || (tries[key] ?? 0) >= MAX_TRIES || Date.now() > until) continue;
+    try {
+      const now = await stFetch<Live>(path(id));
+      const plan = planMitsubishiZoning(tpl({ ...now, id, name: now.name ?? t.name }), zoning);
+      if (!plan) { done[key] = "nothing left to do"; await save(); continue; }
+      await stSend("PATCH", path(id), { items: templatePatchItems(plan.items) });
+      const back = await stFetch<Live>(path(id));
+      const still = planMitsubishiZoning(tpl({ ...back, id, name: back.name ?? t.name }), zoning);
+      if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
+      if (!(back.items ?? []).some((i) => i.skuId === ZC10 && !!i.itemGroupName)) throw new Error("the Mitsubishi controller didn't land in a group of its own");
+      done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
+      fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // The two Brivis coolers named as the price list has them.
+  for (const r of RENAME_24) {
+    const key = `equipment:${r.id}`;
+    if (done[key] || (tries[key] ?? 0) >= MAX_TRIES || Date.now() > until) continue;
+    const ep = stTenantPath("pricebook", `equipment/${r.id}`);
+    try {
+      const now = await stFetch<Raw>(ep);
+      const name = String(now.displayName ?? "").trim();
+      if (name === r.to) { done[key] = "already named"; continue; }
+      if (name !== r.from) { done[key] = `left alone: now "${name}"`; continue; }
+      await stSend("PATCH", ep, { displayName: r.to });
+      const back = await stFetch<Raw>(ep);
+      if (String(back.displayName ?? "").trim() !== r.to) throw new Error(`ServiceTitan answered OK but kept "${String(back.displayName ?? "")}"`);
+      done[key] = `renamed "${r.to}"`;
+      fixed.push(`${r.from} → ${r.to}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push(r.from); }
+    await save();
+  }
+
+  if (fixed.length) log.push({ at: new Date().toISOString(), kind: "quoteTemplates", ok: true, title: `${fixed.length} quote template${fixed.length === 1 ? "" : "s"} fixed (Jake's review)`, detail: fixed.join("; ").slice(0, 600) });
   await save();
   await logAuto(log).catch(() => undefined);
   return { fixed, failed, left, ...(p.waiting ? { waiting: p.waiting } : {}) };
