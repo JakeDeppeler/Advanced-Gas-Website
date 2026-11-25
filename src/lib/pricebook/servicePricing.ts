@@ -42,7 +42,9 @@ export const SERVICE_PRICES = [
   // line goes to $0, so its price no longer hides what the materials come to.
   // The two-day labour leaves the labour run (labour.ts PAIR) for the same
   // reason the installation did: it would price it from the hours again.
-  { skuId: 209599911, name: "Ducted Refrigerated System - Installation", price: 0 },
+  // The installation itself left this list on the evening of 25 Nov: Jake put
+  // it back on Dynamic Pricing to carry its materials at the markup, so its
+  // price is ServiceTitan's, and its hours go to 0 (templateFixes.ts step 8).
   { skuId: 301164889, name: "Ducted Split - Labour (Two Days)", price: 5000 },
   { skuId: 301089962, name: "Multi Head Labour (2 head)", price: 2100 },
   { skuId: 301089572, name: "Multi Head Labour (3 head)", price: 2800 },

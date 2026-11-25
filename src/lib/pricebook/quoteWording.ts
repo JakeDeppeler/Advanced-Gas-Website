@@ -43,16 +43,17 @@ import { INSTALL_CODES, lineCopy, plainText, SERVICE_COPY, summaryHtml, template
 // Electric zone controller and a temperature control in each zone, not the
 // Zonemate. A new pass so the four ducted templates are looked at again; the
 // rest read the same and are left.
-export const VERSION = "2026-11-25-zoning";
-// The units' own descriptions didn't change with it, so they stay on the
-// 17 Nov pass: a new pass would treat any description nobody recorded as
-// fair to write over, and nobody asked for the units to be looked at again.
+// 2026-11-25-dominator (Jake, 25 Nov evening): the Dominator's return air box
+// comes off, so its summary says a return air grille.
+export const VERSION = "2026-11-25-dominator";
+// The units' own descriptions, on their own pass: the prose rewrite of 25 Nov.
 const EQUIPMENT_VERSION = "2026-11-25-prose";
 // The installation services' own descriptions (step 2). Kept apart from VERSION so
 // new install wording (Jake, 25 Nov: say what the installation covers) goes on
 // the 18 services without walking all 199 templates again: a template's service
 // line shows the service's description whatever the template holds.
-const SERVICE_VERSION = "2026-11-25-prose";
+// 2026-11-25-labour: the ducted line's labour is by the hour, the Dominator's has no return air box.
+const SERVICE_VERSION = "2026-11-25-labour";
 const KEY = "quote_wording";
 const BACKUP = "quote_wording_backup";
 /** ServiceTitan's limit on ids in one call. */

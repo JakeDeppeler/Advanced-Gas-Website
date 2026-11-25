@@ -15,7 +15,7 @@ import { evapProposals } from "../src/lib/pricebook/evapProposalSpecs";
 import { flatText, textHash, wordingAction } from "../src/lib/pricebook/summaryRule";
 import { summaryHtml } from "../src/lib/pricebook/wording";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
-import { DUCTED, DUCTED_LABOUR_PRICE, ITC_SKU, RENAME_24, SKU, SKU24, T, T24, ZC10, ZONEMATE, planDucted25, planDuctedFixed, planFixes, planFixes24, planMitsubishiZoning } from "../src/lib/pricebook/templateFixPlan";
+import { DOM, DUCTED, DUCTED_HOURS, DUCTED_LABOUR_PRICE, ITC_SKU, LAB_3P, RENAME_24, SKU, SKU24, T, T24, ZC10, ZONEMATE, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning } from "../src/lib/pricebook/templateFixPlan";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -62,7 +62,8 @@ ok("service prices as Jake gave them, and the evap install at $900", SERVICE_PRI
 // Jake, 22 Nov: Dominator labour $3,300, the ducted install $5,000, multi-heads at 1 tech + 1 apprentice ($350 an hour) for 6–14 h.
 const p22 = (id: number) => SERVICE_PRICES.find((s) => s.skuId === id)?.price;
 // The ducted $5,000 moved from the installation line to the two-day labour under it on 25 Nov.
-ok("Dominator labour $3,300, and the ducted $5,000 on the two-day labour with the installation at $0", p22(301165543) === 3300 && p22(301164889) === 5000 && p22(209599911) === 0);
+// 25 Nov evening: the installation back on Dynamic Pricing, so off the fixed list (its price is ServiceTitan's).
+ok("Dominator labour $3,300, the two-day labour $5,000, and the installation off the fixed list", p22(301165543) === 3300 && p22(301164889) === 5000 && !SERVICE_PRICES.some((x) => (x.skuId as number) === 209599911));
 ok("multi-heads 2–6 at $2,100 to $4,900", [301089962, 301089572, 301090544, 301091980, 301089957].map(p22).join(",") === "2100,2800,3500,4200,4900");
 ok("multi-heads are 6, 8, 10, 12, 14 hours at $350", [2100, 2800, 3500, 4200, 4900].every((p, i) => p === (6 + 2 * i) * 350));
 ok("every priced item once", new Set(SERVICE_PRICES.map((s) => s.skuId)).size === SERVICE_PRICES.length);
@@ -269,8 +270,42 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
   ok("…so the labour is charged once: the template drops by the $5,230 line and the ITCs", sum(now25.items) - sum(p25!.items) === 5230 + 5000 - 5000 + 360, { before: sum(now25.items), after: sum(p25!.items) });
   ok("…and a template already laid out is left alone", planDucted25({ ...now25, items: p25!.items.map((i, k) => (i.id == null ? { ...i, id: 900 + k } : i)) }) === null);
   ok("…only the four ducted templates", planDucted25({ ...now25, id: 1 }) === null);
-  ok("the pricebook follows: installation $0, two-day labour $5,000", SERVICE_PRICES.find((x) => x.skuId === SKU.ductedInstall)?.price === 0 && SERVICE_PRICES.find((x) => x.skuId === SKU.ductedLabour)?.price === DUCTED_LABOUR_PRICE);
+  ok("the pricebook keeps the two-day labour at $5,000; the installation is ServiceTitan's to price (25 Nov evening)", !SERVICE_PRICES.some((x) => (x.skuId as number) === SKU.ductedInstall) && SERVICE_PRICES.find((x) => x.skuId === SKU.ductedLabour)?.price === DUCTED_LABOUR_PRICE);
   ok("a service price changed since it was set is set again", pricedAt("$5000 → $5000", 5000) && !pricedAt("$5000 → $5000", 0) && pricedAt("$5230 → $0", 0) && !pricedAt(undefined, 0));
+
+  // Jake, 25 Nov evening: "all of these should be chargeable", "the material for the dynamic markup but the labour can change".
+  const dh = { id: DUCTED[1], name: "Mitsubishi Electric Ducted Split 12kW", items: [
+    L(200, SKU.ductedInstall, "Service", "Ducted Refrigerated System - Installation", 0, { itemGroupName: "Ducted Refrigerated System - Installation" }),
+    L(201, 301169157, "Material", "Chipboard", 0, { itemGroupParentId: 200, quantity: 4, chargeable: false }),
+    L(202, 209621677, "Material", "Wall bracket", 75, { itemGroupParentId: 200, chargeable: true }),
+    L(203, 301034820, "Material", "VEEC discount", -70, { itemGroupParentId: 200, chargeable: false }),
+    L(204, ITC_SKU, "Equipment", "Mitsubishi ITC", 0, { itemGroupParentId: 200, quantity: 4, chargeable: false }),
+    L(205, SKU.ductedLabour, "Service", "Ducted Split - Labour (Two Days)", 5000, { itemGroupParentId: 200 }),
+    L(206, 900010, "Material", "Zone damper", 0, { isAddOn: true, parentItemId: 299, chargeable: false }),
+  ] };
+  const crewLine = { name: "Labour – Tech & 2 Apprentices", description: "Each hour of a technician and two apprentices.", price: 360 };
+  const ph = planDuctedHourly(dh, crewLine);
+  const crewIn = ph?.items.filter((i) => i.skuId === LAB_3P) ?? [];
+  ok("ducted hourly: a material switched off is made chargeable", ph?.items.find((i) => i.id === 201)?.chargeable === true, ph?.did);
+  ok("…but not a rebate, an add-on's own part, or the ITCs the controller comes with", ph?.items.find((i) => i.id === 203)?.chargeable === false && ph?.items.find((i) => i.id === 206)?.chargeable === false && ph?.items.find((i) => i.id === 204)?.chargeable === false);
+  ok("…the $5,000 two-day labour comes off", !ph?.items.some((i) => i.skuId === SKU.ductedLabour));
+  ok("…and the crew line goes on under the installation, 16 hours at its rate", crewIn.length === 1 && crewIn[0].id == null && crewIn[0].itemGroupParentId === 200 && crewIn[0].quantity === DUCTED_HOURS && crewIn[0].unitPrice === 360 && crewIn[0].skuType === "Service");
+  ok("…once: a template already laid out is left alone, whatever hours the office set", planDuctedHourly({ ...dh, items: ph!.items.map((i, k) => (i.id == null ? { ...i, id: 950 + k, quantity: 20 } : i)) }, crewLine) === null);
+  ok("…only the four ducted templates", planDuctedHourly({ ...dh, id: 1 }, crewLine) === null);
+
+  // Jake, 25 Nov evening: "the Dominator we need to remove the return air box and make the grill 1000x400" (1200 for now, asked).
+  const dom = { id: 301500001, name: "Braemar Dominator Series 3 18kW - Replacement", items: [
+    L(300, DOM.install, "Service", "Dominator - Installation", 980, { itemGroupName: "Dominator - Installation" }),
+    L(301, DOM.raBox, "Material", "Return Air Box - 400mm x 600mm", 0, { itemGroupParentId: 300 }),
+    L(302, DOM.grille600, "Material", "Profiler Eggcrate Black Filter 600mm x 400mm", 0, { itemGroupParentId: 300, chargeable: true }),
+    L(303, 148186547, "Material", "PVC", 0, { itemGroupParentId: 300 }),
+  ] };
+  const pd = planDominator25(dom, new Map([[DOM.grille1200, 155.96]]));
+  const g = pd?.items.find((i) => i.skuId === DOM.grille1200);
+  ok("Dominator: the return air box comes off", !pd?.items.some((i) => i.skuId === DOM.raBox), pd?.did);
+  ok("…the 600 x 400 grille becomes the 1200 x 400, a new line in the same group, at $0 as the old one was", !pd?.items.some((i) => i.skuId === DOM.grille600) && g?.id == null && g?.itemGroupParentId === 300 && g?.unitPrice === 0 && g?.chargeable === true);
+  ok("…a priced grille takes the 1200's price", planDominator25({ ...dom, items: dom.items.map((i) => (i.id === 302 ? { ...i, unitPrice: 92 } : i)) }, new Map([[DOM.grille1200, 155.96]]))?.items.find((i) => i.skuId === DOM.grille1200)?.unitPrice === 155.96);
+  ok("…and a template already done, or not a Dominator, is left alone", planDominator25({ ...dom, items: pd!.items.map((i, k) => (i.id == null ? { ...i, id: 960 + k } : i)) }, new Map()) === null && planDominator25({ ...dom, items: dom.items.slice(1) }, new Map()) === null);
 
   // Jake, 25 Nov: "yes swap them to the mitsubishi 10 zone".
   const zm = { id: DUCTED[0], name: "Mitsubishi Electric Ducted Split 18kW", items: [
