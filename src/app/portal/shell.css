@@ -594,7 +594,30 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-du-miss { font-size: 13px; color: var(--bad); margin: 6px 0 10px; }
 .pk-du tr.pk-du-bad td { color: var(--bad); }
 .pk-du tr.pk-du-kid td:first-child { padding-left: 22px; color: var(--ink2); }
-.pk-du-text { font-size: 14px; line-height: 1.55; background: var(--quiet); border-radius: 10px; padding: 12px 14px; margin: 0 0 10px; max-width: none; }
+.pk-du-text { font-size: 14px; line-height: 1.55; background: var(--quiet); border-radius: 10px; padding: 12px 14px; margin: 0 0 10px; max-width: none; white-space: pre-line; }
+.pk-du-mode { margin: 0 0 14px; }
+.pk-du-drop { display: grid; gap: 2px; place-items: center; text-align: center; padding: 22px 14px; border-radius: 12px; border: 2px dashed var(--line); background: var(--quiet); cursor: pointer; }
+.pk-du-drop.on, .pk-du-drop:hover, .pk-du-drop:focus-within { border-color: var(--accent); background: var(--accent-bg); }
+.pk-du-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.pk-du-drop b { font-size: 15px; overflow-wrap: anywhere; }
+.pk-du-drop span { font-size: 13px; color: var(--ink3); }
+.pk-du-gap { margin-top: 12px; }
+.pk-du-read { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin: 14px 0 0; }
+.pk-du-read > div { padding: 8px 10px; border-radius: 10px; background: var(--quiet); min-width: 0; }
+.pk-du-read dt { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink3); }
+.pk-du-read dd { margin: 2px 0 0; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.pk-du-warn { font-size: 13px; color: var(--ink); background: var(--mid-bg); border-radius: 10px; padding: 10px 12px; margin: 8px 0 12px; }
+.pk-du-warn b { color: var(--mid); }
+.pk-du-warn ul, .pk-du-done ul { margin: 4px 0 0; padding-left: 18px; }
+.pk-du-warn li, .pk-du-done li { margin: 2px 0; }
+.pk-du tr.pk-du-grp td { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink3); background: var(--quiet); }
+.pk-du tr.pk-du-grp td:last-child { text-align: right; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.pk-du-note { display: block; font-size: 12px; color: var(--ink3); }
+.pk-du-st { margin-top: 18px; padding-top: 4px; border-top: 1px solid var(--line); }
+.pk-du-job, .pk-du-done { margin-top: 10px; padding: 12px 14px; border-radius: 10px; background: var(--quiet); display: grid; gap: 6px; justify-items: start; font-size: 14px; }
+.pk-du-job p, .pk-du-done p { margin: 0; }
+.pk-du-done { background: var(--good-bg); }
+.pk-du-done.warn { background: var(--mid-bg); }
 .pk-months { background: var(--sunken); border-radius: 14px; padding: 14px; margin: 6px 0 4px; }
 .pk-mrow { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
 .pk-mon { display: flex; flex-direction: column; gap: 6px; align-items: stretch; min-width: 0; }
