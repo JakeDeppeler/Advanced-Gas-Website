@@ -479,9 +479,8 @@ export const INFO_SECTIONS: InfoSection[] = [
 export type PortalToolLink = { slug: string; label: string; blurb: string; href: string; external?: boolean };
 
 export const PORTAL_TOOLS: PortalToolLink[] = [
-  { slug: "heat-pump-sizing", label: "Heat pump sizing", blurb: "Size a tank off shower draw-off, not bedroom count.", href: "/portal/tools/heat-pump-sizing" },
-  { slug: "veu-rebate-estimator", label: "VEU rebate estimator", blurb: "Ballpark the rebate before a site visit.", href: "/portal/tools/veu-rebate-estimator" },
-  { slug: "running-cost-calculator", label: "Running cost", blurb: "Heat pump vs gas running costs for the quote.", href: "/portal/tools/running-cost-calculator" },
+  { slug: "heat-pump-sizing", label: "Heat pump sizing", blurb: "The showers, and the tank that covers them.", href: "/portal/tools/heat-pump-sizing" },
+  { slug: "running-cost-calculator", label: "Running cost", blurb: "Aircon and hot water running costs, for the quote.", href: "/portal/tools/running-cost-calculator" },
   { slug: "fault-codes", label: "Fault-code finder", blurb: "Look up a brand + code on site.", href: "/portal/tools/fault-codes" },
   { slug: "price-list", label: "Products & prices", blurb: "Every option with its from price, on the main site.", href: "/#find", external: true },
 ];

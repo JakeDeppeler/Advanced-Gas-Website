@@ -268,7 +268,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     },
   );
   items.push(
-    { href: "/portal/tools/fault-codes", label: "Trade tools", blurb: "Sizing, rebates, fault codes", band: "crew", icon: "wrench", also: ["calculator", "sizing", "rebate", "fault code"] },
+    { href: "/portal/tools/fault-codes", label: "Trade tools", blurb: "Sizing, running costs, fault codes", band: "crew", icon: "wrench", also: ["calculator", "sizing", "running cost", "fault code"] },
     // The same portal, built for the iPad in the van. Everyone gets it — it
     // shows a person their own work and nothing gated.
     { href: "/trade", label: "See the trade iPad", short: "Trade iPad", blurb: "The portal as a tradie sees it", band: "crew", icon: "tablet", also: ["ipad", "van", "monday", "tradesman", "trade portal", "field"] },

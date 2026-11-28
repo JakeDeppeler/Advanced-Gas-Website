@@ -130,7 +130,6 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Write-up", href: "/portal/jobs/write-up", icon: "file" },
       // A ducted quote from a Trust Trade design or the layout, onto the job (24 Nov).
       { label: "Ducted quote", href: "/portal/ducted", icon: "duct" },
-      { label: "Trade tools", href: "/portal/tools/fault-codes", icon: "wrench" },
       { label: "Toolbox talks", href: "/portal/toolbox", icon: "book" },
     ],
   },
@@ -436,7 +435,8 @@ export function activePage(pages: { href: string }[], path: string, query: URLSe
  * page they belong to: every tool under Tools.
  */
 export const ALIAS: [string, string][] = [
-  ["/portal/tools", "/portal/tools/fault-codes"],
+  // The trade tools are reached from the Daily tools page, and file under it.
+  ["/portal/tools", "/portal/daily"],
   // Old addresses of pages that are now a view of another.
   ["/portal/not-billed", "/portal/jobs"],
   ["/portal/profit", "/portal/jobs"],

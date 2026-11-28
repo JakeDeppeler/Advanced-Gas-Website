@@ -4515,3 +4515,9 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .tt-rows b { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
 @media (max-width: 1000px) { .tt-grid { grid-template-columns: minmax(0, 1fr); } .tt-sticky { position: static; } }
 @media (max-width: 640px) { .tt-two, .tt-caps > div { grid-template-columns: minmax(0, 1fr); } .tt-big { font-size: 44px; } .tt-answer { padding: 22px; } }
+.tt-why { margin: 0; padding-top: 14px; border-top: 1px solid var(--rp-line); font-size: 14px; line-height: 1.55; color: var(--ink2); }
+.tt-pick { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: #f4f1ea; }
+.tt-mode { flex: none; }
+.tt-mode button { border: 0; background: transparent; padding: 7px 16px; border-radius: 99px; font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink2); cursor: pointer; }
+.tt-mode button.on { background: var(--surface); color: var(--ink); box-shadow: var(--seg-shadow); }
+@media (max-width: 640px) { .tt-form .rp-panel-h { flex-wrap: wrap; } }
