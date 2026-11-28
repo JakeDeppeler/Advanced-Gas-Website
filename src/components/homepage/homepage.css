@@ -319,7 +319,13 @@
 .ag .chipb span{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
 
 /* ===================================================== find your system */
-.ag .find{padding:56px 0 96px;scroll-margin-top:104px}
+.ag .find{padding:56px 0 96px}
+/* The page's scroll-padding-top already clears the header for every anchor. The section's own
+   104px scroll margin stacked on top of it, so a jump here stopped 200px short with the brand
+   strip showing. Only where that padding (78px under 900px) is less than the header's height
+   does the box need a margin of its own. */
+@media (max-width:900px){.ag .find__box{scroll-margin-top:18px}}
+@media (max-width:600px){.ag .find__box{scroll-margin-top:8px}}
 .ag .find__box{position:relative;overflow:clip;background:var(--navy);color:#fff;border-radius:12px;padding:44px clamp(22px,4vw,48px) 40px}
 .ag .glow{position:absolute;border-radius:50%;pointer-events:none}
 .ag .glow--sky{right:-120px;top:-160px;width:460px;height:460px;background:radial-gradient(circle,rgba(44,197,255,.22),rgba(44,197,255,0) 70%)}

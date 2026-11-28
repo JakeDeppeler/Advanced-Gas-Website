@@ -168,9 +168,57 @@ const place = (d: Lead) => d.suburb || d.postcode || "SE Vic";
 const pageName = (path: string) => (path === "/" ? "the homepage" : path);
 const abs = (path: string) => (/^https?:/.test(path) ? path : `${site.url}${path.startsWith("/") ? "" : "/"}${path}`);
 
+/* ------------ photos, shown in the email ------------ */
+
+export type MailAttachment = { filename: string; content: string; content_id?: string; content_type?: string };
+
+/*
+ * "2 photos attached" meant opening each attachment to see the job. An
+ * attachment carrying a content id is drawn wherever the HTML names it
+ * (src="cid:…"), so the photos sit in the email itself. The form re-encodes
+ * every photo as JPEG, but older forms send whatever the phone had; a type mail
+ * clients can't draw inline (HEIC, a PDF) still goes, as a plain attachment.
+ */
+const INLINE_IMAGE = /^image\/(jpeg|png|gif|webp)$/;
+
+export function photoAttachments(
+  photos: Array<{ name?: string; type?: string; data?: string } | null | undefined>,
+  fileName: (name: string | undefined, i: number) => string = (name, i) => name || `photo-${i + 1}.jpg`,
+): { attachments: MailAttachment[]; cids: string[] } {
+  const cids: string[] = [];
+  const attachments = photos
+    .filter((p): p is { name?: string; type?: string; data: string } => !!p?.data)
+    .map((p, i) => {
+      const filename = fileName(p.name, i);
+      if (!INLINE_IMAGE.test(p.type ?? "")) return { filename, content: p.data };
+      const cid = `photo-${i + 1}`;
+      cids.push(cid);
+      return { filename, content: p.data, content_id: cid, content_type: p.type };
+    });
+  return { attachments, cids };
+}
+
+/** The photos two to a row, then a line for any file that can't be shown. */
+function photoGrid(cids: string[], total: number): string {
+  // Table cells, not floats or flex: Outlook and Gmail both keep a table's columns.
+  const cell = (k: number) => {
+    const left = k % 2 === 0;
+    const img = cids[k]
+      ? `<img src="cid:${cids[k]}" width="264" alt="Photo ${k + 1} from the customer" style="display:block;width:100%;max-width:264px;height:auto;border:1px solid ${LINE};border-radius:10px;" />`
+      : "";
+    return `<td width="50%" style="width:50%;padding:0 ${left ? "6px" : "0"} 12px ${left ? "0" : "6px"};vertical-align:top;">${img}</td>`;
+  };
+  const rows: string[] = [];
+  for (let k = 0; k < cids.length; k += 2) rows.push(`<tr>${cell(k)}${cell(k + 1)}</tr>`);
+  const rest = total - cids.length;
+  return `${rows.length ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows.join("")}</table>` : ""}${rest > 0
+    ? `<div style="font-size:14px;color:${INK_2};">${cids.length ? "Plus " : ""}${rest} ${rest === 1 ? "file" : "files"} attached to this email${cids.length ? " that can't be shown here" : ""}.</div>`
+    : ""}`;
+}
+
 /* ------------ the team's email ------------ */
 
-export function teamEmail(d: Lead, o: { summary: string; photoCount: number; stored: boolean }): { subject: string; html: string; text: string } {
+export function teamEmail(d: Lead, o: { summary: string; photoCount: number; photoIds?: string[]; stored: boolean }): { subject: string; html: string; text: string } {
   const picks = picksOf(d);
   const rows = answerRows(d);
   const want = wantLine(d, o.summary);
@@ -217,7 +265,7 @@ export function teamEmail(d: Lead, o: { summary: string; photoCount: number; sto
 
     ${d.notes ? section("Notes", `<div style="background:${SOFT};border:1px solid ${LINE};border-radius:12px;padding:14px 16px;font-size:14.5px;line-height:1.55;color:${INK_2};">${esc(d.notes).replace(/\n/g, "<br />")}</div>`) : ""}
 
-    ${o.photoCount ? section("Photos", `<div style="font-size:14.5px;color:${INK_2};">${o.photoCount} photo${o.photoCount === 1 ? "" : "s"} attached to this email.</div>`) : ""}
+    ${o.photoCount ? section(o.photoCount === 1 ? "Their photo" : `Their photos (${o.photoCount})`, photoGrid(o.photoIds ?? [], o.photoCount)) : ""}
 
     <tr><td style="padding:18px 28px 26px;">
       <div style="border-top:1px solid ${LINE};padding-top:16px;font-size:12.5px;line-height:1.7;color:${INK_3};">
@@ -323,8 +371,8 @@ export function customerEmail(d: Lead, summary: string): { subject: string; html
 
 /* ------------ photos added after the enquiry ------------ */
 
-/** The short note when photos follow an enquiry already emailed; the photos ride as attachments. */
-export function photosEmail(l: { name?: string | null; phone?: string | null; suburb?: string | null; postcode?: string | null; headline?: string | null; summary?: string | null }, n: number): { subject: string; html: string; text: string } {
+/** The short note when photos follow an enquiry already emailed, with the photos shown in it. */
+export function photosEmail(l: { name?: string | null; phone?: string | null; suburb?: string | null; postcode?: string | null; headline?: string | null; summary?: string | null }, n: number, photoIds: string[] = []): { subject: string; html: string; text: string } {
   const who = l.name || "Website enquiry";
   const where = l.suburb || l.postcode || "SE Vic";
   const what = l.headline || "quote";
@@ -338,9 +386,10 @@ export function photosEmail(l: { name?: string | null; phone?: string | null; su
       ${tel ? `<div style="margin-top:16px;"><a href="tel:${esc(tel)}" style="display:inline-block;padding:12px 18px;border-radius:10px;background:${ORANGE};color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Call ${esc(l.phone!)}</a></div>` : ""}
     </td></tr>
     ${l.summary ? section("Their enquiry", `<div style="background:${SOFT};border:1px solid ${LINE};border-radius:12px;padding:14px 16px;font-size:14.5px;line-height:1.5;color:${INK_2};">${esc(l.summary)}</div>`) : ""}
+    ${section(n === 1 ? "Their photo" : `Their photos (${n})`, photoGrid(photoIds, n))}
     <tr><td style="padding:18px 28px 26px;">
       <div style="border-top:1px solid ${LINE};padding-top:16px;font-size:13px;line-height:1.7;color:${INK_3};">
-        The photos are attached. The full enquiry came through in the earlier email.
+        The full enquiry came through in the earlier email.
         <a href="${site.url}/portal/leads" style="color:${NAVY};font-weight:700;">Open Leads →</a>
       </div>
     </td></tr>`);
