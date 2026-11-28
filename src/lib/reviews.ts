@@ -40,24 +40,31 @@ export type Review = {
 };
 
 /**
- * What Google actually shows, read off both of our Google listings on
- * 11 Oct 2026: "Advanced Gas & Air Conditioning Services Pty Ltd"
- * 4.6 from 11 and "Advanced Gas and Air Con Services" 5.0 from 15,
- * which is 26 reviews averaging 4.8. The site said "4.9" and
- * "280+ Google reviews" before this, and neither was true.
+ * What Google shows. On 11 Oct 2026 there were two listings:
+ * "Advanced Gas & Air Conditioning Services Pty Ltd" 4.6 from 11 and
+ * "Advanced Gas and Air Con Services" 5.0 from 15; the site showed both
+ * together, 26 reviews averaging 4.8. (Before that it said "4.9" and
+ * "280+ Google reviews", and neither was true.)
+ *
+ * 28 Nov 2026, Jake: "we are fully 5 stars now", "its 5 on google". The
+ * site now shows the 5-star listing on its own: 5.0, and that listing's
+ * count as last read, 15. A listing only gains reviews, so 15 is a floor,
+ * not a guess; put the real number in when it's read off Google again.
  *
  * Every rating on the site reads from here, so when the review count
  * moves, change these two numbers and nothing else. Never round up.
+ * (Set GOOGLE_PLACES_API_KEY and GOOGLE_PLACE_ID and googleReviews.ts
+ * reads the live figures instead; neither is set on the live project.)
  */
 export const RATING_SUMMARY = {
-  value: 4.8,
-  count: 26,
+  value: 5.0,
+  count: 15,
   best: 5,
   /** True while `count` is a total read off Google, not an estimate. */
   countIsGoogles: true,
 } as const;
 
-/** "4.8", the way every badge prints it. */
+/** "5.0", the way every badge prints it. */
 export const RATING_TEXT = RATING_SUMMARY.value.toFixed(1);
 
 const REVIEWS_RAW: Review[] = [
