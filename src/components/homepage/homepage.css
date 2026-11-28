@@ -866,7 +866,7 @@ body:has(> main > .ag){padding-bottom:0 !important}
      the footer's newsletter box and the fault-code picker were already under it, at 14-15px.
      !important because this has to hold over every component's own rule, and the contact
      page's (.page-contact .ct-field select) outranks a plain one. The footer sits outside
-     .ag, so its box is named. */
+     .ag, so its box is named. A flat 16px on purpose: this one stays off the scale. */
   .ag input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),.ag select,.ag textarea,.ftr__news .bl-news__form input[type=email]{font-size:16px !important}
   /* At 16px the newsletter's placeholder no longer fits beside its button; the button goes under. */
   .ftr__news .bl-news__form input,.ftr__news .bl-news__form button{flex:1 1 100%}
