@@ -61,7 +61,7 @@ export default async function HomePage() {
     <div className="ag" id="top" data-no-reveal>
       <HomeHeader />
       {/* ===== HERO ===== */}
-      <section className="ahero">
+      <section className="ahero ahero--home">
         {/* A real <img> with priority rather than a CSS background: it is the LCP element. */}
         <Image src={PHOTO.team} alt="" aria-hidden="true" fill priority sizes="100vw" className="ahero__bg" />
         <div className="ahero__scrim" aria-hidden="true" />
