@@ -4,7 +4,9 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import { logAuto } from "@/lib/automation/log";
-import { loadDuctedCatalogue } from "@/lib/ducted/catalogue";
+import { loadDuctedCatalogue, STANDARD_KEY } from "@/lib/ducted/catalogue";
+import { cleanStandard } from "@/lib/ducted/standard";
+import { saveSettings } from "@/lib/portal/db";
 import { buildFromDesign, type DesignOptions } from "@/lib/ducted/design";
 import { readTakeoff } from "@/lib/ducted/takeoff";
 import { applyPicks, cleanPick, unpriced, type Picks } from "@/lib/ducted/picks";
@@ -85,6 +87,18 @@ export async function pickPart(need: string, items: unknown): Promise<{ ok: bool
   catch (e) { return { ok: false, error: (e as Error).message }; }
 }
 
+/** The standard install materials, as the office set them (every Duct design quote from now on). */
+export async function saveStandardList(items: unknown): Promise<{ ok: boolean; error?: string }> {
+  const user = await allowed();
+  if (!user) return { ok: false, error: "Duct design is for whoever writes quotes." };
+  const clean = cleanStandard(items);
+  if (!clean) return { ok: false, error: "Each item needs a number above 0 (up to 40 items)." };
+  const r = await saveSettings(STANDARD_KEY, clean);
+  if (!r.ok) return { ok: false, error: r.error ?? "The list didn't save." };
+  await logAuto([{ at: new Date().toISOString(), kind: "ductedQuote", title: "Duct design standard install materials changed", detail: `${user.name}: ${clean.length} items.`, ok: true }]).catch(() => undefined);
+  return { ok: true };
+}
+
 export type QuoteMode = "new" | "update" | "new-dismiss";
 export type DesignPut = (Written & { jobId?: number; mode?: QuoteMode; dismissed?: boolean | null }) ;
 
@@ -118,7 +132,7 @@ export async function putDesignQuote(input: { jobNumber: string; csv: string; su
     notes: String(o.notes ?? "").slice(0, 2000),
   };
   const summary = cleanSummary(input.summary);
-  const quote = applyPicks(buildFromDesign(t, { ...options, notes: designNotes(summary, options.notes) }, cat), picks, cat.pickable ?? []);
+  const quote = applyPicks(buildFromDesign(t, { ...options, standard: true, notes: designNotes(summary, options.notes) }, cat), picks, cat.pickable ?? []);
 
   const gaps = unpriced(quote);
   if (gaps.length) return { ok: false, error: `${gaps.length} ${gaps.length === 1 ? "part has" : "parts have"} no pricebook item yet: ${gaps.map((l) => l.name.trim()).join("; ")}. Pick one for each first.` };
