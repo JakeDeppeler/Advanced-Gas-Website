@@ -16,6 +16,7 @@ import { flatText, textHash, wordingAction } from "../src/lib/pricebook/summaryR
 import { summaryHtml } from "../src/lib/pricebook/wording";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
 import { DOM, DUCTED, DUCTED_HOURS, DUCTED_LABOUR_PRICE, ITC_SKU, LAB_3P, RENAME_24, SKU, SKU24, T, T24, ZC10, ZONEMATE, ZONE_DAMPER, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB, planFixes28, BDO, SUNDRY, T28, FLUE_100, REPAIR_TEMPLATES, planRepairParts, DOM18, cloneLines, regroup } from "../src/lib/pricebook/templateFixPlan";
+import { HEATERS, HEATER_TEMPLATES, customerPrice, heaterPrice, pickTakeoffs, readHit, takeoffName } from "../src/lib/pricebook/reeceBuildSpecs";
 import { EVAP_FAULTS, EVAP_REPAIR_SIZES, REPAIR_REPLACE_UPGRADE, SPLIT_FAULTS, SPLIT_REPAIR_SIZES, repairProposals } from "../src/lib/pricebook/repairProposalSpecs";
 
 let bad = 0;
@@ -457,6 +458,29 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
     L(211, 301358552, "Material", "Refrigerant R410A (HFC) 1KG", 0, { quantity: 3, itemGroupParentId: 210 })] }, new Map([[301358552, 133]]))?.items.find((i) => i.skuId === 301358552)?.itemGroupParentId == null);
   ok("services that had no template: ducted reverse cycle, gas log fire, space heater, wall air conditioner", SERVICES_28.map((t) => t.lines[0].unitPrice).join() === "300,240,220,250");
   ok("…on ServiceTitan's Repair, Replace, Upgrade type", REPAIR_REPLACE_UPGRADE.typeId === 1805 && REPAIR_REPLACE_UPGRADE.optionIds[1] === 1806 && REPAIR_REPLACE_UPGRADE.optionIds[3] === 1808);
+
+  // Jake, 28 Nov: the Multisnap take-offs and the 4, 5 and 6 star heaters from Reece.
+  const hitRaw = { code: "3200028", description: "Multisnap Branch Take Off Foam Insulated 300mm x 250mm x 200mm", cost: null, list_price: null, raw: {
+    unitOfMeasures: JSON.stringify([{ pack: "EA", unitPriceExcludingGST: 39.32, unitPriceIncludingGST: 43.25, unitMarketPriceExcludingGST: 88.07, unitMarketPriceIncludingGST: 96.88 }]),
+    productImages: JSON.stringify([{ width: 280, url: "https://x/280.jpg" }, { width: 380, url: "https://x/380.jpg" }]) } };
+  const hh = readHit(hitRaw);
+  ok("Reece: a search hit read for its cost ex GST, its CMP and its biggest photo", hh.cost === 39.32 && hh.cmpEx === 88.07 && hh.cmpInc === 96.88 && hh.image === "https://x/380.jpg");
+  ok("…the customer pays the CMP with GST: the pricebook's price is the CMP ex GST", customerPrice(hh) === 88.07 && customerPrice({ ...hh, cmpEx: null }) === 88.07);
+  ok("…take-offs named as the pricebook names them, either way Reece writes the sizes", takeoffName("Multisnap Branch Take Off Foam Insulated 300mm x 250mm x 200mm") === "Multisnap BTO F/Insul 300.250.200"
+    && takeoffName("Multisnap Branch Take Off Foam Insulated 350.250.150") === "Multisnap BTO F/Insul 350.250.150"
+    && takeoffName("Multisnap Double Branch Take Off Foam Insulated 300mm x 250mm x 250mm x 250mm") === "Multisnap DBTO F/Insul 300.250.250.250"
+    && takeoffName("Multisnap Foam Insulated Reducer 200mm x 150mm") === null && takeoffName("Multisnap Branch Take Off Insulated 350mm x 300mm x 300mm") === null);
+  const dupA = { ...hh, code: "35674", title: "Multisnap Branch Take Off Foam Insulated 300.200.200", cost: 89.09 };
+  const dupB = { ...hh, code: "3200027", title: "Multisnap Branch Take Off Foam Insulated 300mm x 200mm x 200mm", cost: 32.06 };
+  ok("…one per size: the one the pricebook already carries, else the cheaper", pickTakeoffs([dupA, dupB], new Set()).map((x) => x.hit.code).join() === "3200027"
+    && pickTakeoffs([dupA, dupB], new Set(["35674"])).map((x) => x.hit.code).join() === "35674" && pickTakeoffs([{ ...dupB, cost: null }], new Set()).length === 0);
+  ok("heaters: 4, 5 and 6 star at about 20 and 30kW from Brivis StarPro, internal and external, and Braemar's 28kW 4 and 5 star",
+    [4, 5, 6].every((st) => HEATERS.some((h) => h.stars === st && h.kw <= 23 && h.place === "Internal") && HEATERS.some((h) => h.stars === st && h.kw === 30 && h.place === "External"))
+    && HEATERS.filter((h) => h.kw === 28).map((h) => h.stars).join() === "4,5" && new Set(HEATERS.map((h) => h.code)).size === HEATERS.length);
+  ok("…priced on the markup rules: Brivis 30% on the SP421IN's $1,949.94, up to the next $100", heaterPrice(1949.94, 30, 100) === 2600 && heaterPrice(1777.72, 25, 100) === 2300);
+  ok("…a template for each internal StarPro, from the StarPro 6 Star 15kW, and the Braemars from the Ecostar", HEATER_TEMPLATES.length === 8
+    && HEATER_TEMPLATES.every((t) => (t.heater.brand === "Brivis" ? t.from.template === 301479540 : t.from.template === 301399805) && t.heater.place !== "External")
+    && HEATER_TEMPLATES.some((t) => t.name === "Brivis StarPro 4 Star 21kW Ducted Gas Heater") && HEATER_TEMPLATES.some((t) => t.name === "Braemar TQR428 4 Star 28kW Ducted Gas Heater"));
 
   // Jake, 24 Nov.
   const m5 = planFixes24({ id: T24.mitsu5Btb, name: "Mitsubishi Electric 5kW Split System - Back to Back", items: [

@@ -8,6 +8,7 @@ import { fixTemplates22Nov } from "@/lib/pricebook/templateFixes";
 import { splitRebateHeaders } from "@/lib/pricebook/rebateHeaders";
 import { addEvapProposals } from "@/lib/pricebook/evapProposals";
 import { addRepairProposals } from "@/lib/pricebook/repairProposals";
+import { buildFromReece } from "@/lib/pricebook/reeceBuild";
 import { syncQuoteWording } from "@/lib/pricebook/quoteWording";
 import { syncServiceWording } from "@/lib/pricebook/serviceWording";
 import { groupQuoteTemplates, lineUpFixes, lookAtTemplates, tidyTemplateNames } from "@/lib/pricebook/quoteTemplatesFix";
@@ -74,6 +75,7 @@ export async function GET(req: Request) {
     let wording: Awaited<ReturnType<typeof syncQuoteWording>> | null = null;
     let serviceWording: Awaited<ReturnType<typeof syncServiceWording>> | null = null;
     let fixes: Awaited<ReturnType<typeof fixTemplates22Nov>> | null = null;
+    let reeceItems: Awaited<ReturnType<typeof buildFromReece>> | null = null;
     if (Date.now() < until) {
       // One read of the templates for both steps: the regroup changes lines, the renames names.
       const all = await stList<{ id: number; name?: string; internalName?: string | null; totalPrice?: number; summary?: string | null; items?: TemplateItem[] }>(
@@ -93,9 +95,11 @@ export async function GET(req: Request) {
       if (Date.now() < until) serviceWording = await syncServiceWording(until, all);
       // Jake, 22 Nov: the fixes from the review of every template (templateFixPlan.ts).
       if (Date.now() < until) fixes = await fixTemplates22Nov(until, all);
+      // Jake, 28 Nov: the Multisnap take-offs and the 4, 5 and 6 star heaters from Reece.
+      if (Date.now() < until) reeceItems = await buildFromReece(until);
     }
-    const failed = [...services.failed, ...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? []), ...(lineUp?.failed ?? []), ...(rebates?.failed ?? []), ...(proposals?.failed ?? []), ...(repairProposals?.failed ?? []), ...(wording?.failed ?? []), ...(serviceWording?.failed ?? []), ...(fixes?.failed ?? [])];
-    return NextResponse.json({ ok: failed.length === 0, services, add, group, tidy, lineUp, rebates, proposals, repairProposals, wording, serviceWording, fixes });
+    const failed = [...services.failed, ...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? []), ...(lineUp?.failed ?? []), ...(rebates?.failed ?? []), ...(proposals?.failed ?? []), ...(repairProposals?.failed ?? []), ...(wording?.failed ?? []), ...(serviceWording?.failed ?? []), ...(fixes?.failed ?? []), ...(reeceItems?.failed ?? [])];
+    return NextResponse.json({ ok: failed.length === 0, services, add, group, tidy, lineUp, rebates, proposals, repairProposals, wording, serviceWording, fixes, reeceItems });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }
