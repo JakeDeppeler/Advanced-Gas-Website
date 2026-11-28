@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { Head } from "@/components/portal/kit/Kit";
+import { KpiHead } from "@/components/portal/kit/Kit";
+import { dayWords, inDays, shortDate } from "@/lib/daily/summary";
 import { ToolboxPlan } from "@/components/portal/ToolboxPlan";
 import { loadSchedule, loadSessions, loadToolbox } from "@/lib/toolbox/store";
 import { past, timeWords, upcoming } from "@/lib/toolbox/types";
@@ -40,16 +41,16 @@ export default async function ToolboxPage() {
   const days = Math.round((Date.parse(`${current}T12:00:00Z`) - Date.parse(`${today}T12:00:00Z`)) / 86_400_000);
   // Whoever's looking can always tick themselves as there.
   const names = [...new Set([...people.map((p) => p.name), user.name])].sort();
-  const longDay = new Date(`${current}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).replace(",", "");
   const on = cur?.notes.length ?? 0;
   const held = box.topics.length;
   return (
     <PortalShell user={user}>
-      <div className="pk">
-        <Head title="Toolbox talks" sub={<>
-          The next talk is {longDay}{schedule.time ? ` at ${timeWords(schedule.time)}` : ""}, {days === 0 ? "today" : days === 1 ? "tomorrow" : `in ${days} days`},{" "}
-          with {on ? `${on} ${on === 1 ? "topic" : "topics"}` : "no topics yet"}.{held ? ` ${held} more ${held === 1 ? "is" : "are"} on hold.` : ""}
-        </>} info={[
+      <div className="rp">
+        <KpiHead hi={`Daily tools · ${dayWords()}`} title="Toolbox talks" kpis={[
+          { icon: "calendar", fig: shortDate(current), label: schedule.time ? `Next talk, ${timeWords(schedule.time)}` : "Next talk", badge: inDays(days), tone: "gold" },
+          { icon: "doc", fig: String(on), label: on === 1 ? "Topic on it" : "Topics on it" },
+          { icon: "clock", fig: String(held), label: "On hold for a later talk" },
+        ]} info={[
           ["Topics", "Write one with a heading and what to say, then put it on the next talk or on hold for a later one. Anyone can."],
           ["What was said", "After the talk, open “What was said” under it: type it up or load the transcript from an AI note-taker. It stays with the date as the record the crew was told."],
         ]} />

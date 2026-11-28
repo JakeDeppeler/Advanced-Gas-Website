@@ -3,7 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
-import { Head, Say } from "@/components/portal/kit/Kit";
+import { KpiHead, Say } from "@/components/portal/kit/Kit";
 import { DuctedBuilder } from "@/components/portal/DuctedBuilder";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import { loadDuctedCatalogue } from "@/lib/ducted/catalogue";
@@ -28,8 +28,8 @@ export default async function DuctedPage() {
   const cat = serviceTitanConfigured() ? await loadDuctedCatalogue().catch(() => null) : null;
   return (
     <PortalShell user={user}>
-      <div className="pk">
-        <Head title="Ducted quote" eyebrow="A ducted system priced from a Trust Trade design or the house's outlets and zones · prices from the ServiceTitan pricebook" info={[
+      <div className="rp">
+        <KpiHead hi="Daily tools · priced from a Trust Trade design or the house's outlets and zones, at ServiceTitan's prices" title="Ducted quote" kpis={[]} info={[
           ["Labour", `${DUCTED.baseHours} hours for the unit, plenum, return air and controller, ${DUCTED.perOutlet * 60} minutes an outlet and ${DUCTED.perZone * 60} a zone, never under two days (${DUCTED.minHours} hours): a standard 8-outlet, 4-zone house comes out at exactly two days. A double storey adds ${DUCTED.doubleStorey} hours, and anything harder goes in as extra hours with the reason. Two days' labour is $${DUCTED.twoDayPrice.toLocaleString("en-AU")} on the "Ducted Split - Labour (Two Days)" line, under the installation at $0; time past two days is Our hourly rate.`],
           ["From a plan", "Drop the designer's plan drawing with what you know about the job, and Claude reads it: every outlet by its duct's colour, the take-offs, the zones and dampers, the return air, and each run's length off the drawing's dimensions. Your notes set the unit, the storeys, extra hours and the summary. Check what it read before it goes on. The designer's materials CSV (Outputs › Materials › CSV) works too, and is exact."],
           ["Pricing the plan", "Each duct size goes on in 6 m lengths, each take-off at its sizes (a take-off the pricebook doesn't stock goes on as the nearest one that fits plus reducers), a downjet per outlet, the transition, the return air and a damper per zone. Anything that can't be matched is listed to add by hand."],
@@ -37,6 +37,8 @@ export default async function DuctedPage() {
           ["Zoning", `The Mitsubishi Electric zone controller (up to ${DUCTED.maxZones} zones) on every job, as its own group on the quote. The temperature controls, one per zone unless you say fewer, go with the installation's materials.`],
           ["Into ServiceTitan", "Put in the job number and the quote goes on that job, not sent, in its groups: the installation at $0 with the two-day labour, the electrician and every material priced under it, so the materials' cost shows, and the temperature controls at $0. A note on the job says where it came from."],
         ]} />
+      </div>
+      <div className="pk">
         {cat ? (
           <>
             <Say>Drop in the duct plan and what you know about the job, or lay the house out by hand, and the quote follows. Check it, then put it on the job.</Say>

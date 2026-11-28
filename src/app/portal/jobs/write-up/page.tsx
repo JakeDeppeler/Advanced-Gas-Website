@@ -3,13 +3,15 @@ import { getPortalUser } from "@/lib/portal/session";
 import { officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
-import { Empty, Head } from "@/components/portal/kit/Kit";
+import { Empty, KpiHead, type Kpi } from "@/components/portal/kit/Kit";
 import { JobWriteup, type DocView, type HistoryRow } from "@/components/portal/JobWriteup";
 import { dbConfigured } from "@/lib/portal/db";
 import { q, sbSelect, sbSelectOne } from "@/lib/dashboard/db";
 import { loadJob } from "@/lib/jobwrite/load";
 import { planOnePrice, type Doc } from "@/lib/jobwrite/lines";
 import { plainText } from "@/lib/pricebook/wording";
+import { dayWords, writeupSummary } from "@/lib/daily/summary";
+import { DailyWriteupStart } from "@/components/portal/daily/DailyWriteupStart";
 
 export const dynamic = "force-dynamic";
 // Reading the job from ServiceTitan, then Claude writing: the button's server
@@ -50,6 +52,13 @@ export default async function WriteupPage({ searchParams }: { searchParams: { jo
   const job = (searchParams.job ?? "").trim().replace(/^#/, "");
   const facts = job && dbConfigured() ? await loadJob(job).catch(() => null) : null;
   const quote = facts ? facts.quotes.find((x) => String(x.id) === searchParams.quote) ?? facts.quotes[0] ?? null : null;
+  const summary = await writeupSummary();
+  const kpis: Kpi[] = [];
+  if (summary) {
+    kpis.push({ icon: "doc", fig: String(summary.month), label: `Put on in ${summary.monthName}` });
+    if (summary.last) kpis.push({ icon: "clock", fig: new Date(summary.last.created_at).toLocaleDateString("en-AU", { day: "numeric", month: "short", timeZone: "Australia/Melbourne" }), label: `Last one, job ${summary.last.job_number ?? "—"}` });
+    if (summary.putBack) kpis.push({ icon: "alert", fig: String(summary.putBack), label: "Put back or undone", badge: "this month", tone: "down" });
+  }
   const [history, saved] = facts
     ? await Promise.all([
         sbSelect<HistoryRow>("job_writeups", [q.select("id,doc_kind,status,note,created_by,created_at"), q.eq("job_id", String(facts.jobId)), "order=created_at.desc", "limit=8"].join("&")).catch(() => []),
@@ -69,17 +78,15 @@ export default async function WriteupPage({ searchParams }: { searchParams: { jo
 
   return (
     <PortalShell user={user}>
-      <div className="pk">
-        <Head title="Job write-up" eyebrow="Daily tools" sub="The job summary and the labour line for a job's quote or invoice, written from your notes and what's in ServiceTitan." info={[
+      <div className="rp">
+        <KpiHead hi={`Daily tools · ${dayWords()}`} title="Job write-up" kpis={kpis} info={[
           ["Notes to write it from", "Only for writing: they aren't put on the job in ServiceTitan. Say how it's going in (a roof bracket, a pump), what's coming out, and anything that comes off the price if it isn't needed. Nothing is written until there are notes, and where they disagree with an older record, your notes win. They're kept here for whoever opens the job next."],
           ["One price", "The installation labour, the materials and the electrical work go under the main labour line, at what they come to together. The other lines stay on at $0 with their cost, so job profit still sees them. The equipment, the compliance certificate and the rebates keep their own lines, and the total doesn't change."],
           ["Undo", "Each time it's put on, the summary and every line it changed are kept first. If ServiceTitan doesn't read back exactly as intended, it's put back straight away; otherwise Undo puts it back while nobody has changed it since."],
         ]} />
-        <form className="jw-find" action="/portal/jobs/write-up" method="get">
-          <label htmlFor="jw-job">Job number</label>
-          <input id="jw-job" name="job" className="pk-in" inputMode="numeric" defaultValue={job} placeholder="e.g. 20912" autoComplete="off" />
-          <button className="pk-btn" type="submit">Open</button>
-        </form>
+        <DailyWriteupStart job={job} recent={summary?.recent ?? null} compact={!!job} />
+      </div>
+      <div className="pk">
         {!job ? null : !facts ? (
           <Empty>{dbConfigured() ? `Job ${job} wasn't found. Check the number; a job made in the last few minutes may not have come across from ServiceTitan yet.` : "The database isn't set up here."}</Empty>
         ) : (

@@ -4331,3 +4331,47 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .pk-toolbox b { font-size: 16px; font-weight: 700; }
 .pk-toolbox > span:last-child { font-size: 13px; line-height: 1.45; color: var(--ink2); }
 @media (max-width: 520px) { .pk-toolgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .pk-toolbox { padding: 14px; min-height: 0; } }
+
+/* ==================================================================
+   Daily tools, to the home screen (Jake, 28 Nov: "redesign the Daily
+   tools and each tool to match the home screen"). The home's own parts —
+   rp-top, rp-panel, rp-round, rp-seg, rp-year — and these few for what the
+   tools have that home doesn't: a job number to open, a list to go back to,
+   the ducted quote's three steps, the talk's date on the green card.
+   ================================================================== */
+.dt-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+/* The home's panels name their place in the home's grid (rp-year sits in "year"); here they flow in order. */
+.dt-grid .rp-panel { grid-area: auto; }
+.dt-col { display: grid; gap: 18px; align-content: start; min-width: 0; }
+@media (max-width: 960px) { .dt-grid { grid-template-columns: minmax(0, 1fr); } }
+.dt-find { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 6px; }
+.dt-find label { font-size: 13px; font-weight: 600; color: var(--ink2); }
+.dt-find input { width: 170px; height: 42px; padding: 0 16px; border-radius: 99px; border: 0; box-shadow: inset 0 0 0 1px var(--rp-line); background: var(--sunken); font: inherit; font-size: 15px; color: var(--ink); }
+.dt-find input:focus { outline: none; box-shadow: inset 0 0 0 2px var(--ink); }
+.dt-find button { height: 42px; padding: 0 20px; border-radius: 99px; border: 0; background: var(--ink); color: var(--surface); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.dt-slim { padding: 14px 20px; }
+.dt-slim .dt-find { margin: 0; }
+.dt-gap { margin: 10px 0 0; }
+.dt-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; }
+.dt-list li + li { border-top: 1px solid var(--rp-line); }
+.dt-row { display: flex; align-items: center; gap: 12px; padding: 12px 2px; text-decoration: none; color: var(--ink); }
+.dt-row .t { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.dt-row .t b { font-size: 14.5px; font-weight: 600; }
+.dt-row .t span { font-size: 12.5px; color: var(--ink2); }
+.dt-row .rp-round { width: 34px; height: 34px; font-size: 13px; flex: none; }
+.dt-row:hover .rp-round { transform: rotate(45deg); }
+.dt-tag { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--quiet); color: var(--ink2); white-space: nowrap; }
+.dt-tag.good { background: var(--good-bg); color: var(--good); }
+.dt-tag.bad { background: var(--bad-bg); color: var(--bad); }
+.dt-steps { list-style: none; margin: 10px 0 2px; padding: 0; display: grid; gap: 14px; counter-reset: dt; }
+.dt-steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.45; color: var(--ink); counter-increment: dt; }
+.dt-steps li::before { content: counter(dt); flex: none; width: 28px; height: 28px; margin-top: -3px; border-radius: 50%; display: grid; place-items: center; background: var(--sunken); font-size: 13px; font-weight: 700; color: var(--ink); }
+.dt-talk-day { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.12; margin: 14px 0 8px; color: #f4f1ea; }
+.dt-talk-line { margin: 0; font-size: 14px; line-height: 1.5; color: rgba(244, 241, 234, 0.82); }
+.dt-talk-line b { color: #f4f1ea; font-weight: 600; }
+.rp-info { margin-left: auto; }
+.dt-tabs { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dt-tabs .rp-seg { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.dt-tabs .rp-seg a { white-space: nowrap; }
+.dt-out { font-size: 13px; font-weight: 600; color: var(--ink2); text-decoration: none; padding: 7px 13px; border-radius: 99px; border: 1px solid var(--rp-line); background: var(--surface); }
+.dt-out:hover { color: var(--ink); }
