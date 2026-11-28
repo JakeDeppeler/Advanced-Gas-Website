@@ -7,8 +7,10 @@ import { FAULT_CODES, FAULT_SYSTEM_LABELS, type FaultSystem } from "@/lib/faultC
 const SYSTEMS: FaultSystem[] = ["aircon", "heater", "evap", "hot-water"];
 
 /**
- * The fault-code finder, the portal's version — Tools.dc.html's fault tab:
- * the search, the brand and the systems in one panel, over a plain table.
+ * The fault-code finder, in the home screen's clothes (Jake, 28 Nov: "the
+ * fault code finder doesn't match the rest of the page"): a round search and
+ * brand box, the systems on home's grey switch, and each code as a row in a
+ * home card with the code in its own badge.
  */
 export function PortalFaults() {
   const [q, setQ] = useState("");
@@ -25,38 +27,44 @@ export function PortalFaults() {
   const count = (s: FaultSystem) => matching.filter((f) => f.system === s).length;
 
   return (
-    <section className="ptl-card ptl-faults">
-      <div className="ptl-faults__find">
-        <label className="ptl-faults__q">
+    <div className="fc">
+      <section className="rp-panel rp-card fc-find" aria-label="Find a fault code">
+        <label className="fc-q">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3" /></svg>
-          <input type="search" placeholder="Type a code, e.g. P5" aria-label="Fault code" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input id="fc-q" type="search" placeholder="Type a code, e.g. P5" aria-label="Fault code" value={q} onChange={(e) => setQ(e.target.value)} />
         </label>
-        <select aria-label="Brand" value={brand} onChange={(e) => setBrand(e.target.value)}>
+        <select id="fc-brand" className="fc-brand" aria-label="Brand" value={brand} onChange={(e) => setBrand(e.target.value)}>
           <option value="">All brands ({brands.length})</option>
           {brands.map((b) => <option key={b} value={b}>{b}</option>)}
         </select>
-      </div>
-      <div className="ptl-chips" role="group" aria-label="System">
-        <button type="button" aria-pressed={sys === ""} className={sys === "" ? "is-on" : undefined} onClick={() => setSys("")}>All systems <span>{matching.length}</span></button>
-        {SYSTEMS.map((s) => (
-          <button key={s} type="button" aria-pressed={sys === s} className={sys === s ? "is-on" : undefined} onClick={() => setSys(s)}>
-            {FAULT_SYSTEM_LABELS[s]} <span>{count(s)}</span>
-          </button>
-        ))}
-      </div>
-      <div className="ptl-faults__table" role="table" aria-label="Fault codes">
-        <div className="ptl-faults__head" role="row"><span role="columnheader">Brand</span><span role="columnheader">Code</span><span role="columnheader">Likely meaning</span><span role="columnheader">First check</span></div>
+        <div className="rp-seg fc-sys" role="group" aria-label="System">
+          <button type="button" aria-pressed={sys === ""} className={sys === "" ? "on" : undefined} onClick={() => setSys("")}>All <span>{matching.length}</span></button>
+          {SYSTEMS.map((s) => (
+            <button key={s} type="button" aria-pressed={sys === s} className={sys === s ? "on" : undefined} onClick={() => setSys(s)}>
+              {FAULT_SYSTEM_LABELS[s]} <span>{count(s)}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="rp-panel rp-card fc-list" aria-label="Fault codes">
         {rows.length === 0 ? (
-          <p className="ptl-faults__none">Nothing matches. Check the code on the unit, or try just the brand.</p>
-        ) : rows.map((f) => (
-          <div key={`${f.brand}-${f.code}`} className="ptl-faults__row" role="row">
-            <span role="cell"><strong>{f.brand}</strong><em>{FAULT_SYSTEM_LABELS[f.system]}</em></span>
-            <span role="cell" className="ptl-faults__code">{f.code}</span>
-            <span role="cell" className="ptl-faults__meaning">{f.meaning}</span>
-            <span role="cell" className="ptl-faults__check">{f.firstCheck}</span>
-          </div>
-        ))}
-      </div>
-    </section>
+          <p className="rp-empty">Nothing matches. Check the code on the unit, or try just the brand.</p>
+        ) : (
+          <ul>
+            {rows.map((f) => (
+              <li key={`${f.brand}-${f.code}`} className="fc-row">
+                <span className="fc-code">{f.code}</span>
+                <span className="fc-what">
+                  <b>{f.meaning}</b>
+                  <span>{f.firstCheck}</span>
+                </span>
+                <span className="fc-brandname"><b>{f.brand}</b><span>{FAULT_SYSTEM_LABELS[f.system]}</span></span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
   );
 }
