@@ -374,27 +374,51 @@ ${signoff ? `<p style="margin:0 0 10px;${LETTER_FONT};color:${INK}">${esc(signof
  * quote and job emails stay letters.
  *
  * One flow of colour from top to bottom, no bands (Jake, 28 Nov, on the Summer
- * Fridays one: "one full flow and no break in the colour"). The navy hero he
- * liked (logo, the question as a headline with the tech's name in the site's
- * sky blue, the stars and the button); the job's photo straight under it, edge
- * to edge when it's a wide one, otherwise centred on navy turning to blue; then
- * one stretch running from a periwinkle down to near-white, holding the words
- * (centred, the greeting as a heading), the ask (no box of its own), the
- * signature, three points and the footer. Off the brand's palette on purpose
- * ("we can go off brand a little bit"): blues throughout, navy for words and
- * buttons, gold for the stars.
+ * Fridays one: "one full flow and no break in the colour"). The hero (logo, the
+ * question as a headline with the tech's name picked out, the stars and the
+ * button); the job's photo straight under it, edge to edge when it's a wide
+ * one, otherwise centred on the hero's colour as it turns; then one stretch of
+ * colour holding the words (centred, the greeting as a heading), the ask (no box
+ * of its own), the signature, three points and the footer.
+ *
+ * The colours come from a theme, so the same email can be drawn several ways:
+ * "blue" is the one Jake signed off ("this looks so much better"); the others
+ * are the alternatives he asked to see. Off the brand's palette on purpose
+ * ("we can go off brand a little bit").
  *
  * Gradients where the inbox draws them (Apple Mail, iPhone, Gmail, Outlook.com),
  * the solid colour at each end where it doesn't (Outlook on Windows). The stars
  * and icons are text, not images, so the ask reads with pictures blocked. Same
  * table-and-inline build as the others, light only.
  */
+export type ShowcaseTheme = {
+  /** Around the email. */
+  ground: string;
+  hero: { bg: string; text: string; sub: string; eyebrow: string; accent: string; stars: string; note: string; pillBg: string; pillText: string };
+  /** The headline's face, weight, case and spacing. */
+  head: { font: string; weight: number; upper: boolean; spacing: string };
+  /** The stretch under the photo, top to bottom. */
+  flowTop: string;
+  flowEnd: string;
+  text: string;
+  muted: string;
+  heading: string;
+  rule: string;
+  stars: string;
+  pillBg: string;
+  pillText: string;
+  iconBg: string;
+  iconText: string;
+  /** The phone number under the signature. */
+  link: string;
+};
+
 export type ShowcaseEmail = {
   preheader: string;
   /** Small caps over the headline. */
   eyebrow: string;
   headline: string;
-  /** A word in the headline to colour (the tech's name). */
+  /** A word in the headline to pick out (the tech's name). */
   accent?: string;
   sub: string;
   cta: { label: string; href: string; note?: string };
@@ -408,63 +432,107 @@ export type ShowcaseEmail = {
   signoff?: string | null;
   base: string;
   footer: PremiumEmail["footer"];
+  /** Defaults to the blue one. */
+  theme?: ShowcaseTheme;
 };
 
-const SKY = "#2cc5ff";
-const GOLD = "#f5a524";
-const SC_GROUND = "#e9eef6";
-/** Where the navy turns to the flow, and where the flow ends. */
-const SC_FLOW_TOP = "#b9cbe8";
-const SC_FLOW_END = "#f2f5fa";
-const SC_TEXT = "#1f2a44";
-const SC_MUTED = "#4a5672";
 /** The site's display face isn't in any inbox; this is the heaviest one most of them have. */
 const DISPLAY = "'Arial Black','Helvetica Neue',Helvetica,Arial,sans-serif";
+const SERIF = "Georgia,'Times New Roman',Times,serif";
+
+export const SHOWCASE_THEMES = {
+  /** Navy into periwinkle into near-white (after Summer Fridays). The one in use. */
+  blue: {
+    ground: "#e9eef6",
+    hero: { bg: NAVY, text: "#ffffff", sub: "#c9cbe0", eyebrow: BRAND_BRIGHT, accent: "#2cc5ff", stars: "#ffb648", note: "#9fa3c4", pillBg: "#ffffff", pillText: NAVY },
+    head: { font: DISPLAY, weight: 900, upper: false, spacing: "-.02em" },
+    flowTop: "#b9cbe8", flowEnd: "#f2f5fa",
+    text: "#1f2a44", muted: "#4a5672", heading: NAVY, rule: "#9aa8c4", stars: "#f5a524",
+    pillBg: NAVY, pillText: "#ffffff", iconBg: "#ffffff", iconText: NAVY, link: BRAND,
+  },
+  /** Near-black all the way down, sky and white on it (after Gymshark). */
+  midnight: {
+    ground: "#0a0c10",
+    hero: { bg: "#0b0d12", text: "#ffffff", sub: "#a9b1c2", eyebrow: "#2cc5ff", accent: "#2cc5ff", stars: "#ffb648", note: "#7d8799", pillBg: "#ffffff", pillText: "#0b0d12" },
+    head: { font: DISPLAY, weight: 900, upper: true, spacing: "-.01em" },
+    flowTop: "#121722", flowEnd: "#0b0d12",
+    text: "#dfe4ec", muted: "#97a1b3", heading: "#ffffff", rule: "#2a3344", stars: "#ffb648",
+    pillBg: "#2cc5ff", pillText: "#0b0d12", iconBg: "#1c2330", iconText: "#2cc5ff", link: "#2cc5ff",
+  },
+  /** Cool grey into warm stone, serif headings (after Oura). */
+  stone: {
+    ground: "#e7e4df",
+    hero: { bg: "#c8cdd7", text: "#1f2430", sub: "#4b5160", eyebrow: "#6b5a43", accent: "#3d5a8c", stars: "#a8823b", note: "#5d6372", pillBg: "#1f2430", pillText: "#ffffff" },
+    head: { font: SERIF, weight: 400, upper: false, spacing: "-.01em" },
+    flowTop: "#d8dce4", flowEnd: "#f1ece5",
+    text: "#2b2c31", muted: "#5f6068", heading: "#1f2430", rule: "#b9b3a8", stars: "#a8823b",
+    pillBg: "#1f2430", pillText: "#ffffff", iconBg: "#ffffff", iconText: "#1f2430", link: "#1f2430",
+  },
+  /** Coral into peach into cream (after Poppi). */
+  sunset: {
+    ground: "#fbe7da",
+    hero: { bg: "#e4572e", text: "#ffffff", sub: "#ffe1d3", eyebrow: "#ffe08a", accent: "#ffe08a", stars: "#ffffff", note: "#ffd3bf", pillBg: "#ffffff", pillText: "#c23d17" },
+    head: { font: DISPLAY, weight: 900, upper: false, spacing: "-.02em" },
+    flowTop: "#f6a47f", flowEnd: "#fdf3ea",
+    text: "#3b2219", muted: "#7a5246", heading: "#a8300f", rule: "#e3a88c", stars: "#e4572e",
+    pillBg: "#e4572e", pillText: "#ffffff", iconBg: "#ffffff", iconText: "#e4572e", link: "#c23d17",
+  },
+} satisfies Record<string, ShowcaseTheme>;
+
+export type ShowcaseThemeName = keyof typeof SHOWCASE_THEMES;
+
 /** One per point: a house, a tick, a star. Text glyphs, not images, for blocked-image inboxes. */
 const POINT_GLYPHS = ["&#8962;", "&#10003;", "&#9733;"];
 
 /** A vertical gradient, with its first colour as the fallback for inboxes that don't draw gradients. */
 const flow = (from: string, to: string) => `background-color:${from};background-image:linear-gradient(180deg,${from} 0%,${to} 100%)`;
 
-const starsLink = (href: string, size: number, color = GOLD) =>
+const starsLink = (href: string, size: number, color: string) =>
   `<a href="${esc(href)}" style="text-decoration:none;color:${color};font:400 ${size}px/1 ${FONT};letter-spacing:${Math.round(size / 6)}px">&#9733;&#9733;&#9733;&#9733;&#9733;</a>`;
 
-const pill = (label: string, href: string, solid: boolean) =>
-  `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td style="border-radius:999px;background:${solid ? NAVY : "#ffffff"}"><a href="${esc(href)}" style="display:inline-block;padding:15px 30px;font:700 16px/1 ${FONT};color:${solid ? "#ffffff" : NAVY};text-decoration:none;border-radius:999px">${esc(label)} &rarr;</a></td></tr></table>`;
+const pill = (label: string, href: string, bg: string, fg: string) =>
+  `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td style="border-radius:999px;background:${bg}"><a href="${esc(href)}" style="display:inline-block;padding:15px 30px;font:700 16px/1 ${FONT};color:${fg};text-decoration:none;border-radius:999px">${esc(label)} &rarr;</a></td></tr></table>`;
 
 /** A centred column the width those emails keep their words to. */
 const column = (inner: string) =>
   `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="460" style="width:100%;max-width:460px"><tr><td align="center">${inner}</td></tr></table>`;
 
-/** The words centred; a short "Hi Sarah," at the top becomes a heading. */
-function showcaseWords(blocks: LetterBlock[], base: string, greet: boolean): string {
+/** A heading inside the flow: the theme's face and case, a touch less tightly set than the headline. */
+const headStyle = (t: ShowcaseTheme, size: number, lh: number) =>
+  `font:${t.head.weight} ${t.head.upper ? Math.round(size * 0.9) : size}px/${lh} ${t.head.font};letter-spacing:-.01em;${t.head.upper ? "text-transform:uppercase;" : ""}color:${t.heading}`;
+
+/** The words centred, in the theme's colours; a short "Hi Sarah," at the top becomes a heading. */
+function showcaseWords(blocks: LetterBlock[], base: string, greet: boolean, t: ShowcaseTheme): string {
+  const words = (s: string) => inline(s).replace(/<strong>/g, `<strong style="color:${t.heading}">`);
   return blocks
     .map((b, n) => {
-      if (b.kind !== "p") return letterBlock(b, base).split(LETTER_FONT).join(`font:400 16px/1.7 ${FONT}`);
-      if (greet && n === 0 && b.text.length < 40 && /,\s*$/.test(b.text)) return `<div style="padding-bottom:14px;font:900 28px/1.2 ${DISPLAY};letter-spacing:-.01em;color:${NAVY}">${letterInline(b.text)}</div>`;
-      return `<p style="margin:0 0 16px;font:400 16px/1.7 ${FONT};color:${SC_TEXT}">${letterInline(b.text)}</p>`;
+      if (b.kind !== "p") return letterBlock(b, base).split(LETTER_FONT).join(`font:400 16px/1.7 ${FONT}`).split(`color:${INK}`).join(`color:${t.text}`).split(`color:${NAVY}`).join(`color:${t.heading}`);
+      if (greet && n === 0 && b.text.length < 40 && /,\s*$/.test(b.text)) return `<div style="padding-bottom:14px;${headStyle(t, 28, 1.2)}">${words(b.text)}</div>`;
+      return `<p style="margin:0 0 16px;font:400 16px/1.7 ${FONT};color:${t.text}">${words(b.text)}</p>`;
     })
     .join("\n");
 }
 
 /** A short centred rule between the parts of the flow, in place of a change of colour. */
-const rule = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td width="48" height="3" style="width:48px;height:3px;border-radius:2px;background:${NAVY};opacity:.25;font-size:0;line-height:0">&nbsp;</td></tr></table>`;
+const rule = (color: string) => `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td width="48" height="3" style="width:48px;height:3px;border-radius:2px;background:${color};font-size:0;line-height:0">&nbsp;</td></tr></table>`;
 
 export function showcaseHtml(e: ShowcaseEmail): string {
+  const t = e.theme ?? SHOWCASE_THEMES.blue;
+  const h = t.hero;
   const f = e.footer;
   const signoff = e.signoff === undefined ? "Cheers," : e.signoff;
   // Escaped first, then the accent wrapped, so a name can't carry markup in.
   const headline = e.accent && e.headline.includes(e.accent)
-    ? esc(e.headline).replace(esc(e.accent), `<span style="color:${SKY}">${esc(e.accent)}</span>`)
+    ? esc(e.headline).replace(esc(e.accent), `<span style="color:${h.accent}">${esc(e.accent)}</span>`)
     : esc(e.headline);
   const img = (w: number, edge: boolean) => e.photo
     ? `<img src="${esc(abs(e.base, e.photo.src))}"${e.photo.fallback ? ` data-fallback="${esc(abs(e.base, e.photo.fallback))}"` : ""} width="${w}" alt="${esc(e.photo.alt)}" style="display:block;width:100%;max-width:${w}px;height:auto;border:0${edge ? "" : ";border-radius:18px"}">`
     : "";
-  // A wide photo runs edge to edge, as in the mock; a tall one sits centred on the navy turning to blue.
+  // A wide photo runs edge to edge, as in the mock; a tall one sits centred on the hero's colour as it turns.
   const wide = (e.photo?.width ?? 600) >= 560;
   const photo = !e.photo ? "" : wide
-    ? `<tr><td style="padding:0;background:${NAVY}">${img(600, true)}</td></tr>`
-    : `<tr><td class="sc-pad" align="center" style="${flow(NAVY, SC_FLOW_TOP)};padding:4px 40px 0">${img(e.photo.width ?? 420, false)}</td></tr>`;
+    ? `<tr><td style="padding:0;background:${h.bg}">${img(600, true)}</td></tr>`
+    : `<tr><td class="sc-pad" align="center" style="${flow(h.bg, t.flowTop)};padding:4px 40px 0">${img(e.photo.width ?? 420, false)}</td></tr>`;
   // The words split at the button: what leads up to the ask, the ask, what follows it.
   const at = e.blocks.findIndex((b) => b.kind === "button");
   const ask = at >= 0 ? (e.blocks[at] as Extract<LetterBlock, { kind: "button" }>) : { label: e.cta.label, href: e.cta.href };
@@ -474,11 +542,14 @@ export function showcaseHtml(e: ShowcaseEmail): string {
   const points = e.points.length
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:30px"><tr>${e.points
         .map((p, n) => `<td class="sc-pt" width="${w}%" align="center" style="padding:0 8px 18px;vertical-align:top">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td width="46" height="46" align="center" style="width:46px;height:46px;border-radius:50%;background:#ffffff;font:700 20px/46px ${FONT};color:${NAVY}">${POINT_GLYPHS[n % POINT_GLYPHS.length]}</td></tr></table>
-<div style="padding-top:12px;font:900 16px/1.3 ${DISPLAY};color:${NAVY}">${esc(p.title)}</div>
-<div style="padding-top:5px;font:400 14px/1.5 ${FONT};color:${SC_MUTED}">${esc(p.text)}</div></td>`)
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td width="46" height="46" align="center" style="width:46px;height:46px;border-radius:50%;background:${t.iconBg};font:700 20px/46px ${FONT};color:${t.iconText}">${POINT_GLYPHS[n % POINT_GLYPHS.length]}</td></tr></table>
+<div style="padding-top:12px;${headStyle(t, 16, 1.3)}">${esc(p.title)}</div>
+<div style="padding-top:5px;font:400 14px/1.5 ${FONT};color:${t.muted}">${esc(p.text)}</div></td>`)
         .join("")}</tr></table>`
     : "";
+  const sig = (e.signer.contact ?? [{ text: f.phone, href: f.phoneHref }, { text: f.site.replace(/^https?:\/\/(www\.)?/, ""), href: f.site }])
+    .map((l, n) => `<a href="${esc(l.href)}" style="color:${n === 0 ? t.link : t.muted};${n === 0 ? "font-weight:600;" : ""}text-decoration:none">${esc(l.text)}</a>`)
+    .join(" &middot; ");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light">
 <style>
 @media (max-width:620px){
@@ -489,38 +560,38 @@ export function showcaseHtml(e: ShowcaseEmail): string {
   .sc-pt{display:block!important;width:100%!important;padding:0 0 22px!important}
 }
 </style></head>
-<body style="margin:0;padding:0;background:${SC_GROUND}">
+<body style="margin:0;padding:0;background:${t.ground}">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(e.preheader)}&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${SC_GROUND}"><tr><td class="sc-outer" align="center" style="padding:24px 12px">
-<table class="sc-shell" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:${SC_FLOW_END};border-radius:20px;overflow:hidden">
-<tr><td class="sc-pad" align="center" style="background:${NAVY};padding:28px 40px 8px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${t.ground}"><tr><td class="sc-outer" align="center" style="padding:24px 12px">
+<table class="sc-shell" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:${t.flowEnd};border-radius:20px;overflow:hidden">
+<tr><td class="sc-pad" align="center" style="background:${h.bg};padding:28px 40px 8px">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td style="background:#ffffff;border-radius:12px;padding:8px 12px"><img src="${esc(abs(e.base, "/email/logo.jpg"))}" width="132" alt="${esc(f.name)}" style="display:block;width:132px;height:auto;border:0"></td></tr></table>
-<div style="padding-top:30px;font:700 12px/1.4 ${FONT};letter-spacing:.18em;text-transform:uppercase;color:${BRAND_BRIGHT}">${esc(e.eyebrow)}</div>
-<div class="sc-h1" style="padding-top:12px;font:900 40px/1.08 ${DISPLAY};letter-spacing:-.02em;color:#ffffff">${headline}</div>
-<div style="padding-top:12px;font:400 17px/1.5 ${FONT};color:#c9cbe0">${esc(e.sub)}</div>
-<div style="padding:22px 0 18px">${starsLink(e.cta.href, 34, "#ffb648")}</div>
-${pill(e.cta.label, e.cta.href, false)}
-${e.cta.note ? `<div style="padding:12px 0 30px;font:400 13px/1.4 ${FONT};color:#9fa3c4">${esc(e.cta.note)}</div>` : `<div style="padding-bottom:30px"></div>`}
+<div style="padding-top:30px;font:700 12px/1.4 ${FONT};letter-spacing:.18em;text-transform:uppercase;color:${h.eyebrow}">${esc(e.eyebrow)}</div>
+<div class="sc-h1" style="padding-top:12px;font:${t.head.weight} ${t.head.upper ? 36 : 40}px/1.08 ${t.head.font};letter-spacing:${t.head.spacing};${t.head.upper ? "text-transform:uppercase;" : ""}color:${h.text}">${headline}</div>
+<div style="padding-top:12px;font:400 17px/1.5 ${FONT};color:${h.sub}">${esc(e.sub)}</div>
+<div style="padding:22px 0 18px">${starsLink(e.cta.href, 34, h.stars)}</div>
+${pill(e.cta.label, e.cta.href, h.pillBg, h.pillText)}
+${e.cta.note ? `<div style="padding:12px 0 30px;font:400 13px/1.4 ${FONT};color:${h.note}">${esc(e.cta.note)}</div>` : `<div style="padding-bottom:30px"></div>`}
 </td></tr>
 ${photo}
-<tr><td class="sc-pad" align="center" style="${flow(SC_FLOW_TOP, SC_FLOW_END)};padding:44px 40px 34px">
-${column(showcaseWords(before, e.base, true))}
-<div style="padding:18px 0 22px">${rule}</div>
-<div style="padding-bottom:12px">${starsLink(ask.href, 40)}</div>
-<div style="padding-bottom:8px;font:900 26px/1.2 ${DISPLAY};letter-spacing:-.01em;color:${NAVY}">Rate your job on Google</div>
-<div style="padding-bottom:22px;font:400 15px/1.6 ${FONT};color:${SC_TEXT}">${e.cta.note ? `${esc(e.cta.note)}. ` : ""}It helps the next family find us.</div>
-${pill(ask.label, ask.href, true)}
-<div style="padding:30px 0 26px">${rule}</div>
-${column(`${showcaseWords(after, e.base, false)}
-${signoff ? `<p style="margin:0 0 18px;font:400 16px/1.7 ${FONT};color:${SC_TEXT}">${esc(signoff)}</p>` : ""}
+<tr><td class="sc-pad" align="center" style="${flow(t.flowTop, t.flowEnd)};padding:44px 40px 34px">
+${column(showcaseWords(before, e.base, true, t))}
+<div style="padding:18px 0 22px">${rule(t.rule)}</div>
+<div style="padding-bottom:12px">${starsLink(ask.href, 40, t.stars)}</div>
+<div style="padding-bottom:8px;${headStyle(t, 26, 1.2)}">Rate your job on Google</div>
+<div style="padding-bottom:22px;font:400 15px/1.6 ${FONT};color:${t.text}">${e.cta.note ? `${esc(e.cta.note)}. ` : ""}It helps the next family find us.</div>
+${pill(ask.label, ask.href, t.pillBg, t.pillText)}
+<div style="padding:30px 0 26px">${rule(t.rule)}</div>
+${column(`${showcaseWords(after, e.base, false, t)}
+${signoff ? `<p style="margin:0 0 18px;font:400 16px/1.7 ${FONT};color:${t.text}">${esc(signoff)}</p>` : ""}
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td align="center">${avatar(e.base, e.signer.name, e.signer.photo, 64)}</td></tr></table>
-<div style="padding-top:10px;font:700 17px/1.35 ${FONT};color:${NAVY}">${esc(e.signer.name)}</div>
-<div style="font:400 14px/1.6 ${FONT};color:${SC_MUTED}">${esc(e.signer.role)}<br>${signatureLinks(e)}</div>`)}
+<div style="padding-top:10px;font:700 17px/1.35 ${FONT};color:${t.heading}">${esc(e.signer.name)}</div>
+<div style="font:400 14px/1.6 ${FONT};color:${t.muted}">${esc(e.signer.role)}<br>${sig}</div>`)}
 ${points}
-<div style="padding:10px 0 18px">${rule}</div>
-<div style="font:700 14px/1.5 ${FONT};color:${NAVY}">${esc(f.name)}</div>
-<div style="font:400 13px/1.7 ${FONT};color:${SC_MUTED}">${esc(f.address)}<br>
-<a href="${esc(f.phoneHref)}" style="color:${NAVY};text-decoration:none">${esc(f.phone)}</a> &middot; <a href="${esc(f.site)}" style="color:${NAVY};text-decoration:none">${esc(f.site.replace(/^https?:\/\/(www\.)?/, ""))}</a></div>
+<div style="padding:10px 0 18px">${rule(t.rule)}</div>
+<div style="font:700 14px/1.5 ${FONT};color:${t.heading}">${esc(f.name)}</div>
+<div style="font:400 13px/1.7 ${FONT};color:${t.muted}">${esc(f.address)}<br>
+<a href="${esc(f.phoneHref)}" style="color:${t.heading};text-decoration:none">${esc(f.phone)}</a> &middot; <a href="${esc(f.site)}" style="color:${t.heading};text-decoration:none">${esc(f.site.replace(/^https?:\/\/(www\.)?/, ""))}</a></div>
 </td></tr>
 </table>
 </td></tr></table></body></html>`;

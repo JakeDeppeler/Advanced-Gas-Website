@@ -22,7 +22,7 @@
  */
 
 import { personalAddress } from "@/lib/email/ownAddress";
-import { letterText, showcaseHtml, type LetterBlock, type LetterEmail, type PremiumEmail } from "@/lib/email/premium";
+import { letterText, showcaseHtml, SHOWCASE_THEMES, type LetterBlock, type LetterEmail, type PremiumEmail, type ShowcaseThemeName } from "@/lib/email/premium";
 import { RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import { SIGNERS, signerKey, type SignerKey } from "@/lib/email/team";
 
@@ -36,6 +36,8 @@ export type ReviewSettings = {
   body: string;
   /** Whose name and photo signs it. */
   signer: SignerKey;
+  /** Which of the designed looks it's drawn in; "blue" unless another is chosen. */
+  design: ShowcaseThemeName;
 };
 
 export const DEFAULT_REVIEW_SUBJECT = "How did {tech} go, {first}?";
@@ -62,6 +64,7 @@ export function reviewSettingsFrom(raw: unknown): ReviewSettings {
     subject: s(o.subject, DEFAULT_REVIEW_SUBJECT, 200),
     body: s(o.body, DEFAULT_REVIEW_BODY, 4000),
     signer: signerKey(o.signer),
+    design: typeof o.design === "string" && o.design in SHOWCASE_THEMES ? (o.design as ShowcaseThemeName) : "blue",
   };
 }
 
@@ -249,6 +252,7 @@ export function reviewEmail(s: ReviewSettings, i: ReviewEmailInput, ctx: EmailCo
     signoff: mail.signoff,
     base: ctx.base,
     footer: ctx.footer,
+    theme: SHOWCASE_THEMES[s.design],
   });
   return { subject, text: letterText(mail), html };
 }
