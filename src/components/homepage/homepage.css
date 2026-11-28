@@ -265,6 +265,13 @@
 .ag .qf__thumb img{width:100%;height:100%;object-fit:cover}
 .ag .qf__thumb button{position:absolute;right:4px;top:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(5,10,48,.75);color:#fff;font-size:14px;line-height:1;cursor:pointer}
 .ag .qf__done-tick{width:56px;height:56px;border-radius:50%;background:var(--or);display:grid;place-items:center;box-shadow:0 0 0 8px #FEF2EC}
+/* Photos, after the enquiry is sent: optional, so they sit under the "got it" line, not in front of it. */
+.ag .qf__more{display:flex;flex-direction:column;gap:8px;border-top:1px solid #EEE9DD;padding-top:16px}
+.ag .qf__more>strong{font-family:var(--disp);font-size:15px;color:var(--navy)}
+.ag .qf__more>strong em{font-style:normal;font-family:var(--body,inherit);font-weight:500;font-size:12.5px;color:var(--ink3);margin-left:6px}
+.ag .qf__more>span{font-size:13px;line-height:1.45;color:var(--ink2)}
+.ag .qf__drop--sm{flex-direction:row;justify-content:center;gap:10px;padding:12px 14px}
+.ag .qf__photos-ok{margin:0;font-size:14px;color:#05603A;background:#ECFDF3;border-radius:10px;padding:10px 12px}
 .ag .qf__hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 /* One height for every step, from "what do you need" to the details, so the
    card doesn't jump as it goes; the tallest step (details) sets it. On a
@@ -797,6 +804,31 @@ body:has(> main > .ag){padding-bottom:0 !important}
    sides (the outdoor unit cut off at the edge, Jake, Nov 2026). */
 .ag .atile__photo.atile__photo--draw{height:auto;aspect-ratio:360/190;background:#fff}
 .ag .find__why{margin:0;padding:12px 16px;border-radius:12px;background:rgba(255,122,54,.14);box-shadow:inset 0 0 0 1px rgba(255,122,54,.4);font-size:15px;line-height:1.5;color:rgba(255,255,255,.9)}
+/* Under the options: what's ticked for the quote, and the one button on. Sticks
+   to the foot of the screen while the cards scroll past on a phone. */
+.ag .find__go{position:sticky;bottom:12px;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:#fff;color:var(--ink);border-radius:12px;padding:12px 12px 12px 18px;box-shadow:0 18px 40px -18px rgba(0,0,0,.7)}
+.ag .find__go p{margin:0;flex:1 1 260px;font-size:14.5px;line-height:1.45;color:var(--ink2)}
+.ag .find__go p b{color:var(--navy)}
+.ag .find__go .abtn{flex:none}
+.ag .find__go .abtn:disabled{opacity:.45;cursor:not-allowed}
+.ag .tier__add{white-space:nowrap}
+/* The details step, in the finder: what they're getting quoted beside the form. */
+.ag .find__quote{flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:28px}
+.ag .find__qside{flex:1 1 300px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.ag .find__picks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.ag .find__pk{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);border-radius:12px;padding:10px 14px 10px 10px}
+.ag .find__pkimg{position:relative;flex:none;width:64px;height:64px;border-radius:10px;background:#fff;overflow:hidden}
+.ag .find__pkimg img{object-fit:contain;padding:6px}
+.ag .find__pkt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ag .find__pkt small{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--or2)}
+.ag .find__pkt strong{font-family:var(--disp);font-size:16.5px;color:#fff}
+.ag .find__pkt em{font-style:normal;font-size:13px;color:rgba(255,255,255,.7)}
+.ag .find__change{align-self:flex-start;background:none;border:0;padding:4px 0;color:#fff;font:inherit;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ag .find__qnote{margin:0;font-size:13px;line-height:1.55;color:rgba(255,255,255,.65)}
+/* The hero card holds one height across its steps (.qf min-height); this one is only ever the details, so it fits them. */
+.ag .find__qf{flex:1 1 380px;max-width:480px;min-height:0}
+/* On a phone the names would run to three lines over the cards; the ticked cards already say which. */
+@media (max-width:600px){.ag .find__go{bottom:8px;padding:10px 10px 10px 14px}.ag .find__go .abtn{width:100%}.ag .find__gonames{display:none}}
 .ag .find__why b{color:#fff}
 /* Product shots on a white backdrop sit into the tile rather than as a white box. */
 .ag .tier__img img{mix-blend-mode:multiply}

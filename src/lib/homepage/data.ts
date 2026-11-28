@@ -678,7 +678,8 @@ export const systemHref = (slug: string) => `/find/${slug}`;
 
 export const bookHref = (sys: System, tier: Tier, ans: Answers, model?: string) => {
   const qs = answersQuery(sys, ans);
-  return `/?book=${sys.slug}.${tier.slug}${qs ? `&${qs}` : ""}${model ? `&model=${model}` : ""}#quote`;
+  // To Find your system, which takes the details for an option itself now (Jake, 28 Nov 2026).
+  return `/?book=${sys.slug}.${tier.slug}${qs ? `&${qs}` : ""}${model ? `&model=${model}` : ""}#find`;
 };
 
 export const findHref = (sys: System, ans: Answers) => {
