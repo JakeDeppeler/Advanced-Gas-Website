@@ -101,6 +101,8 @@ export const HOME_BRANDS: [string, string, string][] = [
 
 export const PHOTO = {
   team: "/team-photo.webp",
+  // The six of them and a van either side, cut from team-photo for the phone hero's photo box.
+  crew: "/team-crew.webp",
   teamMobile: "/team-photo-mobile.webp",
   whyBig: "/kaden-team-with-chaz.jpg",
   vans: "/comm/team-vans.webp",
