@@ -145,7 +145,7 @@ function cleanTakeoff(t: DesignTakeoff | null | undefined): DesignTakeoff | null
       const outs = (Array.isArray(f?.outs) ? f.outs : []).map(Number).filter((x) => SIZES.includes(x)).slice(0, 4);
       return SIZES.includes(Number(f?.in)) && outs.length >= 2 ? [{ ways: outs.length, in: Number(f.in), outs, qty: Math.max(1, count(f.qty, 20)), text: str(f.text) ?? "" }] : [];
     }),
-    transitions: count(t.transitions, 3), otherOutlets: count(t.otherOutlets, 40), returnBoxes: count(t.returnBoxes, 4),
+    transitions: count(t.transitions, 3), otherOutlets: count(t.otherOutlets, 40), returnBoxes: count(t.returnBoxes, 4), returnBoxSizes: [],
     returnGrilles: (Array.isArray(t.returnGrilles) ? t.returnGrilles : []).slice(0, 4).map((g) => ({ w: count(g?.w, 3000), h: count(g?.h, 3000), qty: Math.max(1, count(g?.qty, 4)) })),
     cables: count(t.cables, 20), zones: t.zones == null ? null : count(t.zones, 20), itc: count(t.itc, 20), kitLines: 0, unread: [],
     checks: (Array.isArray(t.checks) ? t.checks : []).slice(0, 30).map((c) => String(c).slice(0, 300)), problem: null,

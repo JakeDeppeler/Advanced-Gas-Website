@@ -619,6 +619,21 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-du-st { margin-top: 18px; padding-top: 4px; border-top: 1px solid var(--line); }
 .pk-du-job, .pk-du-done { margin-top: 10px; padding: 12px 14px; border-radius: 10px; background: var(--quiet); display: grid; gap: 6px; justify-items: start; font-size: 14px; }
 .pk-du-job p, .pk-du-done p { margin: 0; }
+
+/* Daily tools › Duct design: the Trust Trade designer for a job, and its quote */
+.pk-dd { display: grid; gap: 14px; }
+.pk-dd-job { margin: 0; display: grid; gap: 2px; font-size: 14px; }
+.pk-dd-job .pk-du-dim { font-size: 12px; }
+.pk-dd-frame { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--card, #fff); height: min(86vh, 960px); min-height: 560px; }
+.pk-dd-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.pk-dd-pick { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.pk-dd-pick p { margin: 0; }
+.pk-dd-hits { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.pk-dd-hits button { width: 100%; text-align: left; border: 0; background: var(--quiet); color: var(--ink); padding: 7px 10px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px; }
+.pk-dd-hits button:hover, .pk-dd-hits button:focus-visible { background: var(--line); outline: none; }
+.pk-dd-chosen { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
+.pk-dd-chosen > span { display: inline-flex; gap: 6px; align-items: center; }
+.pk-dd-chosen .pk-in.num { width: 64px; }
 .pk-du-done { background: var(--good-bg); }
 .pk-du-done.warn { background: var(--mid-bg); }
 .pk-months { background: var(--sunken); border-radius: 14px; padding: 14px; margin: 6px 0 4px; }

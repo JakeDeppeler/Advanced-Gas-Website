@@ -11,6 +11,8 @@ import { asFitting, asReducers, pickFitting, type Fitting } from "../src/lib/duc
 import { readTakeoff, outletCount, zoneCount } from "../src/lib/ducted/takeoff";
 import { buildFromDesign, matchUnit, type DesignOptions } from "../src/lib/ducted/design";
 import { planOptions, planToTakeoff, PLAN_RULES, type PlanRead } from "../src/lib/ducted/planShape";
+import { applyPicks, cleanPick, unpriced } from "../src/lib/ducted/picks";
+import { designNotes } from "../src/lib/ducted/designSummary";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -39,7 +41,7 @@ const cat: DuctedCatalogue = {
   zoneCable: s(40, "ZoneBoss cable", 20), itc: s(41, "Mitsubishi Electric Individual Temperature Control", 90, "Equipment"), controller: s(42, "Mitsubishi Electric Zone Controller", 1550, "Equipment"),
   install: s(60, "Ducted Refrigerated System - Installation", 0, "Service"), labour: s(63, "Ducted Split - Labour (Two Days)", 5000, "Service"), electrical: s(61, "Ducted Split - Electrical Connection", 1000, "Service"),
   certificate: s(62, "BPC Compliance Certificate", 65, "Service"), rate: 310,
-  fittings: [], reducers: [], transition: null, raGrilles: [], raBoxes: [], collar: {},
+  fittings: [], reducers: [], transition: null, raGrilles: [], raBoxes: [], collar: {}, joiner: {},
 };
 const base = (): DuctedInput => ({ unitSkuId: 1, ...standardLayout(), doubleStorey: false, extraHours: 0, extraReason: "", itcs: null, notes: "" });
 
@@ -154,7 +156,7 @@ ok("dampers by size and a cable each", dl(/Damper 300/)?.quantity === 1 && dl(/D
 ok("the transition once, from the design, not again from the kit", d.lines.filter((l) => /Transition/.test(l.name)).length === 1 && dl(/Transition/)?.sku?.skuId === 120);
 ok("the kit's own take-off is left out when the design brings its own", !d.lines.some((l) => l.sku?.skuId === 53) && dl(/Chipboard/)?.quantity === 4);
 ok("return air: the nearest grille, said out loud", dl(/Eggcrate.*1200mm/)?.note === "the design has 1200 × 500" && d.missing.some((x) => /1200 × 500 grille/.test(x)), d.missing);
-ok("…and no return air box invented for a size the pricebook doesn't carry", !dl(/Return Air Box/) && d.missing.some((x) => /Return air box for 1200 × 500/.test(x)));
+ok("…and no return air box invented for a size the pricebook doesn't carry: a line to pick for", !d.lines.some((l) => l.sku && /Return Air Box/i.test(l.name)) && d.lines.some((l) => !l.sku && l.name === "Return air box 1200 × 500"), d.lines.filter((l) => !l.sku).map((l) => l.name));
 ok("collars from the design", dl(/Starting Collar Metal 400/)?.quantity === 2);
 ok("groups in quote order with the right head on each", ["unit", "controls", "install", "extra"].every((g) => d.lines.some((l) => l.group === g)) && d.lines.filter((l) => l.group === "install")[0].name.startsWith("Ducted Refrigerated System - Installation"));
 ok("the design's summary: outlets, zones, the Mitsubishi controller", /9 outlets across 5 zones/.test(d.summary) && /temperature control in each zone/.test(d.summary), d.summary.slice(0, 160));
@@ -198,6 +200,24 @@ const pq = buildFromDesign(pt, { ...opts, extraHours: po.extraHours, extraReason
 ok("a read plan prices like a CSV: the two-day floor plus the 4 extra hours, the checks listed", pq.hours.total === 20 && pq.labour === 5000 + 4 * 310 && pq.missing.some((m) => /Zone 3 has no card/.test(m)) && /old Brivis/.test(pq.summary), { hours: pq.hours.total, labour: pq.labour });
 ok("an unreadable drawing says why and prices nothing", planToTakeoff({ ...pr, readable: false, problem: "That's a photo of a kitchen." }).problem === "That's a photo of a kitchen.");
 ok("the reading rules carry the designer's colours", /yellow Ø250/.test(PLAN_RULES) && /purple Ø450/.test(PLAN_RULES));
+
+// Duct design (28 Nov): the designer's return air on our stocked sizes, joiners, picks, the zones in the summary.
+const stocked = readFileSync("scripts/fixtures/trusttrade-stocked-materials.csv", "utf8");
+const st = readTakeoff(stocked);
+ok("stocked return air: two grilles, a box at each one's size", st.returnGrilles.map((g) => `${g.w}x${g.h}`).join() === "1200x400,600x400" && st.returnBoxSizes.map((b) => `${b.w}x${b.h}`).join() === "1200x400,600x400" && st.returnBoxes === 2, [st.returnGrilles, st.returnBoxSizes]);
+const y200 = [m(161, "Multisnap Y F/Insul 200.150.150", 26)].map(asFitting).filter((f): f is Fitting => !!f);
+const sq = buildFromDesign(st, opts, { ...dcat, fittings: [...fittings, ...y200], joiner: { 200: s(160, "Bradflo Duct Joiner 200mm Unassembled", 7) } });
+const sl = (re: RegExp) => sq.lines.find((l) => re.test(l.name));
+ok("…both grilles exact, the 600 x 400 box from the pricebook, the 1200 x 400 box to pick", sl(/Eggcrate.*1200mm/)?.quantity === 1 && sl(/Eggcrate.*600mm/)?.quantity === 1 && sl(/Return Air Box - 400mm x 600mm/)?.quantity === 1 && sq.lines.some((l) => !l.sku && l.name === "Return air box 1200 × 400") && !sq.missing.some((m) => /nearest/.test(m)), sq.lines.filter((l) => /Eggcrate|Return air box|Return Air Box/i.test(l.name)).map((l) => [l.name, l.quantity, !!l.sku]));
+ok("flex joiners priced by size", sl(/Bradflo Duct Joiner 200mm/)?.quantity === 1);
+const boxPick = { "Return air box 1200 × 400": [{ skuId: 132, skuType: "Material" as const, name: "Return Air Box - 400mm x 600mm", per: 2 }] };
+const picked = applyPicks(sq, boxPick, [s(132, "Return Air Box - 400mm x 600mm", 124)]);
+ok("a pick prices the need from the pricebook as it is, merged with the same item", unpriced(picked).length === 0 && picked.lines.find((l) => l.sku?.skuId === 132)?.quantity === 3 && !picked.missing.some((m) => /1200 × 400/.test(m)) && picked.total === sq.total + 2 * 124, [unpriced(picked).map((l) => l.name), picked.total - sq.total]);
+ok("a pick of an item no longer in the pricebook leaves the need open", unpriced(applyPicks(sq, boxPick, [])).length === 1);
+ok("a pick is kept only as items with a number for one", cleanPick([{ skuId: 5, skuType: "Material", name: "x", per: 1 }])?.length === 1 && cleanPick([]) === null && cleanPick([{ skuId: 5, skuType: "Material", per: 0 }]) === null && cleanPick([{ skuId: "x", skuType: "Material", per: 1 }]) === null);
+ok("the zones and their rooms in the summary, the office's notes after", designNotes({ unit: null, kw: null, outlets: 9, storeys: 1, fanLps: 1000, zones: [{ number: 1, name: "Living", rooms: ["Living", "Kitchen", "Hall"] }, { number: 2, name: "Bedroom 1", rooms: ["Bedroom 1"] }] }, "Tile roof.") === "The zones: Living (Living, Kitchen and Hall); Bedroom 1.\n\nTile roof.");
+const odd = readTakeoff(stocked.replace('"Zoning","Wall tablet', '"Ducting & fittings","Spigot adaptor Ø250","","2","ea",""\n"Zoning","Wall tablet'));
+ok("a line the parser doesn't know is a line to pick for, never dropped", buildFromDesign(odd, opts, dcat).lines.some((l) => !l.sku && l.name === "Spigot adaptor Ø250" && l.quantity === 2));
 
 console.log(bad ? `\n${bad} failed` : "\nall passed");
 process.exit(bad ? 1 : 0);

@@ -74,6 +74,10 @@ export type DuctedCatalogue = {
   raGrilles: (Sku & { w: number; h: number })[];
   raBoxes: (Sku & { w: number; h: number })[];
   collar: Partial<Record<DuctSize, Sku>>;
+  /** Flex-to-flex joiners by size ("Bradflo Duct Joiner 250mm Unassembled"), for a run longer than a 6 m length. */
+  joiner: Partial<Record<DuctSize, Sku>>;
+  /** Every active material and equipment item, to pick from for a part nothing else matches (Duct design, picks.ts). */
+  pickable?: Sku[];
 };
 
 export type Outlet = { room: string; size: DuctSize; metres: number; zone: number };

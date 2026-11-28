@@ -14,6 +14,7 @@ export type ToolTile = { href: string; name: string; line: string; icon: keyof t
 const ICON = {
   write: "M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5",
   duct: "M3 7h12a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h12M18 4v6M6 14v6",
+  design: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z",
   fault: "M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01",
   tank: "M7 3h10v18H7zM7 8h10M10 13h4M12 16v2",
   rebate: "M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8ZM7.5 7.5h.01",
