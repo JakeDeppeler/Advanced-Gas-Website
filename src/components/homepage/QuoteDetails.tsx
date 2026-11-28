@@ -8,13 +8,14 @@ import { Svg } from "./Svg";
 
 /**
  * The last screen of both quote forms (the hero form and Find your system):
- * name, phone, address and an optional email, then sent.
+ * name, phone, address, an optional email and optional photos, then sent.
  *
- * Photos come after, on the "got it" screen, and are optional (Jake, 28 Nov
- * 2026: "make the form more simple"). They used to be a step of their own
- * before the end, which made the enquiry feel unsent until someone pressed
- * "Skip". The lead is saved when they press Send, and photos go to the
- * second route that files them under it, as before.
+ * Photos sit at the foot of the form (Jake, 28 Nov 2026: "the photo at the
+ * bottom ... higher quality leads ... [not] too hard"), optional, so they come
+ * in with the enquiry and the team gets one email with them attached. A
+ * photo must never cost a lead: if the photos would make the request too big,
+ * or the send with them fails, the enquiry goes on its own and the photos
+ * follow through the photos route, which files them under it.
  */
 
 export type LeadDraft = {
@@ -30,6 +31,8 @@ export type LeadDraft = {
 type Photo = { name: string; type: string; data: string; preview: string };
 
 const MAX_PHOTOS = 4;
+/** Base64 characters sent with the enquiry; past this the photos follow separately (Vercel refuses bodies over 4.5 MB). */
+const INLINE_PHOTO_CHARS = 3_000_000;
 const phoneOk = (v: string) => v.replace(/\D/g, "").length >= 8;
 const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
@@ -57,11 +60,10 @@ export function QuoteDetails({ lead, chips, about, tip, urgent = false, onSent, 
   const [nudge, setNudge] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
-  const [leadId, setLeadId] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [photoErr, setPhotoErr] = useState<string | null>(null);
-  const [photoState, setPhotoState] = useState<"idle" | "sending" | "sent" | "lost">("idle");
+  const [photoState, setPhotoState] = useState<"idle" | "sent" | "lost">("idle");
 
   const err = (v: string) => nudge && !v.trim();
   const first = name.trim().split(" ")[0].replace(/[^\p{L}'-]+$/u, "") || "there";
@@ -82,24 +84,32 @@ export function QuoteDetails({ lead, chips, about, tip, urgent = false, onSent, 
     setSaving(true);
     setSaveFailed(false);
     const draft = lead();
+    const body = {
+      ...draft,
+      name: name.trim(), phone: phone.trim(), email: email.trim(),
+      // Picked from the list, the suburb and postcode come with it; typed
+      // by hand, the whole thing goes in as the address for the office to read.
+      address: addr.label.trim(), suburb: addr.suburb ?? undefined, postcode: addr.postcode ?? undefined,
+      hp,
+      pagePath: window.location.pathname,
+      utm: readUtm(),
+    };
+    const sendLead = (b: object) => fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) }).catch(() => null);
+    const files = photos.map(({ name: n, type, data }) => ({ name: n, type, data }));
+    const inline = files.length > 0 && files.reduce((t, f) => t + f.data.length, 0) < INLINE_PHOTO_CHARS;
     try {
-      const res = await fetch("/api/quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...draft,
-          name: name.trim(), phone: phone.trim(), email: email.trim(),
-          // Picked from the list, the suburb and postcode come with it; typed
-          // by hand, the whole thing goes in as the address for the office to read.
-          address: addr.label.trim(), suburb: addr.suburb ?? undefined, postcode: addr.postcode ?? undefined,
-          hp,
-          pagePath: window.location.pathname,
-          utm: readUtm(),
-        }),
-      });
-      if (!res.ok) throw new Error(`Quote POST failed: ${res.status}`);
+      let res = await sendLead(inline ? { ...body, photos: files } : body);
+      let photosIn = inline && !!res?.ok;
+      // The enquiry matters more than its photos: if the send with them failed, send it bare.
+      if (!res?.ok && inline) res = await sendLead(body);
+      if (!res?.ok) throw new Error(`Quote POST failed: ${res?.status ?? "network"}`);
       const out = (await res.json().catch(() => ({}))) as { id?: string };
-      setLeadId(out.id ?? null);
+      // Photos that didn't go with it follow, filed under the lead.
+      if (files.length && !photosIn && out.id) {
+        const r = await fetch("/api/quote/photos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: out.id, photos: files }) }).catch(() => null);
+        photosIn = !!r?.ok;
+      }
+      setPhotoState(files.length ? (photosIn ? "sent" : "lost") : "idle");
       trackLead(draft.service, draft.summary);
       setSent(true);
       onSent?.();
@@ -124,30 +134,9 @@ export function QuoteDetails({ lead, chips, about, tip, urgent = false, onSent, 
     if (out.length) setPhotos((p) => [...p, ...out].slice(0, MAX_PHOTOS));
   }
 
-  async function sendPhotos() {
-    if (!photos.length) return;
-    // No id means the enquiry is in the email but not the database; the
-    // photos route files by id, so ask for them another way.
-    if (!leadId) { setPhotoState("lost"); return; }
-    setPhotoState("sending");
-    try {
-      const res = await fetch("/api/quote/photos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: leadId, photos: photos.map(({ name, type, data }) => ({ name, type, data })) }),
-      });
-      if (!res.ok) throw new Error(`Photos POST failed: ${res.status}`);
-      setPhotoState("sent");
-    } catch (error) {
-      // The enquiry itself is already in. Say so, and ask for the photos another way.
-      console.error(error);
-      setPhotoState("lost");
-    }
-  }
-
   function restart() {
     setName(""); setPhone(""); setAddr({ label: "", suburb: null, postcode: null }); setEmail("");
-    setSent(false); setLeadId(null); setPhotos([]); setPhotoErr(null); setPhotoState("idle"); setSaveFailed(false); setNudge(false);
+    setSent(false); setPhotos([]); setPhotoErr(null); setPhotoState("idle"); setSaveFailed(false); setNudge(false);
     onRestart();
   }
 
@@ -163,38 +152,10 @@ export function QuoteDetails({ lead, chips, about, tip, urgent = false, onSent, 
         </p>
 
         {photoState === "sent" ? (
-          <p className="qf__photos-ok pop"><span aria-hidden="true">✓</span> {photos.length} photo{photos.length === 1 ? "" : "s"} added to your enquiry.</p>
+          <p className="qf__photos-ok pop"><span aria-hidden="true">✓</span> {photos.length} photo{photos.length === 1 ? "" : "s"} sent with your enquiry.</p>
         ) : photoState === "lost" ? (
           <p className="qf__err">Your enquiry is in, but the photos didn&apos;t come through. Reply to our email or text them to us when we call.</p>
-        ) : (
-          <div className="qf__more">
-            <strong>Add photos <em>optional</em></strong>
-            <span>{tip}</span>
-            <input id={`${uid}-photo`} className="qf__file" type="file" accept="image/*" multiple onChange={(e) => { addPhotos(e.target.files); e.target.value = ""; }} disabled={photos.length >= MAX_PHOTOS || photoState === "sending"} />
-            <label className="qf__drop qf__drop--sm" htmlFor={`${uid}-photo`}>
-              <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C2521A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="13.5" r="3.5" /></svg>
-              <strong>{photos.length >= MAX_PHOTOS ? "That's the four" : "Tap to add photos"}</strong>
-              <span>Up to {MAX_PHOTOS}</span>
-            </label>
-            {photoErr && <p className="qf__err" role="alert">{photoErr}</p>}
-            {photos.length > 0 && (
-              <>
-                <div className="qf__thumbs">
-                  {photos.map((ph, i) => (
-                    <span key={ph.preview} className="qf__thumb pop">
-                      {/* eslint-disable-next-line @next/next/no-img-element -- a local data URL, nothing to optimise */}
-                      <img src={ph.preview} alt={ph.name} />
-                      <button type="button" onClick={() => setPhotos((p) => p.filter((_, j) => j !== i))} aria-label={`Remove ${ph.name}`}>×</button>
-                    </span>
-                  ))}
-                </div>
-                <button type="button" className="abtn abtn--or abtn--flat abtn--full" onClick={sendPhotos} disabled={photoState === "sending"}>
-                  {photoState === "sending" ? "Sending…" : `Send ${photos.length} photo${photos.length === 1 ? "" : "s"}`}
-                </button>
-              </>
-            )}
-          </div>
-        )}
+        ) : null}
         <button type="button" onClick={restart} className="abtn abtn--ghost" style={{ alignSelf: "flex-start", fontSize: 14, padding: "10px 16px" }}>Start again</button>
       </div>
     );
@@ -237,7 +198,31 @@ export function QuoteDetails({ lead, chips, about, tip, urgent = false, onSent, 
       {saveFailed && (
         <p className="qf__err" role="alert">That didn&apos;t go through. Try again, or call <a href="tel:+61359478000" data-call-from="quote-form-error">(03) 5947 8000</a> and we&apos;ll take it over the phone.</p>
       )}
-      <button type="submit" className="abtn abtn--or abtn--flat abtn--full" disabled={saving}>{saving ? "Sending…" : "Send my quote request"}</button>
+      <div className="qf__more">
+        <strong>Add photos <em>optional</em></strong>
+        <span>{tip}</span>
+        <input id={`${uid}-photo`} className="qf__file" type="file" accept="image/*" multiple onChange={(e) => { addPhotos(e.target.files); e.target.value = ""; }} disabled={photos.length >= MAX_PHOTOS || saving} />
+        <label className="qf__drop qf__drop--sm" htmlFor={`${uid}-photo`}>
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C2521A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="13.5" r="3.5" /></svg>
+          <strong>{photos.length >= MAX_PHOTOS ? "That's the four" : photos.length ? "Add another" : "Tap to add photos"}</strong>
+          <span>Up to {MAX_PHOTOS}</span>
+        </label>
+        {photoErr && <p className="qf__err" role="alert">{photoErr}</p>}
+        {photos.length > 0 && (
+          <div className="qf__thumbs">
+            {photos.map((ph, i) => (
+              <span key={ph.preview} className="qf__thumb pop">
+                {/* eslint-disable-next-line @next/next/no-img-element -- a local data URL, nothing to optimise */}
+                <img src={ph.preview} alt={ph.name} />
+                <button type="button" onClick={() => setPhotos((p) => p.filter((_, j) => j !== i))} aria-label={`Remove ${ph.name}`}>×</button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <button type="submit" className="abtn abtn--or abtn--flat abtn--full" disabled={saving}>
+        {saving ? "Sending…" : photos.length ? `Send with ${photos.length} photo${photos.length === 1 ? "" : "s"}` : "Send my quote request"}
+      </button>
       <p className="qf__fine">Free, no obligation. We call back within 12 business hours.</p>
     </form>
   );

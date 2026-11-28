@@ -206,6 +206,7 @@ export function teamEmail(d: Lead, o: { summary: string; photoCount: number; sto
     ${rows.length ? section("Their answers", table(rows)) : ""}
 
     ${section("Contact", table([
+      ["Name", esc(d.name)],
       ["Phone", `<a href="tel:${esc(tel)}" style="color:${NAVY};font-weight:700;text-decoration:none;">${esc(d.phone)}</a>`],
       ["Email", d.email ? `<a href="mailto:${esc(d.email)}" style="color:${NAVY};text-decoration:none;">${esc(d.email)}</a>` : `<span style="color:${INK_3};font-weight:400;">Not given</span>`],
       ...(d.address ? [["Address", `<a href="${esc(map)}" style="color:${NAVY};text-decoration:none;">${esc(d.address)}</a>`] as [string, string]] : []),
@@ -235,6 +236,7 @@ export function teamEmail(d: Lead, o: { summary: string; photoCount: number; sto
     ...(n ? [`QUOTE FOR`, ...picks.map((p) => `- ${[p.option, `${p.brand} ${p.model}`.trim(), p.size].filter(Boolean).join(" · ")}`), ``] : want ? [want, ``] : []),
     ...(rows.length ? [`THEIR ANSWERS`, ...rows.map(([k, v]) => `${k}: ${v}`), ``] : []),
     `CONTACT`,
+    `Name: ${d.name}`,
     `Phone: ${d.phone}`,
     `Email: ${d.email || "not given"}`,
     d.address ? `Address: ${d.address}` : `Suburb: ${place(d)}`,
