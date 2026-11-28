@@ -6,7 +6,7 @@
  *   npm run check:quote-templates
  */
 import {
-  EVAP_UNITS, OTHER_TEMPLATES, evapSellPrice, evapTemplate, evapUnitPrice, findUnit, lineTotal, pricedItems, type LiveSku,
+  DIAGNOSTICS, EVAP_UNITS, OTHER_TEMPLATES, REPAIRS_28, evapSellPrice, evapTemplate, evapUnitPrice, findUnit, lineTotal, pricedItems, type LiveSku,
 } from "../src/lib/pricebook/quoteTemplateSpecs";
 import { groupedItems, isGrouped, isTestTemplate, tidyCode, tidyName } from "../src/lib/pricebook/templateShape";
 import { HEATER_EVAP_DISCOUNTS, SERVICE_PRICES, pricedAt, sameName } from "../src/lib/pricebook/servicePricing";
@@ -15,7 +15,7 @@ import { evapProposals } from "../src/lib/pricebook/evapProposalSpecs";
 import { flatText, textHash, wordingAction } from "../src/lib/pricebook/summaryRule";
 import { summaryHtml } from "../src/lib/pricebook/wording";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
-import { DOM, DUCTED, DUCTED_HOURS, DUCTED_LABOUR_PRICE, ITC_SKU, LAB_3P, RENAME_24, SKU, SKU24, T, T24, ZC10, ZONEMATE, ZONE_DAMPER, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB } from "../src/lib/pricebook/templateFixPlan";
+import { DOM, DUCTED, DUCTED_HOURS, DUCTED_LABOUR_PRICE, ITC_SKU, LAB_3P, RENAME_24, SKU, SKU24, T, T24, ZC10, ZONEMATE, ZONE_DAMPER, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB, planFixes28, BDO, SUNDRY, T28, FLUE_100 } from "../src/lib/pricebook/templateFixPlan";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -124,6 +124,12 @@ const kun = OTHER_TEMPLATES.find((t) => t.code === "GAS-KADEN-KUN320")!;
 ok("the Kaden internal heaters on the internal install, found by code", kun.lines[1].code === "GAS-DUCT-INT" && kun.lines[1].skuId === 0);
 ok("an item waited on by code says which", pricedItems(kun.lines, new Map()).missing.includes("GAS-DUCT-INT"));
 ok("no frost valve template until we know the system", !all.some((t) => /frost/i.test(t.name)));
+// Jake, 28 Nov: a diagnostic for each kind of system, and the common evap and split repairs.
+ok("a diagnostic template for each kind of system, one line at the $200 call-out", DIAGNOSTICS.length === 13 && DIAGNOSTICS.every((t) => t.lines.length === 1 && t.lines[0].unitPrice === 200 && / - Diagnostics$/.test(t.name) && OTHER_TEMPLATES.includes(t)));
+ok("…none twice, and none for the split system, which has its own", new Set(DIAGNOSTICS.map((t) => t.lines[0].skuId)).size === 13 && !DIAGNOSTICS.some((t) => /^Split System/.test(t.name)));
+ok("repairs: the repair line is an hour or more at $250 plus the part's price, the part under it at $0", REPAIRS_28.every((t) => t.lines.length === 2 && t.lines[1].unitPrice === 0 && t.lines[1].skuType === "Material" && (t.lines[0].unitPrice - 250) >= 0 && OTHER_TEMPLATES.includes(t)));
+ok("…the water pump at $405 ($250 + $155), the control board at an hour and a half", total("EVAP-REP-PUMP") === 405 && total("EVAP-REP-CONTROLBOARD") === 375 + 515);
+ok("…and a remote for the split system", REPAIRS_28.some((t) => t.code === "AC-SPLIT-REP-REMOTE" && t.lines[1].skuId === 301202953));
 
 // The layout Jake asked for on 16 Nov: equipment as its own group, the labour
 // header holding electrical and materials at one price, then the BPC.
@@ -177,7 +183,7 @@ ok("an evap summary is three plain paragraphs, no labels (Jake, 25 Nov)", paras(
 ok("and its wall controller comes with the cooler", /its wall controller is fitted/.test(pro.summary) && /The price includes the new cooler and its wall controller/.test(pro.summary));
 ok("it names the unit and colour, and doesn't sell it", /new Brivis Promina P46 evaporative cooler in Charcoal/.test(pro.summary) && !/AquaSave|winter seal|best value|Choose the/.test(pro.summary));
 ok("the Balaero reads the same way", paras(bal).length === 3 && /Brivis Balaero 50 evaporative cooler in Charcoal/.test(bal.summary));
-const installs = OTHER_TEMPLATES.filter((t) => /Replacement|Gas Storage$/.test(t.name) && !/Valve|Motor|Capacitor|Controller|Pump Replacement/.test(t.name));
+const installs = OTHER_TEMPLATES.filter((t) => /Replacement|Gas Storage$/.test(t.name) && !/Valve|Motor|Capacitor|Controller|Pump Replacement/.test(t.name) && !REPAIRS_28.includes(t));
 ok("every install the code makes is three plain paragraphs", installs.length >= 9 && installs.every((t) => paras(t).length === 3 && !LABELLED.test(t.summary) && /The price includes the /.test(t.summary)), installs.filter((t) => paras(t).length !== 3 || LABELLED.test(t.summary)).map((t) => t.name));
 ok("the Add Unit template doesn't name itself as the unit", /with a new evaporative cooler,/.test(OTHER_TEMPLATES.find((t) => t.code === "EVAP-REPLACE-ADD-UNIT")!.summary));
 
@@ -359,6 +365,35 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
   ok("…done once: a template already on (b) is left alone", planZoningB({ ...zb, items: zbp!.items.map((i, k) => (i.id == null ? { ...i, id: 970 + k } : i)) }, new Map()) === null);
   ok("…a damper the add-on service hands back (negative id) counts, and its own sensor is left for the service", planZoningB({ ...zb, items: [...zb.items.filter((i) => i.id !== 121 && i.id !== 127), L(-3, d450, "Material", "ZoneBoss Damper 24V 450mm", 160, { itemGroupParentId: 120, parentItemId: 125 }), L(-4, ZONEMATE.sensor, "Material", "ZoneMate Wireless Temperature Sensor", 150, { itemGroupParentId: 120, parentItemId: 125 })] }, new Map()) === null);
   ok("…only the four ducted templates", planZoningB({ ...zb, id: 1 }, new Map()) === null);
+
+  // Jake, 28 Nov, on the audit.
+  const kad = { id: T28.kadenHeaters[0], name: "Kaden KN315 Ducted Gas Heater - Replacement", items: [
+    L(130, 301122867, "Equipment", "Kaden Ducted Heater 3 Star KN315", 1800, { itemGroupName: "Kaden Ducted Heater 3 Star KN315" }),
+    L(131, SKU.gasInternal, "Service", "Gas Ducted Heater - Internal", 1300, { itemGroupName: "Gas Ducted Heater - Internal" }),
+    L(132, SUNDRY.general, "Material", "Ducted Heater - Sundry Materials", 0, { itemGroupParentId: 131 }),
+    L(133, SKU.bpc, "Service", "BPC Compliance Certificate", 65, { itemGroupName: "BPC Compliance Certificate" }),
+  ] };
+  const k28 = planFixes28(kad);
+  ok("Kaden heater: the sundry line off, the Wombat's flue and duct on, under the installation at $0, not chargeable", !k28?.items.some((i) => i.skuId === SUNDRY.general)
+    && FLUE_100.every((f) => k28?.items.some((i) => i.skuId === f.skuId && i.itemGroupParentId === 131 && i.unitPrice === 0 && i.chargeable === false && i.id == null)), k28?.did);
+  ok("…no bend: it goes straight up", k28!.items.length === 3 + FLUE_100.length && !k28!.items.some((i) => /bend/i.test(i.skuName ?? "")));
+  ok("…and done once", planFixes28({ ...kad, items: k28!.items.map((i, k) => (i.id == null ? { ...i, id: 980 + k } : i)) }) === null);
+  const duc = { id: DUCTED[0], name: "Mitsubishi Electric Ducted Split 18kW", items: [
+    L(140, SKU.ductedInstall, "Service", "Ducted Refrigerated System - Installation", 3170, { itemGroupName: "Ducted Refrigerated System - Installation" }),
+    L(141, BDO[0], "Material", "BDO 10-14 Point", 0, { itemGroupParentId: 140, chargeable: true }),
+    L(142, 301167074, "Material", "Bradflo Insulated Duct R1.5 150mm", 0, { itemGroupParentId: 140, chargeable: true }),
+  ] };
+  const d28 = planFixes28(duc);
+  ok("ducted: the BDO comes off, the ductwork stays", d28?.items.length === 2 && !d28.items.some((i) => (BDO as readonly number[]).includes(i.skuId)), d28?.did);
+  const ck = { id: T28.cooktops[0], name: "Gas Westinghouse Cooktop – Installation", items: [
+    L(150, 301638479, "Service", "Gas Cooktop – Installation", 730, { itemGroupName: "Gas Cooktop – Installation" }),
+    L(151, 301219319, "Material", "Appliance Regulator", 0, { itemGroupParentId: 150 }),
+  ] };
+  const c28 = planFixes28(ck);
+  const bpc = c28?.items.find((i) => i.skuId === SKU.bpc);
+  ok("cooktop: the BPC certificate on, $65, its own group, as the other templates carry it", bpc?.unitPrice === 65 && bpc.itemGroupName === "BPC Compliance Certificate" && bpc.itemGroupParentId == null && bpc.id == null, c28?.did);
+  ok("…once, and a template that isn't a cooktop, a Kaden heater or carrying a BDO or sundry line is left alone",
+    planFixes28({ ...ck, items: c28!.items.map((i, k) => (i.id == null ? { ...i, id: 990 + k } : i)) }) === null && planFixes28({ ...ck, id: 7 }) === null);
 
   // Jake, 24 Nov.
   const m5 = planFixes24({ id: T24.mitsu5Btb, name: "Mitsubishi Electric 5kW Split System - Back to Back", items: [
