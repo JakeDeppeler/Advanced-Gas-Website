@@ -7,7 +7,7 @@
 .ag .bk .rbx__copy{display:flex;flex-direction:column;gap:22px}
 .ag .bk .rbx__copy .bk__head{margin:0}
 .ag .bk .rbx__ticks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
-.ag .bk .rbx__ticks li{position:relative;padding-left:28px;font-size:15px;line-height:1.5;color:var(--ink2)}
+.ag .bk .rbx__ticks li{position:relative;padding-left:28px;font-size:calc(15px*var(--ts,1) + var(--ts0,0px));line-height:1.5;color:var(--ink2)}
 .ag .bk .rbx__ticks li::before{content:"✓";position:absolute;left:0;top:0;font-weight:800;color:var(--acc)}
 /* The scope wrapper paints the old page's cream; in a band it should be clear */
 .ag .bk .rbx__calc{background:none;min-width:0}
@@ -19,10 +19,10 @@
 .ag .bk .rbx__prods{grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}
 .ag .bk .rbx__prods .kxr__img{height:200px}
 .ag .bk .rbx__prods .kxr__t{flex:1}
-.ag .bk .rbx__rebate{margin:0;font-family:var(--disp);font-size:17px;font-weight:800;color:var(--acc)}
+.ag .bk .rbx__rebate{margin:0;font-family:var(--disp);font-size:calc(17px*var(--ts,1) + var(--ts0,0px));font-weight:800;color:var(--acc)}
 .ag .bk .rbx__foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--line2);display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .ag .bk .rbx__price{display:flex;flex-direction:column;gap:2px}
-.ag .bk .rbx__price strong{font-family:var(--disp);font-size:18px;font-weight:900;color:var(--navy)}
+.ag .bk .rbx__price strong{font-family:var(--disp);font-size:calc(18px*var(--ts,1) + var(--ts0,0px));font-weight:900;color:var(--navy)}
 .ag .bk .rbx__price small{font-size:12px;color:var(--ink3)}
 .ag .bk .rbx__pill{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--navy);background:var(--cream);border-radius:999px;padding:5px 10px}
 .ag .bk .bk__sec--cream .rbx__pill{background:#F7E6DA}
