@@ -228,18 +228,18 @@ ok("the designer's mounting and fixing figures read", fit.fanCoils === 1 && fit.
 const stdMats = [
   s(201, "Chipboard 1800mm x 600mm x 19mm", 35), s(202, "Vibration Isolation Spring 15-30Kg", 8), s(203, "Condensate Trap", 21.5), s(204, "Timber Support 2400mm x 90mm x 35mm", 18.5),
   s(205, "Pressure Pipe PVC Class 12 20mm x 6mtr", 20), s(206, "PVC Pressure Elbow 90Deg 20mm", 1.85), s(207, "PVC Pressure Tee 20mm", 3.5), s(208, "PVC Saddle 20mm", 1.6),
-  s(209, "Grey Hanging Strap", 9.1), s(210, "Bridgeland Nitto Duct Tape 48mmx10mm", 6.52), s(211, "Silver Tape 50mm x 50mm", 28), s(212, "Atomik Clear Cure Silicone 300g", 9),
+  s(209, "Grey Hanging Strap", 9.1), s(210, "Bridgeland Nitto Duct Tape 48mmx10mm", 6.52), s(211, "Silver Tape 50mm x 50mm", 28), s(212, "Atomik Clear Cure Silicone 300g", 9), s(213, "Quikfit Rubber Condensing Mount 210Kg - 4 Pack", 30),
 ];
 const coilPb = [s(220, 'Ardent Copper Pair Coil 1/4" x 1/2" R410A 20mtr', 300), s(221, 'Ardent Copper Pair Coil 3/8" x 5/8" R410A 20mtr', 410)];
 const coils = coilPb.map(asCoil).filter((c): c is Coil => !!c);
 const std = defaultStandard(stdMats);
-ok("the default list finds all 12 of Jake's items in the pricebook", std.length === 12, std.map((i) => i.name));
+ok("the default list finds all 13 of Jake's items in the pricebook", std.length === 13, std.map((i) => i.name));
 ok("pair coils read by pipe size and length; the designer's sizes match the pricebook's", coils.length === 2 && coils[1].sizes === "3/8x5/8" && coils[1].metres === 20 && pairSize('Pair coil, insulated, 3/8" × 5/8", 15 m') === "3/8x5/8");
 const scat: DuctedCatalogue = { ...sqCat, standard: std, pickable: [...stdMats, ...coilPb], coils };
 const sd = buildFromDesign(st, { ...opts, standard: true }, scat);
 const qty = (id: number) => sd.lines.find((l) => l.sku?.skuId === id)?.quantity;
 ok("the unit's template kit is left off when the standard list is on", !sd.lines.some((l) => l.sku?.skuId === 50 || l.sku?.skuId === 52 || l.sku?.skuId === 53));
-ok("per fan coil: 4 chipboard, 4 springs, a trap, 2 timber supports, a tee", qty(201) === 4 && qty(202) === 4 && qty(203) === 1 && qty(204) === 2 && qty(207) === 1, sd.lines.filter((l) => (l.sku?.skuId ?? 0) > 200).map((l) => [l.name, l.quantity]));
+ok("per fan coil: 4 chipboard, 4 springs, a trap, 2 timber supports, a tee, a 4-pack of outdoor rubber mounts", qty(201) === 4 && qty(202) === 4 && qty(203) === 1 && qty(204) === 2 && qty(207) === 1 && qty(213) === 1, sd.lines.filter((l) => (l.sku?.skuId ?? 0) > 200).map((l) => [l.name, l.quantity]));
 ok("from the 10 m drain: 2 lengths of 6 m pipe and 7 saddles; the design's 6 elbows", qty(205) === 2 && qty(208) === 7 && qty(206) === 6);
 ok("the design's 5 rolls of hanging strap and 17 of duct tape; a silver tape and a silicone a job", qty(209) === 5 && qty(210) === 17 && qty(211) === 1 && qty(212) === 1);
 ok("one 20 m 3/8 x 5/8 coil for the 13 m run", qty(221) === 1 && !sd.lines.some((l) => l.sku?.skuId === 220));
@@ -249,7 +249,7 @@ const book = (f: typeof fit, list = std) => { const b = lineBook(); addStandard(
 ok("a 33 m run takes two 20 m coils", book({ ...fit, coils: [{ sizes: "3/8x5/8", runMetres: 33, qty: 1 }] }).find((l) => l.sku?.skuId === 221)?.quantity === 2);
 ok("a coil size the pricebook hasn't got is a line to pick for", book({ ...fit, coils: [{ sizes: "1/2x7/8", runMetres: 10, qty: 1 }] }).some((l) => !l.sku && l.name === 'Pair coil 1/2" × 7/8"'));
 const reduct = book({ fanCoils: 0, drainMetres: 0, elbows: 0, hangingRolls: 3, tapeRolls: 6, coils: [] });
-ok("a re-duct (no fan coil): no platform, springs, drain or coil, but the tapes", !reduct.some((l) => [201, 202, 203, 205, 208, 221].includes(l.sku?.skuId ?? 0)) && reduct.find((l) => l.sku?.skuId === 210)?.quantity === 6 && reduct.find((l) => l.sku?.skuId === 211)?.quantity === 1);
+ok("a re-duct (no fan coil): no platform, springs, drain or coil, but the tapes", !reduct.some((l) => [201, 202, 203, 205, 208, 213, 221].includes(l.sku?.skuId ?? 0)) && reduct.find((l) => l.sku?.skuId === 210)?.quantity === 6 && reduct.find((l) => l.sku?.skuId === 211)?.quantity === 1);
 ok("an item taken out of the pricebook is a line to pick for, not dropped", book(fit, [...std, { skuId: 999, skuType: "Material", name: "Cable ties 300mm", basis: "job", n: 2 }]).some((l) => !l.sku && l.name === "Cable ties 300mm" && l.quantity === 2));
 ok("two fan coils double the per-fan-coil items", standardQty(std[0], { ...fit, fanCoils: 2 }) === 8);
 ok("the saved list keeps only real items with a rule and a number", cleanStandard([{ skuId: 1, skuType: "Material", name: "a", basis: "job", n: 1 }, { skuId: 1, skuType: "Material", name: "a", basis: "job", n: 2 }])?.length === 1 && cleanStandard([{ skuId: 1, skuType: "Material", basis: "weekly", n: 1 }]) === null && cleanStandard([{ skuId: 1, skuType: "Material", basis: "job", n: 0 }]) === null);

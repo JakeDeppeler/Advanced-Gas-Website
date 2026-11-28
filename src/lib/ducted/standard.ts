@@ -88,7 +88,9 @@ export function addStandard(book: LineBook, f: Fit, list: StandardItem[], pickab
  */
 const DEFAULTS: [RegExp, Basis, number][] = [
   [/^chipboard 1800mm x 600mm/i, "fanCoil", 4],
-  [/^vibration isolation spring/i, "fanCoil", 4],
+  [/^vibration isolation spring 15-30kg/i, "fanCoil", 4],
+  // The outdoor unit's feet: a 4-pack for each system (Jake, 28 Nov).
+  [/^quikfit rubber condensing mount/i, "fanCoil", 1],
   [/^condensate trap\b/i, "fanCoil", 1],
   [/^timber support 2400/i, "fanCoil", 2],
   [/^pressure pipe pvc class 12 20mm x 6/i, "drainMetres", 6],
