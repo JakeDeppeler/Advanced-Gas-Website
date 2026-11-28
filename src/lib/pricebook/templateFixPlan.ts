@@ -495,6 +495,95 @@ export function planFixes28(t: Tpl): Edit | null {
   return did.length ? { items, did } : null;
 }
 
+/**
+ * The repair templates, Jake 28 Nov: "it should be the repair main item and
+ * then we add the product". The part had sat at $0 under the repair line,
+ * which on Dynamic Pricing then charged the labour and the part marked up as
+ * one figure; on the two whose head is a fixed-price service (the dump valve
+ * with a service, the condensate pump with a deep clean) the part showed its
+ * price but wasn't chargeable, so it went in free. Now the repair line is the
+ * labour, and each part is its own line after it at its pricebook price,
+ * chargeable. A part is re-added as a new line: ServiceTitan keeps a line's
+ * group when only the group fields change.
+ */
+export const REPAIR_TEMPLATES = [
+  303509745, 303506295, 303258050, 303506301, 303258224, 303493144, 303257912, 303493147, 303506298, 303493141, // evap
+  303258228, // gas storage tempering and relief valves
+  303258053, 303258056, 303258089, 303506304, // split system
+] as const;
+
+export function planRepairParts(t: Tpl, prices: Prices): Edit | null {
+  if (!(REPAIR_TEMPLATES as readonly number[]).includes(t.id)) return null;
+  const head = t.items.find((i) => plain(i) && i.skuType === "Service" && !!i.itemGroupName && i.skuId !== SKU.bpc && i.id != null);
+  if (!head) return null;
+  const parts = t.items.filter((i) => i.itemGroupParentId === head.id && i.skuType === "Material" && !i.isAddOn && i.parentItemId == null && Number(i.unitPrice) >= 0);
+  if (!parts.length) return null;
+  const items = t.items.filter((i) => !parts.includes(i)).map((i) => ({ ...i }));
+  const added: TemplateItem[] = parts.map((p) => ({
+    id: null, skuId: p.skuId, skuType: "Material", skuName: p.skuName, description: p.description ?? null, quantity: p.quantity,
+    unitPrice: prices.get(p.skuId) ?? Number(p.unitPrice), unitCost: null, isAddOn: false, chargeable: true,
+    itemGroupName: (p.skuName ?? "").trim() || null, itemGroupParentId: null, parentItemId: null,
+  }));
+  const at = items.reduce((last, i, k) => (i.id === head.id || i.itemGroupParentId === head.id ? k : last), items.indexOf(items.find((i) => i.id === head.id)!));
+  return {
+    items: [...items.slice(0, at + 1), ...added, ...items.slice(at + 1)],
+    did: added.map((a) => `${(a.skuName ?? "part").trim()} its own line at $${a.unitPrice}${Number(a.quantity) !== 1 ? ` × ${a.quantity}` : ""}`),
+  };
+}
+
+/**
+ * Jake, 28 Nov: "build the dominator 18kw templates". The two Dominator
+ * templates were the 18kW internal and the 12kW external, named without their
+ * size; the 18kW external is made from the 12kW external with the unit
+ * swapped (the office's 18kW external quotes carry the same parts, labour and
+ * electrical), and all three are named with their size so the office can tell
+ * them apart.
+ */
+export const DOM18 = {
+  source: 301166753, sourceUnit: 301157912, unit: 303270157,
+  name: "Braemar Dominator 18kW Installation External", code: "DOM-INSTALL-EXTERNAL-18KW",
+  renames: [
+    { id: 301166753, from: "Braemar Dominator Installation External", to: "Braemar Dominator 12kW Installation External" },
+    { id: 301165547, from: "Braemar Dominator Installation Internal", to: "Braemar Dominator 18kW Installation Internal" },
+  ],
+} as const;
+
+/**
+ * A copy of a template's lines with one unit swapped, for a create that can't
+ * carry groups (a member needs its root's id): the lines flat, and the group
+ * each belongs to, by its position, to put back once ServiceTitan has given
+ * the new lines their ids.
+ */
+export function cloneLines(src: TemplateItem[], swap: { from: number; to: number; name: string; description?: string | null; price: number }) {
+  const lines = src.filter((i) => i.id != null);
+  const flat: TemplateItem[] = lines.map((i) => (i.skuId === swap.from
+    ? { ...i, id: null, skuId: swap.to, skuName: swap.name, description: swap.description ?? i.description ?? null, unitPrice: swap.price, unitCost: null, itemGroupName: null, itemGroupParentId: null, parentItemId: null }
+    : { ...i, id: null, unitCost: null, itemGroupName: null, itemGroupParentId: null, parentItemId: null }));
+  const groups = lines.map((i) => ({
+    name: i.skuId === swap.from && i.itemGroupName ? swap.name : i.itemGroupName ?? null,
+    under: i.itemGroupParentId != null ? lines.findIndex((x) => x.id === i.itemGroupParentId) : -1,
+  }));
+  return { flat, groups };
+}
+
+/** The new lines given back their groups, matched to the copy by item and order. */
+export function regroup(back: TemplateItem[], flat: TemplateItem[], groups: { name: string | null; under: number }[]): TemplateItem[] | null {
+  const used = new Set<number>();
+  const pos = flat.map((f) => {
+    const k = back.findIndex((b, j) => !used.has(j) && b.skuId === f.skuId && Number(b.quantity) === Number(f.quantity));
+    if (k >= 0) used.add(k);
+    return k;
+  });
+  if (pos.some((k) => k < 0) || back.length !== flat.length) return null;
+  const out = back.map((b) => ({ ...b }));
+  pos.forEach((k, j) => {
+    const g = groups[j];
+    out[k].itemGroupName = g.name;
+    out[k].itemGroupParentId = g.under >= 0 ? back[pos[g.under]].id ?? null : null;
+  });
+  return out;
+}
+
 /* ------------------------------------------------------------- 24 Nov */
 
 /**

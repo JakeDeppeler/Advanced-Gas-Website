@@ -15,7 +15,8 @@ import { evapProposals } from "../src/lib/pricebook/evapProposalSpecs";
 import { flatText, textHash, wordingAction } from "../src/lib/pricebook/summaryRule";
 import { summaryHtml } from "../src/lib/pricebook/wording";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
-import { DOM, DUCTED, DUCTED_HOURS, DUCTED_LABOUR_PRICE, ITC_SKU, LAB_3P, RENAME_24, SKU, SKU24, T, T24, ZC10, ZONEMATE, ZONE_DAMPER, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB, planFixes28, BDO, SUNDRY, T28, FLUE_100 } from "../src/lib/pricebook/templateFixPlan";
+import { DOM, DUCTED, DUCTED_HOURS, DUCTED_LABOUR_PRICE, ITC_SKU, LAB_3P, RENAME_24, SKU, SKU24, T, T24, ZC10, ZONEMATE, ZONE_DAMPER, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB, planFixes28, BDO, SUNDRY, T28, FLUE_100, REPAIR_TEMPLATES, planRepairParts, DOM18, cloneLines, regroup } from "../src/lib/pricebook/templateFixPlan";
+import { EVAP_FAULTS, EVAP_REPAIR_SIZES, REPAIR_REPLACE_UPGRADE, SPLIT_FAULTS, SPLIT_REPAIR_SIZES, repairProposals } from "../src/lib/pricebook/repairProposalSpecs";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -394,6 +395,57 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
   ok("cooktop: the BPC certificate on, $65, its own group, as the other templates carry it", bpc?.unitPrice === 65 && bpc.itemGroupName === "BPC Compliance Certificate" && bpc.itemGroupParentId == null && bpc.id == null, c28?.did);
   ok("…once, and a template that isn't a cooktop, a Kaden heater or carrying a BDO or sundry line is left alone",
     planFixes28({ ...ck, items: c28!.items.map((i, k) => (i.id == null ? { ...i, id: 990 + k } : i)) }) === null && planFixes28({ ...ck, id: 7 }) === null);
+
+  // Jake, 28 Nov: "it should be the repair main item and then we add the product".
+  const pump = { id: REPAIR_TEMPLATES[9], name: "Evaporative Cooler - Water Pump Replacement", items: [
+    L(160, 301618481, "Service", "Evaporative Cooler – Repair", 530, { itemGroupName: "Evaporative Cooler – Repair" }),
+    L(161, 301216709, "Material", "Brivis Evap Cooler Water Pump", 0, { itemGroupParentId: 160, chargeable: false }),
+  ] };
+  const rp = planRepairParts(pump, new Map([[301216709, 155]]));
+  const part = rp?.items.find((i) => i.skuId === 301216709);
+  ok("repair: the part comes out from under the repair line onto its own line, new, at its pricebook price, chargeable", !!part && part.id == null && part.itemGroupParentId == null && part.unitPrice === 155 && part.chargeable === true && !!part.itemGroupName, rp?.did);
+  ok("…after the repair line, which stays", rp!.items[0].id === 160 && rp!.items[1] === part);
+  ok("…and done once", planRepairParts({ ...pump, items: rp!.items.map((i, k) => (i.id == null ? { ...i, id: 1000 + k } : i)) }, new Map()) === null);
+  const dv = { id: REPAIR_TEMPLATES[2], name: "Evaporative Cooler - Dump Valve Replacement & Service", items: [
+    L(170, 301220633, "Service", "Evaporative Cooler – Maintenance (Single Storey)", 300, { itemGroupName: "Evaporative Cooler – Maintenance (Single Storey)" }),
+    L(171, 301204625, "Material", "Seeley Dump Valve CPQ/BMQ", 250, { itemGroupParentId: 170, chargeable: false }),
+  ] };
+  ok("…the dump valve that went in free is charged now", planRepairParts(dv, new Map([[301204625, 250]]))?.items.find((i) => i.skuId === 301204625)?.chargeable === true);
+  const leak = { id: REPAIR_TEMPLATES[13], name: "Split System - Leak Detection & Regas", items: [
+    L(180, 301620463, "Service", "Split System – Repair", 750, { itemGroupName: "Split System – Repair" }),
+    L(181, 301358552, "Material", "Refrigerant R410A (HFC) 1KG", 0, { quantity: 2.5, itemGroupParentId: 180 }),
+  ] };
+  ok("…the quantity kept (2.5 kg of gas)", planRepairParts(leak, new Map([[301358552, 133]]))?.items.find((i) => i.skuId === 301358552)?.quantity === 2.5);
+  ok("…only the repair templates", planRepairParts({ ...pump, id: 5 }, new Map()) === null);
+
+  // Jake, 28 Nov: "build the dominator 18kw templates".
+  const dom12 = [
+    L(200, DOM18.sourceUnit, "Equipment", "Braemar Dominator Series 3 12KW - External", 5400, { itemGroupName: "Braemar Dominator Series 2 - External" }),
+    L(201, 301165543, "Service", "Dominator - Labour (One Day)", 3300, { itemGroupParentId: 202 }),
+    L(202, 301165167, "Service", "Dominator - Installation", 1060, { itemGroupName: "Dominator - Installation" }),
+    L(203, 301167479, "Material", "Bradflo Insulated Duct R1.5 300mm", 0, { quantity: 2, itemGroupParentId: 202 }),
+    L(204, 303260023, "Service", "Total Government Rebates Applied", 0, { itemGroupName: "Total Government Rebates Applied" }),
+    L(205, 301034820, "Material", "VEEC", -70, { quantity: 63, itemGroupParentId: 204, chargeable: true }),
+  ];
+  const cl = cloneLines(dom12, { from: DOM18.sourceUnit, to: DOM18.unit, name: "Braemar Dominator Series 3 18KW - External", price: 6800 });
+  ok("Dominator 18kW: the 12kW external's lines, flat and new, with the 18kW unit at its price", cl.flat.length === 6 && cl.flat.every((i) => i.id == null && i.itemGroupParentId == null)
+    && cl.flat[0].skuId === DOM18.unit && cl.flat[0].unitPrice === 6800 && cl.flat[5].quantity === 63 && cl.flat[5].chargeable === true);
+  const backLines = cl.flat.map((i, k) => ({ ...i, id: 500 + (5 - k) }));
+  const rg = regroup(backLines, cl.flat, cl.groups);
+  ok("…then put back in the 12kW's groups by the new lines' ids, the unit's group named for the 18kW",
+    !!rg && rg[0].itemGroupName === "Braemar Dominator Series 3 18KW - External" && rg[1].itemGroupParentId === backLines[2].id && rg[3].itemGroupParentId === backLines[2].id && rg[5].itemGroupParentId === backLines[4].id && rg[2].itemGroupParentId == null);
+  ok("…and not if the new template's lines don't match", regroup(backLines.slice(1), cl.flat, cl.groups) === null);
+
+  // Jake, 28 Nov: "go with b": Repair, Replace, Upgrade.
+  const rru = repairProposals();
+  ok("Repair, Replace, Upgrade: a proposal for each evap fault in each size, and each split fault in each size", rru.length === EVAP_FAULTS.length * EVAP_REPAIR_SIZES.length + SPLIT_FAULTS.length * SPLIT_REPAIR_SIZES.length, rru.length);
+  ok("…every key and name once, three options in order", new Set(rru.map((r) => r.key)).size === rru.length && new Set(rru.map((r) => r.name)).size === rru.length && rru.every((r) => r.options.map((o) => o.order).join() === "1,2,3"));
+  const ev76 = rru.find((r) => r.key === "EVAP-REP-PUMP-76")!;
+  ok("…evap: the repair, then the Advance, then the Contour, the same size in Charcoal; the 76 replaced by the F86DS", JSON.stringify(ev76.options.map((o) => o.ref)) === JSON.stringify([{ code: "EVAP-REP-PUMP" }, { code: "EVAP-BRIVIS-ADVANCE-F86DS-CHAR" }, { code: "EVAP-BRIVIS-CONTOUR-L76-CHAR" }]));
+  ok("…every evap template it names is one the code makes", rru.filter((r) => r.key.startsWith("EVAP")).every((r) => r.options.every((o) => "code" in o.ref && all.some((t) => t.code === (o.ref as { code: string }).code))));
+  const sp = rru.find((r) => r.key === "AC-SPLIT-LEAK-REGAS-3.5")!;
+  ok("…split: the repair, then the Kaden, then the Mitsubishi Electric, back to back, by name", JSON.stringify(sp.options.map((o) => o.ref)) === JSON.stringify([{ code: "AC-SPLIT-LEAK-REGAS" }, { name: "Kaden 3.5kW Split System - Back to Back" }, { name: "Mitsubishi Electric 3.5kW Split System - Back to Back" }]));
+  ok("…on ServiceTitan's Repair, Replace, Upgrade type", REPAIR_REPLACE_UPGRADE.typeId === 1805 && REPAIR_REPLACE_UPGRADE.optionIds[1] === 1806 && REPAIR_REPLACE_UPGRADE.optionIds[3] === 1808);
 
   // Jake, 24 Nov.
   const m5 = planFixes24({ id: T24.mitsu5Btb, name: "Mitsubishi Electric 5kW Split System - Back to Back", items: [
