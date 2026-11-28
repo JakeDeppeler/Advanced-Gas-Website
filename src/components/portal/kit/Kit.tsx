@@ -252,14 +252,23 @@ export type Kpi = { icon: keyof typeof KPI_ICON | string; fig: ReactNode; label:
  * headline figures beside it, each in a round icon. The badge beside a
  * figure carries its words, so a red one says "3 late", not just red.
  */
-export function KpiHead({ title, kpis, hi }: { title: ReactNode; kpis: Kpi[]; hi?: ReactNode }) {
+export function KpiHead({ title, kpis, hi, info }: { title: ReactNode; kpis: Kpi[]; hi?: ReactNode; info?: [string, ReactNode][] }) {
   return (
     <header className="rp-top rp-top--left rp-card" style={{ ["--i" as string]: 0 }}>
       <div className="rp-title">
         {hi && <span className="rp-hi">{hi}</span>}
         <h1>{title}</h1>
       </div>
-      <KpiRow kpis={kpis} />
+      {kpis.length > 0 && <KpiRow kpis={kpis} />}
+      {/* A tool's plain-words help, as Head carries it, at the end of the row. */}
+      {info && info.length > 0 && (
+        <details className="pk-info rp-info">
+          <summary><span aria-hidden="true">i</span>What does this mean?</summary>
+          <div className="pk-infop">
+            {info.map(([t, d]) => <div key={t}><b>{t}</b>{d}</div>)}
+          </div>
+        </details>
+      )}
     </header>
   );
 }

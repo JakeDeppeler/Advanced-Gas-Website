@@ -1,18 +1,21 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalSizing } from "@/components/portal/tools/PortalSizing";
 import { PortalVeu } from "@/components/portal/tools/PortalVeu";
 import { PortalRunning } from "@/components/portal/tools/PortalRunning";
 import { PortalFaults } from "@/components/portal/tools/PortalFaults";
+import { KpiHead, type Kpi } from "@/components/portal/kit/Kit";
+import { faultReach } from "@/lib/daily/summary";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Tools, to Tools.dc.html: one page with a tab per tool.
+ * Tools, to Tools.dc.html: one page with a tab per tool. Its head and tabs as
+ * the home screen has them (Jake, 28 Nov): a big title, the figures beside it,
+ * and the tools on the home's grey switch.
  *
  * The portal used to render the public site's calculators here, in the public
  * site's clothes. These are the design's own versions — steppers, a card per
@@ -37,29 +40,25 @@ export default async function PortalToolPage({ params }: { params: { tool: strin
 
   const t = TOOLS[params.tool];
   if (!t) notFound();
+  // The finder's reach beside its title; the calculators carry their answer in the page.
+  const reach = faultReach();
+  const kpis: Kpi[] = params.tool === "fault-codes" ? [{ icon: "alert", fig: String(reach.codes), label: "Fault codes" }, { icon: "tag", fig: String(reach.brands), label: "Brands" }] : [];
 
   return (
     <PortalShell user={user}>
-      <div className="ptl">
-        <div className="pt-head">
-          {/* Home: the tabs are siblings, and the strip below moves between them. */}
-          <PortalBack href="/portal" label="Home" />
-          <h1>{t.title}</h1>
-          <p>{t.lede}</p>
+      <div className="rp">
+        <KpiHead hi={`Daily tools · ${t.lede}`} title={t.title} kpis={kpis} />
+        <div className="dt-tabs">
+          <nav className="rp-seg" aria-label="Trade tools">
+            {Object.entries(TOOLS).map(([slug, x]) => {
+              const on = slug === params.tool;
+              return <Link key={slug} href={`/portal/tools/${slug}`} aria-current={on ? "page" : undefined} className={on ? "on" : undefined}>{x.tab}</Link>;
+            })}
+          </nav>
+          <a href="/#find" target="_blank" rel="noopener" className="dt-out">Products &amp; prices ↗</a>
         </div>
-
-        <nav className="pt-tabs" aria-label="Tools">
-          {Object.entries(TOOLS).map(([slug, x]) => {
-            const on = slug === params.tool;
-            return (
-              <Link key={slug} href={`/portal/tools/${slug}`} aria-current={on ? "page" : undefined} className={`pt-tab${on ? " is-on" : ""}`}>
-                {x.tab}
-              </Link>
-            );
-          })}
-          <a href="/#find" target="_blank" rel="noopener" className="pt-tab">Products &amp; prices ↗</a>
-        </nav>
-
+      </div>
+      <div className="ptl">
         {t.el}
       </div>
     </PortalShell>
