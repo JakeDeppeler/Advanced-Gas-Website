@@ -317,14 +317,17 @@ export function toSupplierItem(r: Raw): ParsedItem | null {
 
   const uoms = Array.isArray(r.unitOfMeasures) ? (r.unitOfMeasures as Raw[]) : [];
   const uom = uoms[0] ?? {};
-  const price = first(r, "unitPriceExcludingGst", "priceExcludingGst", "yourPriceExGst", "price") ?? first(uom, "unitPriceExcludingGst", "priceExcludingGst", "price");
-  const listPrice = first(r, "unitMarketPriceExcludingGst", "marketPriceExcludingGst", "listPrice") ?? first(uom, "unitMarketPriceExcludingGst", "marketPriceExcludingGst");
+  // Search writes these "…ExcludingGST", in capitals (28 Nov: every search hit had come back with no price).
+  const price = first(r, "unitPriceExcludingGst", "unitPriceExcludingGST", "priceExcludingGst", "yourPriceExGst", "price")
+    ?? first(uom, "unitPriceExcludingGst", "unitPriceExcludingGST", "priceExcludingGst", "price");
+  const listPrice = first(r, "unitMarketPriceExcludingGst", "unitMarketPriceExcludingGST", "marketPriceExcludingGst", "listPrice")
+    ?? first(uom, "unitMarketPriceExcludingGst", "unitMarketPriceExcludingGST", "marketPriceExcludingGst");
   const gstRate = asNum(first(r, "gstRate") ?? first(uom, "gstRate"));
 
   return {
     code,
     description: asStr(first(r, "productTitle", "productDescription", "description", "title", "name")),
-    uom: asStr(first(r, "unitOfMeasure") ?? first(uom, "unitOfMeasure", "code", "name")),
+    uom: asStr(first(r, "unitOfMeasure") ?? first(uom, "unitOfMeasure", "pack", "code", "name")),
     pack_qty: asNum(first(r, "packQuantity", "packQty") ?? first(uom, "packQuantity", "quantity")),
     cost: asNum(price),
     gst_applies: gstRate == null ? true : gstRate > 0,
