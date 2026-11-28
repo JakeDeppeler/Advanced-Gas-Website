@@ -5,7 +5,7 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
 import { SERVICE_COPY } from "./wording";
-import { DUCTED, DUCTED_HOURS, DUPLICATES, INTERNAL_ON_EXTERNAL, ITC_SKU, LAB_3P, RENAME_24, SKU, ZC10, ZONE_ADDONS, BDO, SUNDRY, GENERAL_SUNDRY, planFixes28, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB, type LabourLine, type Prices, type SkuLink, type Tpl, type ZoningText } from "./templateFixPlan";
+import { DUCTED, DUCTED_HOURS, DUPLICATES, INTERNAL_ON_EXTERNAL, ITC_SKU, LAB_3P, RENAME_24, SKU, ZC10, ZONE_ADDONS, BDO, SUNDRY, GENERAL_SUNDRY, DOM18, cloneLines, regroup, planFixes28, planRepairParts, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB, type LabourLine, type Prices, type SkuLink, type Tpl, type ZoningText } from "./templateFixPlan";
 
 /**
  * Jake's 22 Nov template fixes (templateFixPlan.ts says what and why), written
@@ -401,6 +401,83 @@ export async function fixTemplates22Nov(until: number, all: Live[]): Promise<{ f
       done[m.key] = `${String(now.displayName ?? m.id).trim()}: ${m.what}`;
       fixed.push(done[m.key]);
     } catch (e) { tries[m.key] = (tries[m.key] ?? 0) + 1; notes[m.key] = (e as Error).message.slice(0, 300); failed.push(`pricebook item ${m.id}`); }
+    await save();
+  }
+  // 12. The repair templates: the repair line, then each part on its own line
+  // (templateFixPlan.ts › planRepairParts). Read back like the rest.
+  for (const t of all) {
+    const key = `${t.id}:parts`;
+    if (done[key] || (tries[key] ?? 0) >= MAX_TRIES || !planRepairParts(tpl(t), prices)) continue;
+    if (Date.now() > until) break;
+    try {
+      const now = await stFetch<Live>(path(t.id));
+      const plan = planRepairParts(tpl({ ...now, id: t.id, name: now.name ?? t.name }), prices);
+      if (!plan) { done[key] = "nothing left to do"; await save(); continue; }
+      await stSend("PATCH", path(t.id), { items: templatePatchItems(plan.items) });
+      const back = await stFetch<Live>(path(t.id));
+      const still = planRepairParts(tpl({ ...back, id: t.id, name: back.name ?? t.name }), prices);
+      if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
+      const head = (back.items ?? []).find((i) => i.skuType === "Service" && !!i.itemGroupName && !i.itemGroupParentId);
+      done[key] = `${plan.did.join("; ")}; repair line $${head?.unitPrice ?? "?"}; total $${now.totalPrice} → $${back.totalPrice}`;
+      fixed.push(`${(t.name ?? "").trim()}: ${done[key]}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // 13. The Dominator 18kW external, made from the 12kW external (templateFixPlan.ts ›
+  // DOM18), then the three named with their size. The new template's id is
+  // recorded the moment it exists, so a run cut off part way never makes it twice.
+  const domKey = "clone:dom18ext";
+  if (!done[domKey] && (tries[domKey] ?? 0) < MAX_TRIES && Date.now() <= until) {
+    try {
+      const there = all.find((t) => (t.name ?? "").trim().toLowerCase() === DOM18.name.toLowerCase());
+      let id = there?.id ?? (Number(notes[`${domKey}:id`]) || null);
+      if (!id) {
+        const src = await stFetch<Live & { summary?: string | null; mode?: string }>(path(DOM18.source));
+        const unit = (await sbSelect<{ name: string; description: string | null; price: string | null }>("st_pricebook_equipment",
+          `select=name,description:raw->>description,price:raw->>price&id=eq.${DOM18.unit}&active=is.true`))[0];
+        if (!unit || !(Number(unit.price) > 0)) throw new Error("the Dominator 18kW external isn't active and priced in the pricebook");
+        const { flat } = cloneLines(src.items ?? [], { from: DOM18.sourceUnit, to: DOM18.unit, name: unit.name.trim(), description: unit.description, price: Number(unit.price) });
+        if (!flat.some((i) => i.skuId === DOM18.unit)) throw new Error("the 12kW external template no longer carries the 12kW unit");
+        const made = await stSend<{ id?: number } | null>("POST", stTenantPath("sales", "estimate-templates"), {
+          name: DOM18.name, internalName: DOM18.code, mode: src.mode ?? "Dynamic", summary: src.summary ?? null, active: true,
+          items: templatePatchItems(flat).map((i) => ({ ...i, id: null })),
+        });
+        if (!made?.id) throw new Error("ServiceTitan answered without the new template's id");
+        id = made.id;
+        notes[`${domKey}:id`] = String(id);
+        await save();
+      }
+      // Its groups, as the 12kW external has them.
+      const src = await stFetch<Live>(path(DOM18.source));
+      const unitName = (await sbSelect<{ name: string }>("st_pricebook_equipment", `select=name&id=eq.${DOM18.unit}`))[0]?.name.trim() ?? DOM18.name;
+      const { flat, groups } = cloneLines(src.items ?? [], { from: DOM18.sourceUnit, to: DOM18.unit, name: unitName, price: 0 });
+      const now = await stFetch<Live>(path(id));
+      const grouped = regroup(now.items ?? [], flat, groups);
+      if (!grouped) throw new Error(`made (${id}), but its lines don't match the 12kW external's to group them: ${(now.items ?? []).length} of ${flat.length}`);
+      await stSend("PATCH", path(id), { items: templatePatchItems(grouped) });
+      const back = await stFetch<Live>(path(id));
+      const under = (back.items ?? []).filter((i) => i.itemGroupParentId != null).length;
+      const want = groups.filter((g) => g.under >= 0).length;
+      if (under !== want) throw new Error(`made (${id}), but ${under} of ${want} lines went into their groups`);
+      done[domKey] = `made ${id}, ${(back.items ?? []).length} lines in the 12kW external's groups; total $${back.totalPrice}`;
+      fixed.push(`${DOM18.name}: ${done[domKey]}`);
+    } catch (e) { tries[domKey] = (tries[domKey] ?? 0) + 1; notes[domKey] = (e as Error).message.slice(0, 300); failed.push(DOM18.name); }
+    await save();
+  }
+  for (const r of DOM18.renames) {
+    const key = `${r.id}:rename28`;
+    if (done[key] || (tries[key] ?? 0) >= MAX_TRIES || Date.now() > until || !done[domKey]) continue;
+    try {
+      const now = await stFetch<Live>(path(r.id));
+      const name = (now.name ?? "").trim();
+      if (name === r.to) { done[key] = "already named"; await save(); continue; }
+      if (name !== r.from) { done[key] = `left alone: now "${name}"`; await save(); continue; }
+      await stSend("PATCH", path(r.id), { name: r.to });
+      const back = await stFetch<Live>(path(r.id));
+      if ((back.name ?? "").trim() !== r.to) throw new Error(`ServiceTitan answered OK but kept "${back.name ?? ""}"`);
+      done[key] = `renamed "${r.to}"`;
+      fixed.push(`${r.from} → ${r.to}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push(r.from); }
     await save();
   }
   // The two Brivis coolers named as the price list has them.
