@@ -6,17 +6,17 @@
 .ag .hw__step{display:flex;gap:16px;align-items:flex-start;width:100%;text-align:left;background:#fff;border:1px solid var(--line2);border-radius:16px;padding:18px 20px;cursor:pointer;font:inherit;color:inherit;transition:border-color .2s,box-shadow .2s}
 .ag .hw__step:hover{border-color:var(--navy)}
 .ag .hw__step.on{border:2px solid var(--or,#C2521A);padding:17px 19px;box-shadow:0 14px 30px -20px rgba(5,10,48,.35)}
-.ag .hw__n{flex:none;font-family:var(--disp);font-size:26px;font-weight:900;line-height:1;color:var(--line2);min-width:38px}
+.ag .hw__n{flex:none;font-family:var(--disp);font-size:calc(26px*var(--ts,1) + var(--ts0,0px));font-weight:900;line-height:1;color:var(--line2);min-width:38px}
 .ag .hw__step.on .hw__n{color:#C2521A}
 .ag .hw__t{display:flex;flex-direction:column;gap:6px}
-.ag .hw__t strong{font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
-.ag .hw__t span{font-size:15.5px;line-height:1.55;color:var(--ink2)}
+.ag .hw__t strong{font-family:var(--disp);font-size:calc(19px*var(--ts,1) + var(--ts0,0px));font-weight:800;color:var(--navy)}
+.ag .hw__t span{font-size:calc(15.5px*var(--ts,1) + var(--ts0,0px));line-height:1.55;color:var(--ink2)}
 @media (max-width:1000px){
   .ag .hw{grid-template-columns:1fr;gap:20px}
   /* Not sticky here: the page's own tab bar sticks to the top and would cover it. */
   .ag .hw__fig{position:relative;top:auto;padding:8px}
 }
-@media (max-width:600px){.ag .hw__step{padding:14px 16px}.ag .hw__step.on{padding:13px 15px}.ag .hw__t strong{font-size:17px}}
+@media (max-width:600px){.ag .hw__step{padding:14px 16px}.ag .hw__step.on{padding:13px 15px}.ag .hw__t strong{font-size:calc(17px*var(--ts,1) + var(--ts0,0px))}}
 
 /* The ring on the part a step is about, with its number. */
 .ag .hw-spot rect{fill:none;stroke:none}
@@ -62,10 +62,10 @@
 @keyframes hwDimIn{from{opacity:0}to{opacity:.3}}
 .ag .hw__fig{display:flex;flex-direction:column;gap:12px}
 .ag .hw__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 6px}
-.ag .hw__cap{font-size:15px;font-weight:700;color:var(--navy);display:flex;gap:10px;align-items:baseline;min-width:0}
+.ag .hw__cap{font-size:calc(15px*var(--ts,1) + var(--ts0,0px));font-weight:700;color:var(--navy);display:flex;gap:10px;align-items:baseline;min-width:0}
 .ag .hw__cap b{font-family:var(--disp);font-weight:900;color:#C2521A}
 .ag .hw__ctl{display:flex;gap:6px;flex:none}
-.ag .hw__ctl button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line2);background:#fff;color:var(--navy);font-size:20px;line-height:1;display:grid;place-items:center;cursor:pointer}
+.ag .hw__ctl button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line2);background:#fff;color:var(--navy);font-size:calc(20px*var(--ts,1) + var(--ts0,0px));line-height:1;display:grid;place-items:center;cursor:pointer}
 .ag .hw__ctl button:hover{border-color:var(--navy)}
 .ag .hw__ctl .hw__play{background:var(--navy);border-color:var(--navy);color:#fff}
 .ag .hw__prog{display:flex;gap:6px;padding:0 6px 4px}
@@ -104,7 +104,7 @@
 .ag .zs__state{font:700 11px var(--body)}
 .ag .zs__temp{font:800 13px var(--disp)}
 .ag .zs__mode{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;border-radius:14px;background:rgba(255,255,255,.08)}
-.ag .zs__mode button{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;padding:8px;border:0;border-radius:10px;background:transparent;color:#fff;font:inherit;font-weight:700;font-size:15px;cursor:pointer}
+.ag .zs__mode button{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;padding:8px;border:0;border-radius:10px;background:transparent;color:#fff;font:inherit;font-weight:700;font-size:calc(15px*var(--ts,1) + var(--ts0,0px));cursor:pointer}
 .ag .zs__mode button small{font-size:12px;font-weight:500;color:rgba(255,255,255,.7)}
 .ag .zs__mode button.on{background:#fff;color:var(--navy)}
 .ag .zs__mode button.on small{color:var(--ink3)}
@@ -116,22 +116,22 @@
 @keyframes zsRing{from{transform:scale(1);stroke-opacity:.9}to{transform:scale(3.4);stroke-opacity:0}}
 .ag .zs__panel{display:flex;flex-direction:column;gap:14px;padding:22px;border-radius:18px;background:var(--navy);color:#fff}
 .ag .zs__head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.ag .zs__head strong{font-family:var(--disp);font-size:20px;font-weight:800}
-.ag .zs__head span{font-size:14px;color:rgba(255,255,255,.75)}
+.ag .zs__head strong{font-family:var(--disp);font-size:calc(20px*var(--ts,1) + var(--ts0,0px));font-weight:800}
+.ag .zs__head span{font-size:calc(14px*var(--ts,1) + var(--ts0,0px));color:rgba(255,255,255,.75)}
 .ag .zs__list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.ag .zs__btn{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:56px;padding:10px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font:inherit;font-weight:700;font-size:15px;text-align:left;cursor:pointer;transition:background .2s,border-color .2s}
+.ag .zs__btn{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:56px;padding:10px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font:inherit;font-weight:700;font-size:calc(15px*var(--ts,1) + var(--ts0,0px));text-align:left;cursor:pointer;transition:background .2s,border-color .2s}
 .ag .zs__btn:hover{border-color:rgba(255,255,255,.5)}
 .ag .zs__btn.on{background:#C2521A;border-color:#C2521A}
 .ag .zs__btn em{flex:none;font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.14)}
 .ag .zs__btn.on em{background:#fff;color:#C2521A}
 .ag .zs__btn:focus-visible,.ag .zs__presets button:focus-visible{outline:3px solid #FF9A5C;outline-offset:2px}
 .ag .zs__presets{display:flex;flex-wrap:wrap;gap:6px;padding-top:14px;border-top:1px solid rgba(255,255,255,.16)}
-.ag .zs__presets button{min-height:40px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.ag .zs__presets button{min-height:40px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font:inherit;font-size:calc(14px*var(--ts,1) + var(--ts0,0px));font-weight:600;cursor:pointer}
 .ag .zs__presets button:hover{background:rgba(255,255,255,.12)}
-.ag .zs__note{margin:auto 0 0;font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.8)}
+.ag .zs__note{margin:auto 0 0;font-size:calc(14.5px*var(--ts,1) + var(--ts0,0px));line-height:1.55;color:rgba(255,255,255,.8)}
 @media (max-width:900px){.ag .zs{grid-template-columns:1fr}}
 /* Two to a row even on a phone: eight zones one per row ran a screen and a half. */
-@media (max-width:400px){.ag .zs__btn{min-height:50px;padding:8px 10px;font-size:14px}.ag .zs__btn em{padding:3px 6px}}
+@media (max-width:400px){.ag .zs__btn{min-height:50px;padding:8px 10px;font-size:calc(14px*var(--ts,1) + var(--ts0,0px))}.ag .zs__btn em{padding:3px 6px}}
 /* The plan shrinks with the screen, so its words are set larger on a phone to stay readable */
 @media (max-width:600px){.ag .zs__fig{padding:6px}}
 @media (prefers-reduced-motion:reduce){.ag .zs__ring{animation:none;opacity:0}}
@@ -142,7 +142,7 @@
 .ag .is__modes{display:inline-flex;padding:4px;border-radius:999px;background:#EEF2F7;gap:4px}
 .ag .is__mode{border:0;background:transparent;border-radius:999px;padding:9px 18px;font:700 14px var(--body);color:var(--navy);cursor:pointer}
 .ag .is__mode.is-on{background:var(--navy);color:#fff}
-.ag .is__key{display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0;list-style:none;font-size:14px;color:#33405A}
+.ag .is__key{display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0;list-style:none;font-size:calc(14px*var(--ts,1) + var(--ts0,0px));color:#33405A}
 .ag .is__key li{display:flex;align-items:center;gap:8px}
 .ag .is__key svg{width:34px;height:8px}
 .ag .is__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
@@ -150,7 +150,7 @@
 .ag .is__card svg{display:block;width:100%;height:auto}
 .ag .is__card figcaption{padding:16px 18px 20px;display:flex;flex-direction:column;gap:6px}
 .ag .is__card h3{margin:0;font:900 20px var(--disp);color:var(--navy)}
-.ag .is__card p{margin:0;font-size:15px;line-height:1.5;color:#33405A}
+.ag .is__card p{margin:0;font-size:calc(15px*var(--ts,1) + var(--ts0,0px));line-height:1.5;color:#33405A}
 .ag .is-flow{stroke-dasharray:10 8;animation:hwDash .9s linear infinite}
 .ag .is-flow--ret{stroke-dasharray:1 8;animation-duration:1.4s}
 .ag .is-puff path{animation:isPuffUp 1.6s ease-out infinite;opacity:0}

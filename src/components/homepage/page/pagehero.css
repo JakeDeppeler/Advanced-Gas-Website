@@ -9,7 +9,7 @@
 .ag .phx__crumbs a:hover{color:#fff;text-decoration:underline}
 .ag .phx__crumbs [aria-current]{color:#fff}
 .ag .phx__eye{margin-bottom:-8px;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#FF9A5C}
-.ag .phx__h1{font-size:clamp(40px,4.6vw,66px)}
+.ag .phx__h1{font-size:calc(clamp(40px,4.6vw,66px)*var(--ts,1) + var(--ts0,0px))}
 /* The coloured part, when it ends the headline, on a line of its own */
 .ag .phx__h1 .phx__l2{display:block}
 /* The old hero's em for the coloured part, where a page still passes one */
@@ -38,9 +38,9 @@
 .ag .phx__rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .ag .phx__rows a{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:12px;border:1.5px solid var(--line2);text-decoration:none;color:var(--navy);transition:border-color .15s,transform .15s}
 .ag .phx__rows a:hover{border-color:var(--or);transform:translateY(-1px);color:var(--navy)}
-.ag .phx__rows strong{display:flex;align-items:center;gap:8px;font-family:var(--disp);font-size:16.5px;font-weight:800;line-height:1.25}
+.ag .phx__rows strong{display:flex;align-items:center;gap:8px;font-family:var(--disp);font-size:calc(16.5px*var(--ts,1) + var(--ts0,0px));font-weight:800;line-height:1.25}
 .ag .phx__rows strong em{font-style:normal;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--or);border-radius:999px;padding:3px 8px}
-.ag .phx__rows span{font-size:14px;line-height:1.45;color:var(--ink2)}
+.ag .phx__rows span{font-size:calc(14px*var(--ts,1) + var(--ts0,0px));line-height:1.45;color:var(--ink2)}
 @media (prefers-reduced-motion:reduce){.ag .phx__rows a{transition:none}.ag .phx__rows a:hover{transform:none}}
 
 /* The brand logos (hub.css .bh__logos, drawn for navy) on the card's white */
