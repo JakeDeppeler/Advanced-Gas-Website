@@ -282,15 +282,14 @@ export const QB = {
   // the house from above in the look of the zoning plan on the ducted pages
   // (ZoneHouse): a room lit blue with its vents blowing while its zone is on,
   // hatched grey while it's off, a switch per zone, each zone on its own clock.
-  // How many zones, not just how (Jake, 28 Nov 2026: "if a fully home ducted
-  // split how many zones"). The counts follow the controllers we fit: up to
-  // 4, and up to 8. Each drawing is a house zoned that way.
-  zoning: { id: "zones", q: "How many zones do you want?", opts: [
-    { label: "One zone", sub: "The whole house runs together", img: "/finder/zones-one.svg" },
-    { label: "2 zones", sub: "Living areas and bedrooms", img: "/finder/zones-groups.svg" },
-    { label: "3–4 zones", sub: "Say, living, the main bedroom and the kids' rooms", img: "/finder/zones-some.svg" },
-    { label: "5 or more zones", sub: "Every room on its own: the most control", tag: "Most control", img: "/finder/zones-every.svg" },
-    { label: "Not sure", sub: "We'll work it out on site", img: "/finder/zones-not-sure.svg" },
+  // Three ways to zone a ducted system (Jake, 28 Nov 2026: "day and night or
+  // living and bed or full home or what we recommend"), after a run of zone
+  // counts that asked the customer to know too much. Each drawing is a house
+  // zoned that way; `detail` is how the answer reads in the lead.
+  zoning: { id: "zones", q: "How do you want it zoned?", opts: [
+    { label: "Day and night", sub: "Living areas by day, bedrooms by night", img: "/finder/zones-groups.svg", detail: "Day and night: living areas and bedrooms" },
+    { label: "Full home", sub: "Every room on its own zone: the most control", tag: "Most control", img: "/finder/zones-every.svg", detail: "Full home: every room on its own zone" },
+    { label: "What you recommend", sub: "We'll set the zones at the free site check", img: "/finder/zones-not-sure.svg", detail: "Whatever we recommend at the site check" },
   ] },
   // A house cut through to its roof space, and what's up there now. The same
   // drawings answer heatNow.
