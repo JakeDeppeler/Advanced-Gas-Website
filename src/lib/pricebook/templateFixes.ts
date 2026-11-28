@@ -5,6 +5,10 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
 import { SERVICE_COPY } from "./wording";
+import { LEAK_REGAS } from "./quoteTemplateSpecs";
+
+/** The one-size leak and regas template, R410A at 2.5kg. */
+const OLD_LEAK_REGAS = 303258089;
 import { DUCTED, DUCTED_HOURS, DUPLICATES, INTERNAL_ON_EXTERNAL, ITC_SKU, LAB_3P, RENAME_24, SKU, ZC10, ZONE_ADDONS, BDO, SUNDRY, GENERAL_SUNDRY, DOM18, cloneLines, regroup, planFixes28, planRepairParts, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB, type LabourLine, type Prices, type SkuLink, type Tpl, type ZoningText } from "./templateFixPlan";
 
 /**
@@ -421,6 +425,21 @@ export async function fixTemplates22Nov(until: number, all: Live[]): Promise<{ f
       done[key] = `${plan.did.join("; ")}; repair line $${head?.unitPrice ?? "?"}; total $${now.totalPrice} → $${back.totalPrice}`;
       fixed.push(`${(t.name ?? "").trim()}: ${done[key]}`);
     } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // The one-size leak and regas (R410A, 2.5kg) switched off once a template for
+  // each gas and size is in (Jake, 28 Nov: "should be off r32 and r410A").
+  const retireKey = `${OLD_LEAK_REGAS}:retire`;
+  const leakNames = LEAK_REGAS.map((t) => t.name.toLowerCase());
+  if (!done[retireKey] && (tries[retireKey] ?? 0) < MAX_TRIES && Date.now() <= until
+    && leakNames.every((n) => all.some((t) => (t.name ?? "").trim().toLowerCase() === n))) {
+    try {
+      await stSend("PATCH", path(OLD_LEAK_REGAS), { active: false });
+      const back = await stFetch<Live>(path(OLD_LEAK_REGAS));
+      if (back.active !== false) throw new Error("ServiceTitan answered OK but kept it switched on");
+      done[retireKey] = `"${(back.name ?? "").trim()}" switched off: ${LEAK_REGAS.length} by gas and size replace it`;
+      fixed.push(done[retireKey]);
+    } catch (e) { tries[retireKey] = (tries[retireKey] ?? 0) + 1; notes[retireKey] = (e as Error).message.slice(0, 300); failed.push("Split System - Leak Detection & Regas"); }
     await save();
   }
   // 13. The Dominator 18kW external, made from the 12kW external (templateFixPlan.ts ›

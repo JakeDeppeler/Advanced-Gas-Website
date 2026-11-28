@@ -42,6 +42,28 @@ export async function addRepairProposals(until: number): Promise<{ made: string[
 
   for (const s of todo) {
     if (Date.now() > until) break;
+    // Made under the key it had before the spec changed: brought up to this one in place.
+    const old = s.was ? made[s.was] : undefined;
+    if (old) {
+      const ids = s.options.map((o) => idOf(o.ref));
+      if (ids.some((x) => !x)) { notes[s.key] = "waiting on its templates to take over the old proposal"; out.waiting++; continue; }
+      try {
+        await stSend("PATCH", stTenantPath("sales", `proposal-templates/${old}`), {
+          name: s.name,
+          estimateAssignments: s.options.map((o, k) => ({ order: o.order, estimateTemplateId: ids[k], proposalTypeOptionId: REPAIR_REPLACE_UPGRADE.optionIds[o.order] })),
+        });
+        made[s.key] = old;
+        delete made[s.was!];
+        out.made.push(`${s.name} (was the one-size proposal)`);
+        await saveSettings(KEY, p);
+      } catch (e) {
+        p.fails = (p.fails ?? 0) + 1;
+        out.failed.push(s.name);
+        log.push({ at: new Date().toISOString(), kind: "quoteTemplates", ok: false, title: `Proposal "${s.name}" couldn't take over the old one`, detail: (e as Error).message.slice(0, 300) });
+        break;
+      }
+      continue;
+    }
     const there = existing.get(norm(s.name));
     if (there) { made[s.key] = there; delete notes[s.key]; continue; }
     const ids = s.options.map((o) => idOf(o.ref));

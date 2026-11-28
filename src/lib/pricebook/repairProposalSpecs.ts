@@ -1,4 +1,4 @@
-import { EVAP_UNITS, evapTemplate } from "./quoteTemplateSpecs";
+import { EVAP_UNITS, REFRIGERANTS, evapTemplate, leakRegasCode } from "./quoteTemplateSpecs";
 
 /**
  * Repair, Replace, Upgrade proposals, Jake 28 Nov: asked how the repair and
@@ -22,7 +22,8 @@ import { EVAP_UNITS, evapTemplate } from "./quoteTemplateSpecs";
 export const REPAIR_REPLACE_UPGRADE = { typeId: 1805, optionIds: { 1: 1806, 2: 1807, 3: 1808 } as Record<number, number> };
 
 export type TemplateRef = { code: string } | { name: string };
-export type RepairProposalSpec = { key: string; name: string; options: { order: number; ref: TemplateRef; label: string }[] };
+/** `was`: a proposal made under another key before the spec changed, to be brought up to this one rather than made again. */
+export type RepairProposalSpec = { key: string; name: string; options: { order: number; ref: TemplateRef; label: string }[]; was?: string };
 
 export const EVAP_FAULTS = [
   { code: "EVAP-REP-PUMP", label: "Water Pump" },
@@ -38,11 +39,19 @@ export const EVAP_FAULTS = [
 ] as const;
 export const EVAP_REPAIR_SIZES = ["36", "46", "56", "66", "76"] as const;
 
-export const SPLIT_FAULTS = [
-  { code: "AC-SPLIT-REP-CAPACITOR", label: "Capacitor" },
-  { code: "AC-SPLIT-LEAK-REGAS", label: "Leak Detection & Regas" },
-  { code: "AC-SPLIT-REP-CONDPUMP", label: "Condensate Pump" },
-] as const;
+/**
+ * The leak and regas by gas, each size on its own template (Jake, 28 Nov: "the
+ * split leak & regas should be off r32 and r410A"). The R410A proposals take
+ * over the four made on the one-size template before.
+ */
+export const SPLIT_FAULTS: { key: string; label: string; repair: (size: string) => string; was?: (size: string) => string }[] = [
+  { key: "AC-SPLIT-REP-CAPACITOR", label: "Capacitor", repair: () => "AC-SPLIT-REP-CAPACITOR" },
+  ...REFRIGERANTS.map((g) => ({
+    key: `AC-SPLIT-LEAK-REGAS-${g.gas}`, label: `Leak Detection & Regas ${g.gas}`, repair: (size: string) => leakRegasCode(g.gas, size),
+    ...(g.gas === "R410A" ? { was: (size: string) => `AC-SPLIT-LEAK-REGAS-${size}` } : {}),
+  })),
+  { key: "AC-SPLIT-REP-CONDPUMP", label: "Condensate Pump", repair: () => "AC-SPLIT-REP-CONDPUMP" },
+];
 export const SPLIT_REPAIR_SIZES = ["2.5", "3.5", "5", "7.1"] as const;
 
 const evapCode = (series: "Advance" | "Contour", size: string) => {
@@ -66,10 +75,11 @@ export function repairProposals(): RepairProposalSpec[] {
     }];
   }));
   const split = SPLIT_FAULTS.flatMap((f) => SPLIT_REPAIR_SIZES.map((size): RepairProposalSpec => ({
-    key: `${f.code}-${size}`,
+    key: `${f.key}-${size}`,
     name: `SPLIT REPAIR - ${f.label} - ${size}kW`,
+    ...(f.was ? { was: f.was(size) } : {}),
     options: [
-      { order: 1, ref: { code: f.code }, label: "Repair" },
+      { order: 1, ref: { code: f.repair(size) }, label: "Repair" },
       { order: 2, ref: { name: `Kaden ${size}kW Split System - Back to Back` }, label: "Replace" },
       { order: 3, ref: { name: `Mitsubishi Electric ${size}kW Split System - Back to Back` }, label: "Upgrade" },
     ],
