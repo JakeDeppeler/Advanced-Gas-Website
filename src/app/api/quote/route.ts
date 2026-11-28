@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/send";
 import type { EmailKind } from "@/lib/email/eventTypes";
 import { keepPhotos } from "@/lib/portal/leadPhotos";
+import { placeFromAddress } from "@/lib/portal/leadPlace";
 import { customerEmail, friendlySummary, headline, teamEmail, type Lead, type LeadPhoto } from "@/lib/email/leadEmails";
 
 export const runtime = "nodejs";
@@ -38,6 +39,14 @@ export async function POST(req: Request) {
   const attachments = allPhotos
     .filter((p): p is LeadPhoto => !!p?.data)
     .map((p, i) => ({ filename: p.name || `photo-${i + 1}.jpg`, content: p.data }));
+
+  // Typed by hand rather than picked from the suggestions, the address comes
+  // with no suburb or postcode, and the team email's header read "SE Vic".
+  if (!data.suburb || !data.postcode) {
+    const found = placeFromAddress(data.address);
+    data.suburb = data.suburb || found.suburb || undefined;
+    data.postcode = data.postcode || found.postcode || undefined;
+  }
 
   const summaryLine = friendlySummary(data);
 
