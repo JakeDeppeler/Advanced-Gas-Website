@@ -3,15 +3,16 @@ import { getPortalUser } from "@/lib/portal/session";
 import { officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
-import { Empty, KpiHead, type Kpi } from "@/components/portal/kit/Kit";
+import Link from "next/link";
+import { Empty, KpiHead } from "@/components/portal/kit/Kit";
 import { JobWriteup, type DocView, type HistoryRow } from "@/components/portal/JobWriteup";
 import { dbConfigured } from "@/lib/portal/db";
 import { q, sbSelect, sbSelectOne } from "@/lib/dashboard/db";
 import { loadJob } from "@/lib/jobwrite/load";
 import { planOnePrice, type Doc } from "@/lib/jobwrite/lines";
 import { plainText } from "@/lib/pricebook/wording";
-import { dayWords, writeupSummary } from "@/lib/daily/summary";
-import { DailyWriteupStart } from "@/components/portal/daily/DailyWriteupStart";
+import { dayWords } from "@/lib/daily/summary";
+import { WriteupStart } from "@/components/portal/daily/WriteupStart";
 
 export const dynamic = "force-dynamic";
 // Reading the job from ServiceTitan, then Claude writing: the button's server
@@ -44,7 +45,7 @@ function view(d: Doc | null): DocView | null {
  * Nothing changes in ServiceTitan until someone reads it and presses the
  * button, and each press can be undone.
  */
-export default async function WriteupPage({ searchParams }: { searchParams: { job?: string; quote?: string } }) {
+export default async function WriteupPage({ searchParams }: { searchParams: { job?: string; quote?: string; go?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!officeWork(user)) return <Locked user={user} what="Job write-up" forWhom="the office" />;
@@ -52,13 +53,6 @@ export default async function WriteupPage({ searchParams }: { searchParams: { jo
   const job = (searchParams.job ?? "").trim().replace(/^#/, "");
   const facts = job && dbConfigured() ? await loadJob(job).catch(() => null) : null;
   const quote = facts ? facts.quotes.find((x) => String(x.id) === searchParams.quote) ?? facts.quotes[0] ?? null : null;
-  const summary = await writeupSummary();
-  const kpis: Kpi[] = [];
-  if (summary) {
-    kpis.push({ icon: "doc", fig: String(summary.month), label: `Put on in ${summary.monthName}` });
-    if (summary.last) kpis.push({ icon: "clock", fig: new Date(summary.last.created_at).toLocaleDateString("en-AU", { day: "numeric", month: "short", timeZone: "Australia/Melbourne" }), label: `Last one, job ${summary.last.job_number ?? "—"}` });
-    if (summary.putBack) kpis.push({ icon: "alert", fig: String(summary.putBack), label: "Put back or undone", badge: "this month", tone: "down" });
-  }
   const [history, saved] = facts
     ? await Promise.all([
         sbSelect<HistoryRow>("job_writeups", [q.select("id,doc_kind,status,note,created_by,created_at"), q.eq("job_id", String(facts.jobId)), "order=created_at.desc", "limit=8"].join("&")).catch(() => []),
@@ -79,12 +73,14 @@ export default async function WriteupPage({ searchParams }: { searchParams: { jo
   return (
     <PortalShell user={user}>
       <div className="rp">
-        <KpiHead hi={`Daily tools · ${dayWords()}`} title="Job write-up" kpis={kpis} info={[
+        <KpiHead hi={`Daily tools · ${dayWords()}`} title="Job write-up" kpis={[]} info={[
           ["Notes to write it from", "Only for writing: they aren't put on the job in ServiceTitan. Say how it's going in (a roof bracket, a pump), what's coming out, and anything that comes off the price if it isn't needed. Nothing is written until there are notes, and where they disagree with an older record, your notes win. They're kept here for whoever opens the job next."],
           ["One price", "The installation labour, the materials and the electrical work go under the main labour line, at what they come to together. The other lines stay on at $0 with their cost, so job profit still sees them. The equipment, the compliance certificate and the rebates keep their own lines, and the total doesn't change."],
           ["Undo", "Each time it's put on, the summary and every line it changed are kept first. If ServiceTitan doesn't read back exactly as intended, it's put back straight away; otherwise Undo puts it back while nobody has changed it since."],
         ]} />
-        <DailyWriteupStart job={job} recent={summary?.recent ?? null} compact={!!job} />
+        {/* Jake, 28 Nov: the job, a note, and a button. With a job open, the write-up itself. */}
+        {!job && <section className="rp-panel rp-card wu-card" style={{ ["--i" as string]: 1 }} aria-label="Write up a job"><WriteupStart /></section>}
+        {job && <p className="wu-back"><Link href="/portal/jobs/write-up">← Write up another job</Link></p>}
       </div>
       <div className="pk">
         {!job ? null : !facts ? (
@@ -101,6 +97,7 @@ export default async function WriteupPage({ searchParams }: { searchParams: { jo
             notes={saved?.notes ?? ""}
             notesBy={saved?.updated_by ? { by: saved.updated_by, at: saved.updated_at } : null}
             history={history}
+            autoWrite={searchParams.go === "1"}
           />
         )}
       </div>
