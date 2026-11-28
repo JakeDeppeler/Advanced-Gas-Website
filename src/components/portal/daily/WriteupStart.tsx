@@ -36,7 +36,7 @@ export function WriteupStart({ job = "" }: { job?: string }) {
       </div>
       <div className="wu-field">
         <label htmlFor="wu-notes">Notes</label>
-        <textarea id="wu-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={6} required
+        <textarea id="wu-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={9} required
           placeholder={"How it’s going in: a roof bracket, a pump, a new circuit…\nWhat’s coming out.\nAnything that comes off the price if it isn’t needed."} />
       </div>
 
