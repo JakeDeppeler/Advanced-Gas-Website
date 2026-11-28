@@ -106,7 +106,7 @@ export const PLACEHOLDERS: Record<TplGroup, Placeholder[]> = {
     { key: "since_visit", what: "“since I was out”, or “since Dean was out” when someone else quoted and the email is signed by someone else", sample: "since I was out" },
     P.phone,
     P.option,
-    { key: "rating", what: "our Google rating, as the website shows it", sample: "4.8" },
+    { key: "rating", what: "our Google rating, as the website shows it", sample: "5.0" },
     { key: "review_count", what: "how many Google reviews", sample: "26" },
   ],
   reply: [P.first, P.mobile, P.option, { key: "note", what: "what they typed on the page, if anything", sample: "Does the 300 litre fit where the old gas unit is? It's a tight spot beside the meter box." }, P.phone],
