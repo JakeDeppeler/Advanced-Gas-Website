@@ -5,7 +5,7 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
 import { SERVICE_COPY } from "./wording";
-import { DUCTED, DUCTED_HOURS, DUPLICATES, INTERNAL_ON_EXTERNAL, ITC_SKU, LAB_3P, RENAME_24, SKU, ZC10, ZONE_ADDONS, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB, type LabourLine, type Prices, type SkuLink, type Tpl, type ZoningText } from "./templateFixPlan";
+import { DUCTED, DUCTED_HOURS, DUPLICATES, INTERNAL_ON_EXTERNAL, ITC_SKU, LAB_3P, RENAME_24, SKU, ZC10, ZONE_ADDONS, BDO, SUNDRY, GENERAL_SUNDRY, planFixes28, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB, type LabourLine, type Prices, type SkuLink, type Tpl, type ZoningText } from "./templateFixPlan";
 
 /**
  * Jake's 22 Nov template fixes (templateFixPlan.ts says what and why), written
@@ -355,6 +355,52 @@ export async function fixTemplates22Nov(until: number, all: Live[]): Promise<{ f
       done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
       fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
     } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // 11. Jake's 28 Nov answers to the audit (templateFixPlan.ts › planFixes28):
+  // the BDO and the sundry line off the templates, the Kaden heaters' parts on,
+  // the certificate on the cooktops. Then, once no template carries them, the
+  // BDO switched off and the heater sundry item made the general one.
+  for (const t of all) {
+    const key = `${t.id}:28nov`;
+    if (done[key] || (tries[key] ?? 0) >= MAX_TRIES || !planFixes28(tpl(t))) continue;
+    if (Date.now() > until) break;
+    try {
+      const now = await stFetch<Live>(path(t.id));
+      const plan = planFixes28(tpl({ ...now, id: t.id, name: now.name ?? t.name }));
+      if (!plan) { done[key] = "nothing left to do"; await save(); continue; }
+      await stSend("PATCH", path(t.id), { items: templatePatchItems(plan.items) });
+      const back = await stFetch<Live>(path(t.id));
+      const still = planFixes28(tpl({ ...back, id: t.id, name: back.name ?? t.name }));
+      if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
+      done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
+      fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  const stillOn = (sku: number) => all.some((t) => (t.items ?? []).some((i) => i.skuId === sku) && !done[`${t.id}:28nov`]);
+  const items28: { key: string; id: number; body: Raw; check: (r: Raw) => boolean; what: string }[] = [
+    ...BDO.map((id) => ({ key: `material:${id}:off`, id, body: { active: false }, check: (r: Raw) => r.active === false, what: "switched off" })),
+    {
+      key: `material:${SUNDRY.general}:general`, id: SUNDRY.general,
+      // At $0 like the commercial one: the office prices sundries on the job.
+      body: { displayName: GENERAL_SUNDRY.name, code: GENERAL_SUNDRY.code, description: GENERAL_SUNDRY.description, price: 0, cost: 0 },
+      check: (r: Raw) => String(r.displayName ?? "").trim() === GENERAL_SUNDRY.name && Number(r.price) === 0,
+      what: `renamed "${GENERAL_SUNDRY.name}", at $0 for the office to price`,
+    },
+  ];
+  for (const m of items28) {
+    if (done[m.key] || (tries[m.key] ?? 0) >= MAX_TRIES || Date.now() > until || stillOn(m.id)) continue;
+    const ep = stTenantPath("pricebook", `materials/${m.id}`);
+    try {
+      const now = await stFetch<Raw>(ep);
+      if (m.check(now)) { done[m.key] = `already ${m.what}`; await save(); continue; }
+      await stSend("PATCH", ep, m.body);
+      const back = await stFetch<Raw>(ep);
+      if (!m.check(back)) throw new Error("ServiceTitan answered OK but kept it as it was");
+      done[m.key] = `${String(now.displayName ?? m.id).trim()}: ${m.what}`;
+      fixed.push(done[m.key]);
+    } catch (e) { tries[m.key] = (tries[m.key] ?? 0) + 1; notes[m.key] = (e as Error).message.slice(0, 300); failed.push(`pricebook item ${m.id}`); }
     await save();
   }
   // The two Brivis coolers named as the price list has them.

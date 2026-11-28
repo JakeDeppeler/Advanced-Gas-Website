@@ -436,6 +436,65 @@ export function planZoningB(t: Tpl, prices: Prices): Edit | null {
   return did.length ? { items, did } : null;
 }
 
+/**
+ * Jake's answers of 28 Nov to the template audit:
+ *   - "can we remove the BDO 10-14 Point & BDO 6-10 Point": off every
+ *     template, and switched off in the pricebook (templateFixes.ts).
+ *   - "nothing should have Sundry Materials as it should be put it": the two
+ *     Kaden heater replacements carried "Ducted Heater - Sundry Materials" in
+ *     place of their parts. It comes off, and the flue and duct connection go on
+ *     as the Brivis Wombat has them (Dektite, a 100mm galvanised downpipe, a
+ *     100mm gas cowl, a 300mm R1.0 duct): the same 3-star, 100mm flue going
+ *     straight up, so no bend ("wombat go stairght up and they dont need a 90").
+ *     The item itself becomes the one general Sundry Materials, beside the
+ *     commercial one ("the only Sundry Materials should be commericla and a
+ *     gemerial one").
+ *   - "the cooktop need the BPC": the compliance certificate on each gas
+ *     cooktop template, as the upright cooker has it.
+ * Parts go on at $0 and not chargeable under the installation, as the parts on
+ * those templates are, so no total moves; the certificate adds its $65.
+ */
+export const BDO = [301217361, 301257027] as const;
+export const SUNDRY = { general: 301123586, commercial: 301190593 } as const;
+/** What the heater sundry item becomes: the general one, worded like the commercial one. */
+export const GENERAL_SUNDRY = {
+  name: "Sundry Materials",
+  code: "SUNDRY",
+  description: "Supply of the sundry and consumable materials for the job, including fixings, brackets, sealants, tape, pipe clips, cable ties and other minor installation consumables.",
+} as const;
+export const T28 = {
+  kadenHeaters: [303258304, 303258092],
+  cooktops: [301639153, 301640263, 301640269, 303258182],
+} as const;
+export const FLUE_100 = [
+  { skuId: 301186962, name: "Dektite Nu Lead 50-170mm Black" },
+  { skuId: 301186889, name: "DOWNPIPE 100 X .60 X 1.8M GALV (LEN)" },
+  { skuId: 301186779, name: "Gas Cowl Galvanised 100mm" },
+  { skuId: 301164177, name: "Bradflo Insulated Duct R1.0 300mm x 6 Metre" },
+] as const;
+
+export function planFixes28(t: Tpl): Edit | null {
+  let items = t.items.map((i) => ({ ...i }));
+  const did: string[] = [];
+  const bdo = items.filter((i) => (BDO as readonly number[]).includes(i.skuId) && !i.isAddOn && i.parentItemId == null);
+  if (bdo.length) { items = items.filter((i) => !bdo.includes(i)); did.push(`${bdo.map((b) => (b.skuName ?? "BDO").trim()).join(", ")} off`); }
+  const sundry = items.filter((i) => i.skuId === SUNDRY.general && i.parentItemId == null);
+  if (sundry.length) { items = items.filter((i) => !sundry.includes(i)); did.push("sundry materials off"); }
+  if ((T28.kadenHeaters as readonly number[]).includes(t.id)) {
+    const head = items.find((i) => plain(i) && i.skuId === SKU.gasInternal && i.id != null);
+    for (const part of head ? FLUE_100 : []) {
+      if (items.some((i) => i.skuId === part.skuId)) continue;
+      items = addUnder(items, head!, { skuId: part.skuId, skuType: "Material", skuName: part.name, quantity: 1, unitPrice: 0, chargeable: false, itemGroupName: null });
+      did.push(`${part.name} on`);
+    }
+  }
+  if ((T28.cooktops as readonly number[]).includes(t.id) && !items.some((i) => i.skuId === SKU.bpc)) {
+    items.push({ id: null, skuId: SKU.bpc, skuType: "Service", skuName: "BPC Compliance Certificate", quantity: 1, unitPrice: 65, isAddOn: false, itemGroupName: "BPC Compliance Certificate", itemGroupParentId: null, parentItemId: null });
+    did.push("BPC Compliance Certificate on ($65)");
+  }
+  return did.length ? { items, did } : null;
+}
+
 /* ------------------------------------------------------------- 24 Nov */
 
 /**
