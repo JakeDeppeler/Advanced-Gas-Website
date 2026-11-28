@@ -15,7 +15,7 @@ import { evapProposals } from "../src/lib/pricebook/evapProposalSpecs";
 import { flatText, textHash, wordingAction } from "../src/lib/pricebook/summaryRule";
 import { summaryHtml } from "../src/lib/pricebook/wording";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
-import { DOM, DUCTED, DUCTED_HOURS, DUCTED_LABOUR_PRICE, ITC_SKU, LAB_3P, RENAME_24, SKU, SKU24, T, T24, ZC10, ZONEMATE, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning } from "../src/lib/pricebook/templateFixPlan";
+import { DOM, DUCTED, DUCTED_HOURS, DUCTED_LABOUR_PRICE, ITC_SKU, LAB_3P, RENAME_24, SKU, SKU24, T, T24, ZC10, ZONEMATE, ZONE_DAMPER, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB } from "../src/lib/pricebook/templateFixPlan";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -330,6 +330,35 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
   ok("…and a template already swapped is left alone", planMitsubishiZoning({ ...zm, items: zp!.items.map((i, k) => (i.id == null ? { ...i, id: 950 + k } : i)) }, zt) === null);
   ok("…with the add-on's own sensor (negative id) left as it is", planMitsubishiZoning({ ...zm, items: [...zp!.items.map((i, k) => (i.id == null ? { ...i, id: 950 + k } : i)).filter((i) => i.parentItemId == null), { ...zm.items[6], id: -2 }] }, zt) === null);
   ok("…only the four ducted templates", planMitsubishiZoning({ ...zm, id: 1 }, zt) === null);
+
+  // Jake, 28 Nov: "go with b and add the 450 damper".
+  const d450 = ZONE_DAMPER.get(450)!.sku, d150 = ZONE_DAMPER.get(150)!.sku, cable = 301216984;
+  const s450 = planZoneAddOn(450, [{ skuId: cable, quantity: 1 }, { skuId: ZONEMATE.sensor, quantity: 1 }], []);
+  ok("zone add-on service, 450: the ZoneMate sensor off, its ZoneBoss 450 damper on, the cable kept", JSON.stringify(s450?.materials) === JSON.stringify([{ skuId: cable, quantity: 1 }, { skuId: d450, quantity: 1 }]) && s450?.equipment === null, s450?.did);
+  const s200 = planZoneAddOn(200, [{ skuId: cable, quantity: 1 }, { skuId: ZONE_DAMPER.get(200)!.sku, quantity: 1 }], [{ skuId: ITC_SKU, quantity: 1 }]);
+  ok("…an ITC linked as equipment comes off too, the damper it has stays", s200?.materials === null && JSON.stringify(s200?.equipment) === "[]");
+  ok("…an add-on with its damper and no temperature control is left alone", planZoneAddOn(150, [{ skuId: cable, quantity: 1 }, { skuId: d150, quantity: 1 }], []) === null);
+  ok("…and a damper of another size isn't doubled", planZoneAddOn(450, [{ skuId: ZONE_DAMPER.get(400)!.sku, quantity: 1 }], []) === null);
+  const zb = { id: DUCTED[1], name: "Kaden Ducted Split 17kW", items: [
+    L(120, SKU.ductedInstall, "Service", "Ducted Refrigerated System - Installation", 3250, { itemGroupName: "Ducted Refrigerated System - Installation" }),
+    L(121, ITC_SKU, "Equipment", "Mitsubishi Electric Individual Temperature Control", 0, { itemGroupParentId: 120 }),
+    L(122, 301216534, "Service", "Zone 150mm Add-on", 0, { isAddOn: true, itemGroupParentId: 120 }),
+    L(123, cable, "Material", "ZoneBoss Blue 24V Cable", 20, { itemGroupParentId: 120, parentItemId: 122 }),
+    L(124, d150, "Material", "ZoneBoss Damper 24V 150mm", 76, { itemGroupParentId: 120, parentItemId: 122 }),
+    L(125, 301216670, "Service", "Zone 450mm Add-on", 0, { isAddOn: true, itemGroupParentId: 120 }),
+    L(126, cable, "Material", "ZoneBoss Blue 24V Cable", 20, { itemGroupParentId: 120, parentItemId: 125 }),
+    L(127, ZONEMATE.sensor, "Material", "ZoneMate Wireless Temperature Sensor", 150, { itemGroupParentId: 120, parentItemId: 125 }),
+    L(128, LAB_3P, "Service", "Labour – Tech & 2 Apprentices", 360, { quantity: 16, itemGroupParentId: 120 }),
+  ] };
+  const zbp = planZoningB(zb, new Map([[d450, 160]]));
+  const dmp = zbp?.items.find((i) => i.skuId === d450);
+  ok("ducted templates, option (b): the ITC comes off the installation", !zbp?.items.some((i) => i.skuId === ITC_SKU), zbp?.did);
+  ok("…the 450 add-on's sensor comes off and its damper goes on under it, at $160, after its cable", !zbp!.items.some((i) => i.skuId === ZONEMATE.sensor) && dmp?.id == null && dmp?.parentItemId === 125 && dmp?.itemGroupParentId === 120 && dmp?.unitPrice === 160 && !dmp?.isAddOn
+    && zbp!.items.indexOf(dmp!) === zbp!.items.findIndex((i) => i.id === 126) + 1);
+  ok("…the 150 add-on, the labour and the rest as they were", zbp!.items.filter((i) => i.parentItemId === 122).length === 2 && zbp!.items.some((i) => i.skuId === LAB_3P && i.quantity === 16));
+  ok("…done once: a template already on (b) is left alone", planZoningB({ ...zb, items: zbp!.items.map((i, k) => (i.id == null ? { ...i, id: 970 + k } : i)) }, new Map()) === null);
+  ok("…a damper the add-on service hands back (negative id) counts, and its own sensor is left for the service", planZoningB({ ...zb, items: [...zb.items.filter((i) => i.id !== 121 && i.id !== 127), L(-3, d450, "Material", "ZoneBoss Damper 24V 450mm", 160, { itemGroupParentId: 120, parentItemId: 125 }), L(-4, ZONEMATE.sensor, "Material", "ZoneMate Wireless Temperature Sensor", 150, { itemGroupParentId: 120, parentItemId: 125 })] }, new Map()) === null);
+  ok("…only the four ducted templates", planZoningB({ ...zb, id: 1 }, new Map()) === null);
 
   // Jake, 24 Nov.
   const m5 = planFixes24({ id: T24.mitsu5Btb, name: "Mitsubishi Electric 5kW Split System - Back to Back", items: [

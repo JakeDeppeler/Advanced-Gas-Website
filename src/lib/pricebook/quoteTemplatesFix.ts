@@ -46,7 +46,7 @@ export async function lookAtTemplates(): Promise<{ templates: number; proposals:
     templates: all.map((t) => ({
       id: t.id, name: t.name, code: t.internalName ?? null, mode: t.mode ?? null, total: t.totalPrice ?? null, summary: plainText(t.summary),
       items: (t.items ?? []).map((i) => ({
-        id: i.id, skuId: i.skuId, type: i.skuType, name: (i.skuName ?? "").trim(), qty: i.quantity, price: i.unitPrice, cost: i.unitCost ?? null,
+        id: i.id, skuId: i.skuId, type: i.skuType, name: (i.skuName ?? "").trim(), qty: i.quantity, price: i.unitPrice, cost: i.unitCost ?? null, chargeable: i.chargeable ?? null,
         addOn: i.isAddOn, group: i.itemGroupName ?? null, under: i.itemGroupParentId ?? null, parent: i.parentItemId ?? null,
         // The start of what the line says: enough to see the 17 Nov wording landed.
         desc: plainText(i.description).slice(0, 160),
