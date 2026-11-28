@@ -18,9 +18,10 @@ export const dynamic = "force-dynamic";
  * and the tools on the home's grey switch.
  *
  * The portal used to render the public site's calculators here, in the public
- * site's clothes. These are the design's own versions — steppers, a card per
- * compressor, the answer on navy — running the same maths as the public
- * calculators, which live in lib/tools so the two can't disagree.
+ * site's clothes. These are the portal's own versions, dressed as the Daily
+ * tools page is (Jake, 28 Nov): white panels, the write-up's pill fields, and
+ * the answer on forest. They run the same maths as the public calculators,
+ * which live in lib/tools so the two can't disagree.
  */
 const TOOLS: Record<string, { tab: string; title: string; lede: string; el: ReactNode }> = {
   "heat-pump-sizing": { tab: "Heat pump sizing", title: "Heat pump sizing", lede: "Size a tank off shower draw-off, not bedroom count.", el: <PortalSizing /> },

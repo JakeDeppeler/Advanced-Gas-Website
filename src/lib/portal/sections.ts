@@ -234,6 +234,8 @@ export const SECTION_DEFS: SectionDef[] = [
       // Tabs of their own, as Jake asked: looked at more than the planning
       // pages they sat among.
       { label: "KPIs", href: "/portal/kpis", icon: "run" },
+      // Who we work for at home, new or back, and what marketing costs each one.
+      { label: "Private customers", href: "/portal/finance/customers", icon: "team" },
       { label: "Hourly rate", icon: "clock", group: [
         { label: "Hourly rate", href: "/portal/rates" },
         { label: "On site & commercial", href: "/portal/rates/onsite" },

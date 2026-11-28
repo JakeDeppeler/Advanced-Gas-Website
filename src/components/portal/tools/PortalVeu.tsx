@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { VALID_VIC_POSTCODE, VEU_DEFAULTS, estimateVeu } from "@/lib/tools/veuEstimate";
 import { SYSTEMS } from "@/lib/tools/hotWaterSizing";
+import { Field, PanelHead, Select } from "./Fields";
 
 const NOW = [
   { k: "electric-storage", label: "Electric storage" },
@@ -28,35 +29,35 @@ export function PortalVeu() {
   const ok = VALID_VIC_POSTCODE.test(postcode);
 
   return (
-    <div className="ptl-grid">
-      <section className="ptl-card ptl-card--form">
-        <h2>Before the site visit</h2>
-        <label className="ptl-field">What&rsquo;s there now
-          <select value={now} onChange={(e) => setNow(e.target.value)}>{NOW.map((n) => <option key={n.k} value={n.k}>{n.label}</option>)}</select>
-        </label>
-        <label className="ptl-field">Going in
-          <select value={unit} onChange={(e) => setUnit(e.target.value)}>{SYSTEMS.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
-        </label>
-        <div className="ptl-two">
-          <label className="ptl-field">Postcode
+    <div className="tt-grid">
+      <section className="rp-panel rp-card tt-form" aria-labelledby="tt-veu-h">
+        <PanelHead id="tt-veu-h" title="Before the site visit" note="What’s there, what’s going in, and where" />
+        <Field label="What’s there now">
+          <Select value={now} onChange={(e) => setNow(e.target.value)}>{NOW.map((n) => <option key={n.k} value={n.k}>{n.label}</option>)}</Select>
+        </Field>
+        <Field label="Going in">
+          <Select value={unit} onChange={(e) => setUnit(e.target.value)}>{SYSTEMS.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select>
+        </Field>
+        <div className="tt-two">
+          <Field label="Postcode">
             <input type="text" inputMode="numeric" maxLength={4} value={postcode} onChange={(e) => setPostcode(e.target.value.replace(/\D/g, ""))} />
-          </label>
-          <label className="ptl-field">Who owns it
-            <select value={owner} onChange={(e) => setOwner(e.target.value)}><option value="owner">Owner occupier</option><option value="landlord">Landlord</option></select>
-          </label>
+          </Field>
+          <Field label="Who owns it">
+            <Select value={owner} onChange={(e) => setOwner(e.target.value)}><option value="owner">Owner occupier</option><option value="landlord">Landlord</option></Select>
+          </Field>
         </div>
       </section>
 
-      <aside className="ptl-navy">
-        <span className="ptl-navy__k">Ballpark VEU rebate</span>
-        <strong className="ptl-navy__big ptl-navy__big--md">{ok ? $(r.midRebate) : ""}</strong>
-        <span className="ptl-navy__k">
+      <aside className="tt-answer" aria-label="The answer">
+        <span className="tt-k">Ballpark VEU rebate</span>
+        <strong className="tt-big">{ok ? $(r.midRebate) : "—"}</strong>
+        <span className="tt-k tt-k--soft">
           {ok
             ? <>Somewhere between {$(r.minRebate)} and {$(r.maxRebate)}. Confirmed at the site visit. Applied straight off the installed price.</>
             : "Victorian postcodes only, VEU is a Victorian scheme."}
         </span>
         {ok && owner === "landlord" && (
-          <span className="ptl-navy__k">Landlords get VEU too. The $1,000 Solar Homes rebate is the one that needs an owner occupier.</span>
+          <span className="tt-note">Landlords get VEU too. The $1,000 Solar Homes rebate is the one that needs an owner occupier.</span>
         )}
       </aside>
     </div>
