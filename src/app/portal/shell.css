@@ -4436,3 +4436,14 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 /* Toolbox talks, as a to-do list: the To-do board's cards, two columns. */
 .tb-board { grid-auto-columns: minmax(300px, 1fr); }
 .tb-err { margin: 0; font-size: 13px; font-weight: 600; color: var(--bad); }
+.pk-dd-std { display: grid; gap: 10px; }
+.pk-dd-std > summary { cursor: pointer; display: grid; gap: 2px; list-style: none; }
+.pk-dd-std > summary::-webkit-details-marker { display: none; }
+.pk-dd-std > summary b::after { content: " ▸"; color: var(--ink3); font-weight: 400; }
+.pk-dd-std[open] > summary b::after { content: " ▾"; }
+.pk-dd-std p { margin: 0; }
+.pk-dd-std-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pk-dd-std-list li { display: grid; grid-template-columns: minmax(0, 1fr) 72px minmax(0, 15rem) 28px; gap: 8px; align-items: center; font-size: 13px; }
+.pk-dd-std-list li.coil { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+.pk-dd-std-list .nm { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .pk-dd-std-list li { grid-template-columns: 1fr 64px 28px; } .pk-dd-std-list li select { grid-column: 1 / -1; grid-row: 2; } .pk-dd-std-list li.coil { grid-template-columns: 1fr; } }

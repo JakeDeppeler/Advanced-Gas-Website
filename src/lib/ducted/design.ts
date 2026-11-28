@@ -8,14 +8,16 @@
  * What the design supplies, the design prices: duct by size in 6 m lengths,
  * every take-off at its sizes, the transition, a downjet per round outlet, the
  * return air, collars, a damper and cable per zone, the controller and its
- * temperature controls. What the unit's own ducted template supplies (mounting,
- * drainage, fixing, the pair coil, the bracket) still comes from there, less
+ * temperature controls. Mounting, drainage, fixing and the pair coil come from
+ * the standard install materials on a Duct design quote (standard.ts), sized
+ * from the design; elsewhere from the unit's own ducted template, less
  * anything the design now covers, so nothing is counted twice.
  */
 
 import { pickFitting } from "./fittings";
 import { addControls, addInstall, addItcs, controlsText, DUCTED, extraItcs, DUCT_SIZES, ductedHours, lineBook, quoteTotal, type DuctSize, type DuctedCatalogue, type DuctedQuote, type Unit } from "./plan";
 import { outletCount, zoneCount, type DesignTakeoff } from "./takeoff";
+import { addStandard } from "./standard";
 
 export type DesignOptions = {
   unitSkuId: number | null;
@@ -25,6 +27,11 @@ export type DesignOptions = {
   /** Temperature controls; null takes the design's own count. */
   itcs: number | null;
   notes: string;
+  /**
+   * Duct design: the standard install materials, sized from the design, in
+   * place of the unit's template kit (Jake, 28 Nov). Off, the kit as before.
+   */
+  standard?: boolean;
 };
 
 /** Parts of a unit's ducted template the design brings with it, so the kit leaves them out. */
@@ -119,7 +126,8 @@ export function buildFromDesign(t: DesignTakeoff, o: DesignOptions, cat: DuctedC
   add("install", cat.zoneCable, "Zone damper cable", t.cables || Object.values(t.dampers).reduce((a, n) => a + n, 0));
   addItcs(book, cat, itcs);
 
-  for (const k of unit?.kit ?? []) if (!FROM_DESIGN.test(k.sku.name)) add("install", k.sku, k.sku.name, k.quantity);
+  if (o.standard && t.fit) addStandard(book, t.fit, cat.standard ?? [], cat.pickable ?? [], cat.coils ?? []);
+  else for (const k of unit?.kit ?? []) if (!FROM_DESIGN.test(k.sku.name)) add("install", k.sku, k.sku.name, k.quantity);
   add("extra", cat.certificate, "BPC Compliance Certificate", 1);
 
   // Anything else on the designer's list: a line to pick a pricebook item for, never dropped.

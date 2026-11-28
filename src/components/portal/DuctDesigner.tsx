@@ -6,7 +6,8 @@ import { buildFromDesign, type DesignOptions } from "@/lib/ducted/design";
 import { readTakeoff } from "@/lib/ducted/takeoff";
 import { applyPicks, unpriced, type PickItem, type Picks } from "@/lib/ducted/picks";
 import { cleanSummary, designNotes, type DesignerSummary } from "@/lib/ducted/designSummary";
-import { openDesignJob, pickPart, putDesignQuote, saveJobDesign, saveJobImage, type DesignPut, type Opened, type QuoteMode, type Quoted } from "@/app/portal/ducted/design/actions";
+import { BASES, type Basis, type StandardItem } from "@/lib/ducted/standard";
+import { openDesignJob, pickPart, putDesignQuote, saveJobDesign, saveJobImage, saveStandardList, type DesignPut, type Opened, type QuoteMode, type Quoted } from "@/app/portal/ducted/design/actions";
 
 const money = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const GROUP_LABEL: Record<Group, string> = { unit: "Unit", controls: "Zone controller", install: "Installation", extra: "Certificate" };
@@ -32,6 +33,9 @@ export function DuctDesigner({ cat, designerUrl, start }: { cat: DuctedCatalogue
   const [fromDesigner, setFromDesigner] = useState<FromDesigner | null>(null);
   const [quoted, setQuoted] = useState<Quoted | null>(null);
   const [picks, setPicks] = useState<Picks>({});
+  const [standard, setStandard] = useState<StandardItem[]>(cat.standard ?? []);
+  const [standardSaved, setStandardSaved] = useState(!!cat.standardSaved);
+  const live = useMemo(() => ({ ...cat, standard }), [cat, standard]);
   const frame = useRef<HTMLIFrameElement>(null);
   const quoteRef = useRef<HTMLElement>(null);
   const origin = useMemo(() => new URL(designerUrl).origin, [designerUrl]);
@@ -110,6 +114,9 @@ export function DuctDesigner({ cat, designerUrl, start }: { cat: DuctedCatalogue
         {saveError && <p className="pk-du-miss" role="alert">{saveError}</p>}
       </section>
 
+      <StandardList items={standard} saved={standardSaved} pickable={cat.pickable ?? []} coils={(cat.coils ?? []).length}
+        onSaved={(items) => { setStandard(items); setStandardSaved(true); }} />
+
       {opened && (
         <div className="pk-dd-frame">
           <iframe ref={frame} key={opened.job.id} src={src} title={`Duct design for job ${opened.job.number}`} onLoad={() => setTimeout(send, 400)} allow="fullscreen" />
@@ -118,7 +125,7 @@ export function DuctDesigner({ cat, designerUrl, start }: { cat: DuctedCatalogue
 
       {opened && fromDesigner && (
         <section ref={quoteRef}>
-          <DesignQuote cat={cat} job={opened.job} input={fromDesigner} saved={opened.options} quoted={quoted} picks={picks}
+          <DesignQuote cat={live} job={opened.job} input={fromDesigner} saved={opened.options} quoted={quoted} picks={picks}
             onPick={(need, items) => setPicks((p) => ({ ...p, [need]: items }))} onDone={told} />
         </section>
       )}
@@ -144,7 +151,7 @@ function DesignQuote({ cat, job, input, saved, quoted, picks, onPick, onDone }: 
   const [pending, begin] = useTransition();
 
   const options: DesignOptions = { unitSkuId, doubleStorey, extraHours: Number(extraHours) || 0, extraReason, itcs: itcs === "" ? null : Number(itcs), notes };
-  const q = useMemo(() => (t.problem ? null : applyPicks(buildFromDesign(t, { ...options, notes: designNotes(input.summary, notes) }, cat), picks, cat.pickable ?? [])),
+  const q = useMemo(() => (t.problem ? null : applyPicks(buildFromDesign(t, { ...options, standard: true, notes: designNotes(input.summary, notes) }, cat), picks, cat.pickable ?? [])),
     [t, JSON.stringify(options), picks, cat, input.summary]); // eslint-disable-line react-hooks/exhaustive-deps
   const gaps = q ? unpriced(q) : [];
   const gapText = new Set(gaps.map((l) => l.missing ?? l.name));
@@ -310,5 +317,77 @@ function PickRow({ line, pickable, onPick }: { line: { name: string; quantity: n
       )}
       {error && <p className="pk-du-miss" role="alert">{error}</p>}
     </div>
+  );
+}
+
+/* ------------------------------------------------------- standard materials */
+
+/**
+ * The standard install materials on every Duct design quote (Jake, 28 Nov):
+ * each a pricebook item and how many, a job, a fan coil, by the drain's
+ * metres or by what the design counts. Saved for everyone who quotes.
+ */
+function StandardList({ items, saved, pickable, coils, onSaved }: {
+  items: StandardItem[]; saved: boolean; pickable: Sku[]; coils: number; onSaved: (items: StandardItem[]) => void;
+}) {
+  const [rows, setRows] = useState<StandardItem[]>(items);
+  const [find, setFind] = useState("");
+  const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pending, begin] = useTransition();
+  const dirty = JSON.stringify(rows) !== JSON.stringify(items);
+  const hits = useMemo(() => {
+    const words = find.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) return [];
+    return pickable.filter((s) => s.skuType === "Material" && words.every((w) => s.name.toLowerCase().includes(w)) && !rows.some((r) => r.skuId === s.skuId)).slice(0, 8);
+  }, [find, pickable, rows]);
+  const set = (i: number, patch: Partial<StandardItem>) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  const save = () => begin(async () => {
+    setNote(null);
+    const r = await saveStandardList(rows);
+    if (r.ok) { onSaved(rows); setNote({ ok: true, text: "Saved. Every Duct design quote uses this list from now on." }); }
+    else setNote({ ok: false, text: r.error ?? "The list didn't save." });
+  });
+
+  return (
+    <details className="pk-card pk-pad pk-dd-std">
+      <summary>
+        <b>Standard install materials</b>
+        <span className="pk-du-dim">{rows.length} items and the pair coil, on every Duct design quote{saved ? "" : " · the starting list, not saved yet"}</span>
+      </summary>
+      <p className="pk-du-dim">These go under the installation on each quote, in place of the unit&rsquo;s template kit, sized from the design: so many a job or a fan coil, one for every so many metres of condensate drain, or so many for each elbow or roll of tape the design counts.</p>
+      <ul className="pk-dd-std-list">
+        {rows.map((r, i) => (
+          <li key={`${r.skuType}:${r.skuId}`}>
+            <span className="nm">{r.name}</span>
+            <input className="pk-in num" inputMode="decimal" aria-label={`How many ${r.name}`} value={String(r.n)} onChange={(e) => set(i, { n: Number(e.target.value.replace(/[^0-9.]/g, "")) || 0 })} />
+            <select className="pk-in" aria-label={`${r.name}: counted how`} value={r.basis} onChange={(e) => set(i, { basis: e.target.value as Basis })}>
+              {BASES.map((b) => <option key={b.basis} value={b.basis}>{b.label}</option>)}
+            </select>
+            <button type="button" className="pk-du-x" aria-label={`Take ${r.name} off the list`} onClick={() => setRows((rs) => rs.filter((_, j) => j !== i))}>×</button>
+          </li>
+        ))}
+        <li className="coil">
+          <span className="nm">Pair coil</span>
+          <span className="pk-du-dim">the pricebook&rsquo;s coil at the design&rsquo;s pipe sizes, enough for the run{coils ? "" : " · no pair coils found in the pricebook"}</span>
+        </li>
+      </ul>
+      <input className="pk-in" aria-label="Add an item from the pricebook" placeholder="Add from the pricebook, e.g. cable ties" value={find} onChange={(e) => setFind(e.target.value)} />
+      {hits.length > 0 && (
+        <ul className="pk-dd-hits">
+          {hits.map((s) => (
+            <li key={`${s.skuType}:${s.skuId}`}>
+              <button type="button" onClick={() => { setRows((rs) => [...rs, { skuId: s.skuId, skuType: s.skuType, name: s.name.trim(), basis: "job", n: 1 }]); setFind(""); }}>
+                {s.name.trim()} <span className="pk-du-dim">{money(s.price)}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="pk-btns">
+        <button type="button" className="pk-btn" disabled={pending || (!dirty && saved) || rows.some((r) => !(r.n > 0))} onClick={save}>{pending ? "Saving…" : saved || dirty ? "Save the list" : "Keep this list"}</button>
+        {dirty && <button type="button" className="pk-btn g" disabled={pending} onClick={() => { setRows(items); setNote(null); }}>Undo changes</button>}
+      </div>
+      {note && <p className={note.ok ? "pk-du-dim" : "pk-du-miss"} role={note.ok ? "status" : "alert"}>{note.text}</p>}
+    </details>
   );
 }
