@@ -8,14 +8,16 @@
  * What the design supplies, the design prices: duct by size in 6 m lengths,
  * every take-off at its sizes, the transition, a downjet per round outlet, the
  * return air, collars, a damper and cable per zone, the controller and its
- * temperature controls. What the unit's own ducted template supplies (mounting,
- * drainage, fixing, the pair coil, the bracket) still comes from there, less
+ * temperature controls. Mounting, drainage, fixing and the pair coil come from
+ * the standard install materials on a Duct design quote (standard.ts), sized
+ * from the design; elsewhere from the unit's own ducted template, less
  * anything the design now covers, so nothing is counted twice.
  */
 
 import { pickFitting } from "./fittings";
 import { addControls, addInstall, addItcs, controlsText, DUCTED, extraItcs, DUCT_SIZES, ductedHours, lineBook, quoteTotal, type DuctSize, type DuctedCatalogue, type DuctedQuote, type Unit } from "./plan";
 import { outletCount, zoneCount, type DesignTakeoff } from "./takeoff";
+import { addStandard } from "./standard";
 
 export type DesignOptions = {
   unitSkuId: number | null;
@@ -25,6 +27,11 @@ export type DesignOptions = {
   /** Temperature controls; null takes the design's own count. */
   itcs: number | null;
   notes: string;
+  /**
+   * Duct design: the standard install materials, sized from the design, in
+   * place of the unit's template kit (Jake, 28 Nov). Off, the kit as before.
+   */
+  standard?: boolean;
 };
 
 /** Parts of a unit's ducted template the design brings with it, so the kit leaves them out. */
@@ -87,7 +94,7 @@ export function buildFromDesign(t: DesignTakeoff, o: DesignOptions, cat: DuctedC
     const size = asSize(Number(k));
     add("install", size ? cat.downjet[size] ?? null : null, `${k} mm outlet`, n, `A ${k} mm downjet isn't in the pricebook`);
   }
-  if (t.otherOutlets > 0) book.missing.push(`${t.otherOutlets} linear or bar ${t.otherOutlets === 1 ? "grille isn't" : "grilles aren't"} priced: add by hand`);
+  // Linear and bar grilles: no pricebook range to read them from, so each is a line to pick for (unread below).
 
   // Return air: the filter grille the design sized, or the nearest the pricebook has, said out loud.
   for (const g of t.returnGrilles) {
@@ -96,17 +103,21 @@ export function buildFromDesign(t: DesignTakeoff, o: DesignOptions, cat: DuctedC
     add("install", near, `Return air filter grille ${g.w} × ${g.h}`, g.qty, "No return air filter grille in the pricebook", near && !exact ? `the design has ${g.w} × ${g.h}` : undefined);
     if (near && !exact) book.missing.push(`Return air: the design sized a ${g.w} × ${g.h} grille and the pricebook's nearest is ${near.w} × ${near.h}. Check it carries the air`);
   }
-  if (t.returnBoxes > 0) {
-    const g = t.returnGrilles[0];
-    const box = g ? cat.raBoxes.find((b) => (b.w === g.w && b.h === g.h) || (b.w === g.h && b.h === g.w)) ?? null : null;
-    if (box) add("install", box, box.name, t.returnBoxes);
-    else book.missing.push(`Return air box${g ? ` for ${g.w} × ${g.h}` : ""} isn't in the pricebook: add by hand if the grille needs one`);
+  // A box for each grille, at that grille's size (two when the air is shared over two grilles).
+  const boxes = t.returnBoxSizes?.length ? t.returnBoxSizes : t.returnBoxes > 0 && t.returnGrilles[0] ? [{ ...t.returnGrilles[0], qty: t.returnBoxes }] : [];
+  for (const g of boxes) {
+    const box = cat.raBoxes.find((b) => (b.w === g.w && b.h === g.h) || (b.w === g.h && b.h === g.w)) ?? null;
+    add("install", box, box ? box.name : `Return air box ${g.w} × ${g.h}`, g.qty, `No return air box for a ${g.w} × ${g.h} grille in the pricebook`);
   }
+  if (!boxes.length && t.returnBoxes > 0) add("install", null, "Return air box", t.returnBoxes, "The return air box's size isn't on the materials list");
   for (const [k, n] of Object.entries(t.collars)) {
     const size = asSize(Number(k));
     add("install", size ? cat.collar[size] ?? null : null, `${k} mm starting collar`, n, `A ${k} mm starting collar isn't in the pricebook`);
   }
-  for (const [k, n] of Object.entries(t.joiners)) book.missing.push(`${n} × ${k} mm flex duct joiner isn't priced: add by hand`);
+  for (const [k, n] of Object.entries(t.joiners)) {
+    const size = asSize(Number(k));
+    add("install", size ? cat.joiner?.[size] ?? null : null, `${k} mm flex duct joiner`, n, `A ${k} mm flex duct joiner isn't in the pricebook`);
+  }
 
   for (const [k, n] of Object.entries(t.dampers)) {
     const size = asSize(Number(k));
@@ -115,10 +126,12 @@ export function buildFromDesign(t: DesignTakeoff, o: DesignOptions, cat: DuctedC
   add("install", cat.zoneCable, "Zone damper cable", t.cables || Object.values(t.dampers).reduce((a, n) => a + n, 0));
   addItcs(book, cat, itcs);
 
-  for (const k of unit?.kit ?? []) if (!FROM_DESIGN.test(k.sku.name)) add("install", k.sku, k.sku.name, k.quantity);
+  if (o.standard && t.fit) addStandard(book, t.fit, cat.standard ?? [], cat.pickable ?? [], cat.coils ?? []);
+  else for (const k of unit?.kit ?? []) if (!FROM_DESIGN.test(k.sku.name)) add("install", k.sku, k.sku.name, k.quantity);
   add("extra", cat.certificate, "BPC Compliance Certificate", 1);
 
-  for (const r of t.unread) if (!/^(Linear|Floor|Side-blow|Supply grille)/i.test(r.item)) book.missing.push(`Not on the quote: ${r.qty} × ${r.item}${r.detail ? ` (${r.detail})` : ""}`);
+  // Anything else on the designer's list: a line to pick a pricebook item for, never dropped.
+  for (const r of t.unread) add("install", null, r.item, Math.max(1, Math.ceil(r.qty)), `Nothing in the pricebook for ${r.item}${r.detail ? ` (${r.detail})` : ""}`);
   for (const c of t.checks ?? []) book.missing.push(c);
 
   return {

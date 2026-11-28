@@ -131,7 +131,14 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   // the quote on the job. Off the home grid like the other daily tools.
   add(office || can(user, "quotes"), {
     href: "/portal/ducted", label: "Ducted quote", blurb: "A ducted system priced from a Trust Trade design or the house's layout, put on the job in ServiceTitan", band: "hidden", icon: "calc",
-    also: ["ducted", "duct plan", "duct design", "trust trade", "designer", "zoning", "zones", "outlets", "mitsubishi ducted", "ducted quote", "materials list"],
+    also: ["ducted", "duct plan", "trust trade", "zoning", "zones", "outlets", "mitsubishi ducted", "ducted quote", "materials list"],
+  });
+
+  // The Trust Trade designer for a job: the design kept on it, its quote built
+  // and updated from it (Jake, 28 Nov).
+  add(office || can(user, "quotes"), {
+    href: "/portal/ducted/design", label: "Duct design", blurb: "Design a job's ducts in the Trust Trade designer, and put its quote on the job or update it", band: "hidden", icon: "calc",
+    also: ["duct design", "designer", "hvac designer", "design the ducts", "update quote", "duct layout", "trust trade designer", "vents"],
   });
 
   // Answered by whoever runs the pipeline, like the pipeline itself.

@@ -11,6 +11,7 @@
  */
 
 import type { Fitting, Reducer } from "./fittings";
+import type { Coil, StandardItem } from "./standard";
 
 export const DUCTED = {
   /** Unit, plenum, return air, controller, commissioning. */
@@ -74,6 +75,16 @@ export type DuctedCatalogue = {
   raGrilles: (Sku & { w: number; h: number })[];
   raBoxes: (Sku & { w: number; h: number })[];
   collar: Partial<Record<DuctSize, Sku>>;
+  /** Flex-to-flex joiners by size ("Bradflo Duct Joiner 250mm Unassembled"), for a run longer than a 6 m length. */
+  joiner: Partial<Record<DuctSize, Sku>>;
+  /** Every active material and equipment item, to pick from for a part nothing else matches (Duct design, picks.ts). */
+  pickable?: Sku[];
+  /** The standard install materials on a Duct design quote (standard.ts): the office's saved list, else the default. */
+  standard?: StandardItem[];
+  /** True once the office has saved its own standard list. */
+  standardSaved?: boolean;
+  /** The pricebook's pair coils by pipe size and length, for the standard list's coil. */
+  coils?: Coil[];
 };
 
 export type Outlet = { room: string; size: DuctSize; metres: number; zone: number };

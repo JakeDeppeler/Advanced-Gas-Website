@@ -875,13 +875,28 @@ body:has(> main > .ag){padding-bottom:0 !important}
 /* ---------- Homepage hero on a phone ----------
    The quote form came straight after the headline, so the first thing a phone showed was a
    form. Here the headline, the buttons and the trust panel have the first screen to
-   themselves and the form starts below it, with the crew and vans in the photo at the fold.
+   themselves and the form starts below it.
    155px is what sits above the copy: the 37px status strip, the 74px the header floats in, and
    the hero's own 44px. svh, not vh: with the browser's bars showing, vh runs past the screen. */
+.ag .ahero__crew{display:none}
 @media (max-width:600px){
-  .ag .ahero--home .ahero__copy{min-height:calc(100vh - 155px);min-height:calc(100svh - 155px)}
+  .ag .ahero--home .ahero__copy{min-height:calc(100vh - 175px);min-height:calc(100svh - 175px)}
   .ag .ahero--home .ahero__bg{object-position:47% 50%}
+  /* The crew, clear, in the room the first screen has left: it grows to fill what's between the
+     buttons and the rating (up to 240px), and gives way first on a short phone. The rating sits
+     at the foot of the screen, 20px up from it (hence 175px, not 155px, above). */
+  .ag .ahero--home .ahero__crew{position:relative;display:block;flex:1 1 0;min-height:120px;max-height:240px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.18);box-shadow:0 20px 40px -24px rgba(0,0,0,.7)}
+  .ag .ahero--home .ahero__crew img{object-fit:cover;object-position:center 62%}
+  .ag .ahero__crewtag{position:absolute;left:10px;bottom:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:rgba(5,10,48,.72);padding:5px 9px;border-radius:999px}
+  .ag .ahero--home .ahero__trust{margin-top:auto}
+  /* With the crew shown clearly, the same photo blurred behind them doubled up (their faces
+     ended up behind the rating), so on a phone the hero is navy with the brand's two glows. */
+  .ag .ahero--home .ahero__bg,.ag .ahero--home .ahero__scrim{display:none}
+  .ag .ahero--home{background:radial-gradient(110% 45% at 100% 0%,rgba(0,176,237,.20),transparent 62%),radial-gradient(90% 40% at 0% 55%,rgba(255,122,54,.14),transparent 64%),var(--navy)}
 }
+/* A short phone (an SE, a 6/7/8) has no room for the photo once the headline, the buttons and
+   the rating are on its first screen; the rating stays on it and the photo goes. */
+@media (max-width:600px) and (max-height:700px){.ag .ahero--home .ahero__crew{display:none}}
 
 /* ---------- Find your system on a phone ----------
    Full size, a step ran to 1,400-1,950px on a phone: a photo card per answer and a 160px

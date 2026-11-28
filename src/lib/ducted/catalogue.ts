@@ -5,6 +5,10 @@ import { normalisePricing } from "@/lib/portal/pricingTypes";
 import { normCode } from "@/lib/pricebook/labour";
 import { DUCT_SIZES, type DuctSize, type DuctedCatalogue, type Sku } from "@/lib/ducted/plan";
 import { asFitting, asReducers, type Fitting } from "@/lib/ducted/fittings";
+import { asCoil, cleanStandard, defaultStandard, type Coil } from "@/lib/ducted/standard";
+
+/** Where the office's standard install materials for Duct design are kept (portal_settings). */
+export const STANDARD_KEY = "ducted_standard";
 
 type Raw = Record<string, unknown>;
 type TemplateItem = { skuId: number; skuType: string; skuName?: string | null; quantity: number; isAddOn?: boolean; parentItemId?: number | null };
@@ -29,12 +33,13 @@ const sku = (r: Raw, skuType: Sku["skuType"]): Sku => ({
  * the office keeps the kit in ServiceTitan where it already is.
  */
 export async function loadDuctedCatalogue(): Promise<DuctedCatalogue> {
-  const [services, materials, equipment, templates, pricing] = await Promise.all([
+  const [services, materials, equipment, templates, pricing, standardSetting] = await Promise.all([
     stList<Raw>("pricebook", "services", { active: "True" }, 10),
     stList<Raw>("pricebook", "materials", { active: "True" }, 20),
     stList<Raw>("pricebook", "equipment", { active: "True" }, 10),
     stList<{ name: string; items: TemplateItem[] }>("sales", "estimate-templates", { active: "True" }, 10),
     getSettings<unknown>("pricing"),
+    getSettings<unknown>(STANDARD_KEY).catch(() => null),
   ]);
   const svc = (code: string) => { const s = services.find((x) => normCode(x.code) === code); return s ? sku(s, "Service") : null; };
   const matByName = (re: RegExp) => { const m = materials.find((x) => re.test(String(x.displayName ?? ""))); return m ? sku(m, "Material") : null; };
@@ -65,7 +70,12 @@ export async function loadDuctedCatalogue(): Promise<DuctedCatalogue> {
   const allMaterials = materials.map((m) => sku(m, "Material"));
   const sized = (re: RegExp) => allMaterials.flatMap((m) => { const x = re.exec(m.name.replace(/\s+/g, " ")); return x ? [{ ...m, w: Number(x[1]), h: Number(x[2]) }] : []; });
   const transition = materials.find((m) => normCode(m.code) === "MAT-DUCT-TRANSITION");
+  // The standard install materials for Duct design: the office's saved list, else Jake's default from the pricebook.
+  const saved = cleanStandard(standardSetting);
   return {
+    standard: saved ?? defaultStandard(allMaterials),
+    standardSaved: !!saved,
+    coils: allMaterials.map(asCoil).filter((c): c is Coil => !!c),
     units,
     duct: bySize((s) => new RegExp(`^bradflo insulated duct r1\\.5 ${s}mm`, "i")),
     downjet: bySize((s) => new RegExp(`^downjet ${s}mm`, "i")),
@@ -79,6 +89,8 @@ export async function loadDuctedCatalogue(): Promise<DuctedCatalogue> {
     raGrilles: sized(/^Profiler Eggcrate .*?(\d{3,4})mm x (\d{3,4})mm/i),
     raBoxes: sized(/^Return Air Box\b.*?(\d{3,4})mm x (\d{3,4})mm/i),
     collar: bySize((s) => new RegExp(`^starting collar metal ${s}mm`, "i")),
+    joiner: bySize((s) => new RegExp(`^bradflo duct joiner ${s}mm`, "i")),
+    pickable: [...allMaterials, ...equipment.map((e) => sku(e, "Equipment"))].filter((s) => s.name).sort((a, b) => a.name.localeCompare(b.name)),
     install: svc("AC-DUCTED-2DAYS"),
     labour: svc("AC-DUCTED-LAB"),
     electrical: svc("AC-DUCTED-ELE"),

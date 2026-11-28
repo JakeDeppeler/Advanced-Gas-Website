@@ -162,6 +162,111 @@ export async function writeDuctedQuote(job: QuoteJob, quote: DuctedQuote, name: 
   return { ok: true, estimateId, name, expected, landed, heads: heads.length, under, underLanded, problems };
 }
 
+type Head = { line: Line; under: Line[] };
+const groupsOf = (quote: DuctedQuote): Head[] => {
+  const lines = quote.lines.filter((l) => l.sku && l.quantity > 0);
+  return GROUPS.map((g) => lines.filter((l) => l.group === g)).filter((g) => g.length > 0).map((ls) => ({ line: ls[0], under: ls.slice(1) }));
+};
+const itemBody = (text: Map<number, string>, l: Line) => ({
+  skuId: l.sku!.skuId, qty: l.quantity, quantity: l.quantity, unitRate: l.unitPrice, unitPrice: l.unitPrice, description: text.get(l.sku!.skuId) ?? l.sku!.name,
+});
+
+export type EstimateState =
+  | { ok: true; id: number; name: string; status: string | null; sold: boolean; dismissed: boolean; subtotal: number | null }
+  | { ok: false; error: string };
+
+/** The quote as it is in ServiceTitan now: still open, sold, or dismissed. */
+export async function estimateState(estimateId: number): Promise<EstimateState> {
+  type Read = Omit<Estimate, "status"> & { status?: { name?: string } | string; active?: boolean; soldOn?: string | null };
+  const e = await stFetch<Read>(stTenantPath("sales", `estimates/${estimateId}`)).catch(() => null);
+  if (!e?.id) return { ok: false, error: `Quote ${estimateId} isn't in ServiceTitan any more.` };
+  const status = typeof e.status === "string" ? e.status : e.status?.name ?? null;
+  return {
+    ok: true, id: e.id, name: e.name ?? "", status, sold: /sold/i.test(status ?? "") || !!e.soldOn,
+    dismissed: /dismiss/i.test(status ?? "") || e.active === false, subtotal: e.subtotal != null ? Number(e.subtotal) : null,
+  };
+}
+
+/**
+ * Update quote, on the same quote (Jake, 28 Nov: "if i move vents or add i can
+ * push a button and it will update the quote"). The new lines go on first,
+ * each head then the lines under it, and only once every one has landed do
+ * the old lines come off, so the quote is never left half old and half new:
+ * if a new line won't go on, the new ones come back off and the old quote is
+ * left as it was. A sold or dismissed quote is never touched.
+ */
+export async function replaceDuctedQuote(job: QuoteJob, estimateId: number, quote: DuctedQuote, name: string): Promise<Written> {
+  const heads = groupsOf(quote);
+  if (!heads.length) return { ok: false, error: "There's nothing priced to put on the quote." };
+  const state = await estimateState(estimateId);
+  if (!state.ok) return state;
+  if (state.sold) return { ok: false, error: `Quote ${estimateId} is sold, so it's left as it is. Make a new quote instead.` };
+  if (state.dismissed) return { ok: false, error: `Quote ${estimateId} was dismissed. Make a new quote instead.` };
+
+  const path = stTenantPath("sales", `estimates/${estimateId}`);
+  const read = () => stFetch<Estimate>(path).catch(() => null);
+  const before = (await read())?.items ?? [];
+  const old = new Set(before.map((i) => i.id));
+  const text = await descriptions(heads.flatMap((h) => [h.line, ...h.under]));
+  const added: number[] = [];
+  const problems: string[] = [];
+  const newest = async (skuId: number) => {
+    const now = (await read())?.items ?? [];
+    return now.find((i) => !old.has(i.id) && !added.includes(i.id) && i.sku?.id === skuId)?.id ?? null;
+  };
+
+  let failed: string | null = null;
+  let underLanded = 0;
+  const under = heads.reduce((a, h) => a + h.under.length, 0);
+  outer: for (const h of heads) {
+    try {
+      await stSend("PUT", `${path}/items`, { ...itemBody(text, h.line), itemGroupName: h.line.sku!.name.trim() });
+    } catch (e) { failed = `"${h.line.sku!.name.trim()}" didn't go on: ${(e as Error).message}`; break; }
+    const root = await newest(h.line.sku!.skuId);
+    if (!root) { failed = `ServiceTitan took "${h.line.sku!.name.trim()}" but it couldn't be found on the quote after`; break; }
+    added.push(root);
+    for (const l of h.under) {
+      try {
+        await stSend("PUT", `${path}/items`, { ...itemBody(text, l), itemGroupRootId: root });
+        underLanded++;
+      } catch (e) { failed = `The lines under "${h.line.sku!.name.trim()}" didn't go on: ${(e as Error).message}`; break outer; }
+    }
+  }
+
+  // Lines under a head come off before their head.
+  const takeOff = async (ids: number[], items: EstItem[]) => {
+    const root = new Set(items.filter((i) => !i.itemGroupRootId).map((i) => i.id));
+    const order = [...ids].sort((a, b) => Number(root.has(a)) - Number(root.has(b)));
+    let left = 0;
+    for (const id of order) await stSend("DELETE", `${path}/items/${id}`, null).catch(() => { left++; });
+    return left;
+  };
+
+  if (failed) {
+    // Everything on it now that wasn't before is this update's, heads and the lines under them.
+    const now = (await read())?.items ?? [];
+    const left = await takeOff(now.filter((i) => !old.has(i.id)).map((i) => i.id), now);
+    return { ok: false, error: `${failed}. ${left ? `${left} of the new lines couldn't be taken back off quote ${estimateId}: check it in ServiceTitan.` : `The new lines came back off, so quote ${estimateId} is as it was.`}` };
+  }
+
+  const left = await takeOff([...old], before);
+  if (left) problems.push(`${left} of the old lines couldn't be taken off: remove them in ServiceTitan, or the quote counts them twice.`);
+  try {
+    await stSend("PUT", path, { name, summary: quote.summary });
+  } catch (e) { problems.push(`The summary didn't update: ${(e as Error).message}.`); }
+
+  const expected = cents(heads.flatMap((h) => [h.line, ...h.under]).reduce((a, l) => a + l.quantity * l.unitPrice, 0));
+  const last = await read();
+  const landed = last?.subtotal != null ? Number(last.subtotal) : last?.items ? cents(last.items.reduce((a, i) => a + Number(i.qty ?? 0) * Number(i.unitRate ?? 0), 0)) : null;
+  if (landed != null && Math.abs(landed - expected) > 0.5) problems.push(`ServiceTitan shows $${landed.toFixed(2)} where the portal priced $${expected.toFixed(2)}.`);
+  return { ok: true, estimateId, name, expected, landed, heads: heads.length, under, underLanded, problems };
+}
+
+/** Dismiss a quote the office has replaced with a new one. */
+export async function dismissEstimate(estimateId: number): Promise<boolean> {
+  return stSend("PUT", stTenantPath("sales", `estimates/${estimateId}/dismiss`), {}).then(() => true, () => false);
+}
+
 /** A line on the job, so whoever opens it sees where the quote came from. */
 export async function noteDuctedQuote(jobId: number, text: string): Promise<boolean> {
   return stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text, pinToTop: false }).then(() => true, () => false);

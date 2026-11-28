@@ -15,9 +15,27 @@
  * from a later version of the designer surfaces instead of vanishing.
  */
 
+import { pairSize } from "./standard";
+
 export type TakeoffRow = { group: string; item: string; detail: string; qty: number; unit: string };
 
 export type TakeOff = { ways: number; in: number; outs: number[]; qty: number; text: string };
+
+/**
+ * The designer's mounting, drainage and fixing figures: what the standard
+ * install materials are sized from on a Duct design quote (standard.ts).
+ */
+export type Fit = {
+  /** Indoor units on the list: none on a re-duct, which keeps the unit that's there. */
+  fanCoils: number;
+  /** Condensate drain, to the outside wall and down ("10 m to the outside wall and down"). */
+  drainMetres: number;
+  elbows: number;
+  hangingRolls: number;
+  tapeRolls: number;
+  /** Each pair coil line: its pipe sizes ("3/8x5/8"), the run it's for, and the designer's own count. */
+  coils: { sizes: string | null; runMetres: number; qty: number }[];
+};
 
 export type DesignTakeoff = {
   indoor: string | null;
@@ -36,6 +54,8 @@ export type DesignTakeoff = {
   otherOutlets: number;
   returnGrilles: { w: number; h: number; qty: number }[];
   returnBoxes: number;
+  /** Each box at the grille it suits ("to suit 1200 × 400"): two of them when the air is shared over two grilles. */
+  returnBoxSizes: { w: number; h: number; qty: number }[];
   collars: Record<number, number>;
   joiners: Record<number, number>;
   dampers: Record<number, number>;
@@ -45,6 +65,8 @@ export type DesignTakeoff = {
   itc: number;
   /** Mounting, drainage, fixing and the pair coil: the unit's own kit in the pricebook covers these. */
   kitLines: number;
+  /** The figures those lines carry, for the standard install materials. Only a designer's CSV has them. */
+  fit?: Fit;
   /** Every line not read into the above, as the designer wrote it. */
   unread: TakeoffRow[];
   /** Things to check before the quote goes on, from a plan read off its drawing (planShape.ts). */
@@ -98,8 +120,10 @@ const bump = (m: Record<number, number>, k: number, n: number) => { if (Number.i
 export function readTakeoff(text: string): DesignTakeoff {
   const out: DesignTakeoff = {
     indoor: null, outdoor: null, kw: null, duct: {}, runMetres: {}, takeoffs: [], transitions: 0, diffusers: {}, otherOutlets: 0,
-    returnGrilles: [], returnBoxes: 0, collars: {}, joiners: {}, dampers: {}, cables: 0, zones: null, itc: 0, kitLines: 0, unread: [], checks: [], problem: null,
+    returnGrilles: [], returnBoxes: 0, returnBoxSizes: [], collars: {}, joiners: {}, dampers: {}, cables: 0, zones: null, itc: 0, kitLines: 0, unread: [], checks: [], problem: null,
   };
+  const fit: Fit = { fanCoils: 0, drainMetres: 0, elbows: 0, hangingRolls: 0, tapeRolls: 0, coils: [] };
+  out.fit = fit;
   const rows = takeoffRows(text);
   if (!rows) return { ...out, problem: "This isn't the designer's materials list: it needs the Group, Item and Qty columns. In the designer, Outputs › Materials › CSV." };
   if (!rows.length) return { ...out, problem: "The materials list is empty." };
@@ -107,7 +131,7 @@ export function readTakeoff(text: string): DesignTakeoff {
   for (const r of rows) {
     const { item, detail, qty } = r;
     let m: RegExpExecArray | null;
-    if ((m = /^Indoor unit \(ducted\) · (.+)$/i.exec(item))) out.indoor = m[1].trim();
+    if ((m = /^Indoor unit \(ducted\) · (.+)$/i.exec(item))) { out.indoor = m[1].trim(); fit.fanCoils += qty || 1; }
     else if ((m = /^Outdoor unit · (.+)$/i.exec(item))) {
       out.outdoor = m[1].trim();
       const kw = /(\d+(?:\.\d+)?)\s*kW/i.exec(detail);
@@ -127,14 +151,30 @@ export function readTakeoff(text: string): DesignTakeoff {
     else if (/^Round ceiling diffuser Ø/i.test(item)) bump(out.diffusers, mm(item), qty);
     else if (/^(Linear slot diffuser|Linear bar grille|Floor grille|Side-blow bar grille|Supply grille)/i.test(item)) { out.otherOutlets += qty; out.unread.push(r); }
     else if ((m = /^Return air (?:filter )?grille\b.*?(\d{3,4})\s*[×x]\s*(\d{3,4})/i.exec(item))) out.returnGrilles.push({ w: Number(m[1]), h: Number(m[2]), qty });
-    else if (/^Return air box/i.test(item)) out.returnBoxes += qty;
+    else if (/^Return air box/i.test(item)) {
+      out.returnBoxes += qty;
+      const suit = /(\d{3,4})\s*[×x]\s*(\d{3,4})/.exec(detail);
+      if (suit) out.returnBoxSizes.push({ w: Number(suit[1]), h: Number(suit[2]), qty });
+    }
     else if (/^Starting collar Ø/i.test(item)) bump(out.collars, mm(item), qty);
     else if (/^Flex duct joiner Ø/i.test(item)) bump(out.joiners, mm(item), qty);
     else if (/^Motorised zone damper Ø/i.test(item)) bump(out.dampers, mm(item), qty);
     else if (/^Zone damper cable/i.test(item)) out.cables += qty;
     else if (/^Wall tablet \+ zone controller/i.test(item)) { const z = /(\d+)\s*zones?/i.exec(detail); out.zones = z ? Number(z[1]) : null; }
     else if (/\(ITC\)$/i.test(item)) out.itc += qty;
-    else if (/^(Mounting & drainage|Fixing & sealing)$/i.test(r.group) || /^Pair coil/i.test(item)) out.kitLines++;
+    else if (/^(Mounting & drainage|Fixing & sealing)$/i.test(r.group) || /^Pair coil/i.test(item)) {
+      out.kitLines++;
+      const metres = (re: RegExp) => Number(re.exec(detail)?.[1] ?? NaN);
+      if (/^Pair coil/i.test(item)) {
+        const run = metres(/(\d+(?:\.\d+)?)\s*m run/i);
+        fit.coils.push({ sizes: pairSize(item), runMetres: Number.isFinite(run) ? run : 0, qty });
+      } else if (/^PVC condensate drain pipe/i.test(item)) {
+        const m2 = metres(/^(\d+(?:\.\d+)?)\s*m\b/);
+        fit.drainMetres += Number.isFinite(m2) ? m2 : qty * (Number(/×\s*(\d+(?:\.\d+)?)\s*m/.exec(item)?.[1]) || 4);
+      } else if (/^PVC press elbow/i.test(item)) fit.elbows += qty;
+      else if (/^Grey hanging tape|hanging (tape|strap)/i.test(item)) fit.hangingRolls += qty;
+      else if (/^Duct tape/i.test(item)) fit.tapeRolls += qty;
+    }
     else out.unread.push(r);
   }
 

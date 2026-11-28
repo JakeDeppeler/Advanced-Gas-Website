@@ -62,8 +62,11 @@ export default async function HomePage() {
       <HomeHeader />
       {/* ===== HERO ===== */}
       <section className="ahero ahero--home">
-        {/* A real <img> with priority rather than a CSS background: it is the LCP element. */}
-        <Image src={PHOTO.team} alt="" aria-hidden="true" fill priority sizes="100vw" className="ahero__bg" />
+        {/* A real <img> with priority rather than a CSS background: it is the LCP element. On a
+            phone it's hidden (the crew photo below takes its place), and the 16px size there
+            makes its preload fetch the smallest copy in its set (640px, 17 KB) rather than the
+            1200px one a full-width size picks on a phone, for a photo nobody there sees. */}
+        <Image src={PHOTO.team} alt="" aria-hidden="true" fill priority sizes="(max-width: 600px) 16px, 100vw" className="ahero__bg" />
         <div className="ahero__scrim" aria-hidden="true" />
         <div className="wrap ahero__in">
           <div className="ahero__copy anim">
@@ -74,6 +77,12 @@ export default async function HomePage() {
             <div className="ahero__ctas">
               <a href="#find" className="abtn abtn--or">Find your system →</a>
               <a href="tel:+61359478000" data-call-from="hero" className="abtn abtn--line abtn--call"><PhoneIcon />Call (03) 5947 8000</a>
+            </div>
+            {/* Phones only (hidden above 600px, so desktop never fetches it): behind the copy on a
+                phone the crew in the hero photo is a blur, so they get a clear photo of their own. */}
+            <div className="ahero__crew">
+              <Image src={PHOTO.crew} alt="Our crew of six with their Advanced Gas vans" fill sizes="(max-width: 600px) 92vw, 1px" />
+              <span className="ahero__crewtag">Our crew</span>
             </div>
             <div className="ahero__trust">
               <span className="ahero__stars">
