@@ -161,9 +161,12 @@ export function Finder({ only }: { only?: string } = {}) {
   const toolText = cat?.id === "air" ? "Not sure? Try our sizing calculator" : cat?.id === "hw" ? "Not sure? Check the size your showers need" : "Gas vs reverse-cycle running costs";
 
   return (
-    <section id="find" className="find" data-no-reveal>
+    <section className="find" data-no-reveal>
       <div className="wrap">
-        <div className="find__box" ref={boxRef}>
+        {/* The id is on the box, not the section, so every jump here (the top form, the
+            header's links, "/#find" from other pages) puts the finder itself under the header
+            rather than the 56px of section padding above it. */}
+        <div id="find" className="find__box" ref={boxRef}>
           <span className="glow glow--sky" aria-hidden="true" />
           <span className="glow glow--or" aria-hidden="true" />
 

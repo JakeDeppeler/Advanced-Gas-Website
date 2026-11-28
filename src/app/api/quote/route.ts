@@ -3,7 +3,7 @@ import { sendEmail } from "@/lib/email/send";
 import type { EmailKind } from "@/lib/email/eventTypes";
 import { keepPhotos } from "@/lib/portal/leadPhotos";
 import { placeFromAddress } from "@/lib/portal/leadPlace";
-import { customerEmail, friendlySummary, headline, teamEmail, type Lead, type LeadPhoto } from "@/lib/email/leadEmails";
+import { customerEmail, friendlySummary, headline, photoAttachments, teamEmail, type Lead, type LeadPhoto, type MailAttachment } from "@/lib/email/leadEmails";
 
 export const runtime = "nodejs";
 
@@ -36,9 +36,7 @@ export async function POST(req: Request) {
     ...(Array.isArray(data.photos) ? data.photos : []),
     ...(data.photo ? [data.photo] : []),
   ];
-  const attachments = allPhotos
-    .filter((p): p is LeadPhoto => !!p?.data)
-    .map((p, i) => ({ filename: p.name || `photo-${i + 1}.jpg`, content: p.data }));
+  const { attachments, cids: photoIds } = photoAttachments(allPhotos);
 
   // Typed by hand rather than picked from the suggestions, the address comes
   // with no suburb or postcode, and the team email's header read "SE Vic".
@@ -72,7 +70,7 @@ export async function POST(req: Request) {
   }
 
   // 1) The team's email. It says so when the lead isn't in the database, since then it's the only copy.
-  const team = teamEmail(data, { summary: summaryLine, photoCount: allPhotos.length, stored });
+  const team = teamEmail(data, { summary: summaryLine, photoCount: allPhotos.length, photoIds, stored });
   const emailed = await sendResend({
     key,
     from,
@@ -180,7 +178,7 @@ async function storeLead(data: Lead, summary: string, photoCount: number, pagePa
 async function sendResend(opts: {
   key: string; from: string; to: string[]; replyTo?: string;
   subject: string; html: string; text: string;
-  attachments?: Array<{ filename: string; content: string }>;
+  attachments?: MailAttachment[];
   /** What this one is, for the record a failure leaves. Defaults to the lead email. */
   kind?: EmailKind;
   about?: Record<string, unknown>;
