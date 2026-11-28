@@ -148,7 +148,11 @@ export const ICON = {
  * question id and answer index: "Straight behind the indoor unit" can't
  * follow an inside wall, which only has another room behind it.
  */
-export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string; fit?: "contain"; pos?: string; min?: number; tag?: string; unless?: Record<string, number> };
+export type Opt = {
+  label: string; sub?: string; spec?: string; n?: number; img?: string; fit?: "contain"; pos?: string; min?: number; tag?: string; unless?: Record<string, number>;
+  /** How the answer reads in the lead and the team email, where the label alone would drop something ("Living room, 35–50 m²"). */
+  detail?: string;
+};
 export type Question = { id: string; q: string; opts: Opt[]; size?: boolean };
 
 const o = (label: string, sub?: string): Opt => (sub ? { label, sub } : { label });
@@ -165,11 +169,13 @@ export const shownOpts = (q: Question, ans: Record<string, number>): { o: Opt; i
 // ceiling are one scale across all four, so the room's width is what grows.
 // The bands are the catalogue's own "Room size" rows (2.5 kW up to 25 m²,
 // 3.5 up to 35, 5.0 up to 50), so the finder and the product page agree.
+// The room leads and its size sits under it (Jake, 28 Nov 2026: "should also have
+// like bed room, master or living"); the lead carries both.
 const ROOM: Opt[] = [
-  { label: "Up to 25 m²", sub: "Bedroom or study", spec: "2.5 kW", n: 1, img: "/finder/room-bedroom.svg" },
-  { label: "25–35 m²", sub: "Main bedroom or small lounge", spec: "3.5 kW", n: 2, img: "/finder/room-main-bedroom.svg" },
-  { label: "35–50 m²", sub: "Living room", spec: "5.0 kW", n: 3, img: "/finder/room-living.svg" },
-  { label: "50 m² +", sub: "Open-plan living", spec: "7.1–8.0 kW", n: 4, img: "/finder/room-open-plan.svg" },
+  { label: "Bedroom or study", sub: "Up to 25 m²", spec: "2.5 kW", n: 1, img: "/finder/room-bedroom.svg", detail: "Bedroom or study, up to 25 m²" },
+  { label: "Master bedroom", sub: "Or a small lounge, 25–35 m²", spec: "3.5 kW", n: 2, img: "/finder/room-main-bedroom.svg", detail: "Master bedroom or small lounge, 25–35 m²" },
+  { label: "Living room", sub: "35–50 m²", spec: "5.0 kW", n: 3, img: "/finder/room-living.svg", detail: "Living room, 35–50 m²" },
+  { label: "Open-plan living", sub: "50 m² or more", spec: "7.1–8.0 kW", n: 4, img: "/finder/room-open-plan.svg", detail: "Open-plan living, 50 m² or more" },
 ];
 // The same house each time, with that many of its rooms lit and piped to the
 // one outdoor unit.
@@ -276,10 +282,14 @@ export const QB = {
   // the house from above in the look of the zoning plan on the ducted pages
   // (ZoneHouse): a room lit blue with its vents blowing while its zone is on,
   // hatched grey while it's off, a switch per zone, each zone on its own clock.
-  zoning: { id: "zones", q: "How do you want it zoned?", opts: [
-    { label: "Every room on its own zone", sub: "Full-home zoning: the most control", tag: "Most control", img: "/finder/zones-every.svg" },
-    { label: "Rooms in groups", sub: "Say, living areas and bedrooms", img: "/finder/zones-groups.svg" },
-    { label: "One open-plan area", sub: "No zones: the whole system runs together", img: "/finder/zones-one.svg" },
+  // How many zones, not just how (Jake, 28 Nov 2026: "if a fully home ducted
+  // split how many zones"). The counts follow the controllers we fit: up to
+  // 4, and up to 8. Each drawing is a house zoned that way.
+  zoning: { id: "zones", q: "How many zones do you want?", opts: [
+    { label: "One zone", sub: "The whole house runs together", img: "/finder/zones-one.svg" },
+    { label: "2 zones", sub: "Living areas and bedrooms", img: "/finder/zones-groups.svg" },
+    { label: "3–4 zones", sub: "Say, living, the main bedroom and the kids' rooms", img: "/finder/zones-some.svg" },
+    { label: "5 or more zones", sub: "Every room on its own: the most control", tag: "Most control", img: "/finder/zones-every.svg" },
     { label: "Not sure", sub: "We'll work it out on site", img: "/finder/zones-not-sure.svg" },
   ] },
   // A house cut through to its roof space, and what's up there now. The same
@@ -697,7 +707,7 @@ export function pickSummary(sys: System, tier: Tier, ans: Answers, model?: strin
 /** Question → answer, worded for whoever reads the lead. */
 export function answerMap(qs: Question[], ans: Answers): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const q of qs) if (ans[q.id] != null) out[q.q] = q.opts[ans[q.id]].label;
+  for (const q of qs) if (ans[q.id] != null) { const o = q.opts[ans[q.id]]; out[q.q] = o.detail ?? o.label; }
   return out;
 }
 
