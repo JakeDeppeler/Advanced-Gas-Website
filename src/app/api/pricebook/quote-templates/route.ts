@@ -7,6 +7,7 @@ import { setUpServices } from "@/lib/pricebook/serviceSetup";
 import { fixTemplates22Nov } from "@/lib/pricebook/templateFixes";
 import { splitRebateHeaders } from "@/lib/pricebook/rebateHeaders";
 import { addEvapProposals } from "@/lib/pricebook/evapProposals";
+import { addRepairProposals } from "@/lib/pricebook/repairProposals";
 import { syncQuoteWording } from "@/lib/pricebook/quoteWording";
 import { syncServiceWording } from "@/lib/pricebook/serviceWording";
 import { groupQuoteTemplates, lineUpFixes, lookAtTemplates, tidyTemplateNames } from "@/lib/pricebook/quoteTemplatesFix";
@@ -50,6 +51,7 @@ export async function GET(req: Request) {
     let lineUp: Awaited<ReturnType<typeof lineUpFixes>> | null = null;
     let rebates: Awaited<ReturnType<typeof splitRebateHeaders>> | null = null;
     let proposals: Awaited<ReturnType<typeof addEvapProposals>> | null = null;
+    let repairProposals: Awaited<ReturnType<typeof addRepairProposals>> | null = null;
     let wording: Awaited<ReturnType<typeof syncQuoteWording>> | null = null;
     let serviceWording: Awaited<ReturnType<typeof syncServiceWording>> | null = null;
     let fixes: Awaited<ReturnType<typeof fixTemplates22Nov>> | null = null;
@@ -64,6 +66,8 @@ export async function GET(req: Request) {
       // Jake, 16 Nov: the rebate totals for hot water and heating & cooling, then the evap proposals.
       if (Date.now() < until) rebates = await splitRebateHeaders(until, all);
       if (Date.now() < until) proposals = await addEvapProposals(until);
+      // Jake, 28 Nov: Repair, Replace, Upgrade for each evap and split fault.
+      if (Date.now() < until) repairProposals = await addRepairProposals(until);
       // Jake, 17 Nov: the summary says the job, the equipment line sells the unit.
       if (Date.now() < until) wording = await syncQuoteWording(until, all);
       // Jake, 19 Nov: the service and maintenance items, worded for a quote or an invoice alike.
@@ -71,8 +75,8 @@ export async function GET(req: Request) {
       // Jake, 22 Nov: the fixes from the review of every template (templateFixPlan.ts).
       if (Date.now() < until) fixes = await fixTemplates22Nov(until, all);
     }
-    const failed = [...services.failed, ...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? []), ...(lineUp?.failed ?? []), ...(rebates?.failed ?? []), ...(proposals?.failed ?? []), ...(wording?.failed ?? []), ...(serviceWording?.failed ?? []), ...(fixes?.failed ?? [])];
-    return NextResponse.json({ ok: failed.length === 0, services, add, group, tidy, lineUp, rebates, proposals, wording, serviceWording, fixes });
+    const failed = [...services.failed, ...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? []), ...(lineUp?.failed ?? []), ...(rebates?.failed ?? []), ...(proposals?.failed ?? []), ...(repairProposals?.failed ?? []), ...(wording?.failed ?? []), ...(serviceWording?.failed ?? []), ...(fixes?.failed ?? [])];
+    return NextResponse.json({ ok: failed.length === 0, services, add, group, tidy, lineUp, rebates, proposals, repairProposals, wording, serviceWording, fixes });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }
