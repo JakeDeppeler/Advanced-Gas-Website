@@ -130,6 +130,8 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Write-up", href: "/portal/jobs/write-up", icon: "file" },
       // A ducted quote from a Trust Trade design or the layout, onto the job (24 Nov).
       { label: "Ducted quote", href: "/portal/ducted", icon: "duct" },
+      // The Trust Trade designer for a job, its quote built and updated from it (28 Nov).
+      { label: "Duct design", href: "/portal/ducted/design", icon: "duct" },
       { label: "Trade tools", href: "/portal/tools/fault-codes", icon: "wrench" },
       { label: "Toolbox talks", href: "/portal/toolbox", icon: "book" },
     ],

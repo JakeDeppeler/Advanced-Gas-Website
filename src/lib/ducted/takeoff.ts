@@ -36,6 +36,8 @@ export type DesignTakeoff = {
   otherOutlets: number;
   returnGrilles: { w: number; h: number; qty: number }[];
   returnBoxes: number;
+  /** Each box at the grille it suits ("to suit 1200 × 400"): two of them when the air is shared over two grilles. */
+  returnBoxSizes: { w: number; h: number; qty: number }[];
   collars: Record<number, number>;
   joiners: Record<number, number>;
   dampers: Record<number, number>;
@@ -98,7 +100,7 @@ const bump = (m: Record<number, number>, k: number, n: number) => { if (Number.i
 export function readTakeoff(text: string): DesignTakeoff {
   const out: DesignTakeoff = {
     indoor: null, outdoor: null, kw: null, duct: {}, runMetres: {}, takeoffs: [], transitions: 0, diffusers: {}, otherOutlets: 0,
-    returnGrilles: [], returnBoxes: 0, collars: {}, joiners: {}, dampers: {}, cables: 0, zones: null, itc: 0, kitLines: 0, unread: [], checks: [], problem: null,
+    returnGrilles: [], returnBoxes: 0, returnBoxSizes: [], collars: {}, joiners: {}, dampers: {}, cables: 0, zones: null, itc: 0, kitLines: 0, unread: [], checks: [], problem: null,
   };
   const rows = takeoffRows(text);
   if (!rows) return { ...out, problem: "This isn't the designer's materials list: it needs the Group, Item and Qty columns. In the designer, Outputs › Materials › CSV." };
@@ -127,7 +129,11 @@ export function readTakeoff(text: string): DesignTakeoff {
     else if (/^Round ceiling diffuser Ø/i.test(item)) bump(out.diffusers, mm(item), qty);
     else if (/^(Linear slot diffuser|Linear bar grille|Floor grille|Side-blow bar grille|Supply grille)/i.test(item)) { out.otherOutlets += qty; out.unread.push(r); }
     else if ((m = /^Return air (?:filter )?grille\b.*?(\d{3,4})\s*[×x]\s*(\d{3,4})/i.exec(item))) out.returnGrilles.push({ w: Number(m[1]), h: Number(m[2]), qty });
-    else if (/^Return air box/i.test(item)) out.returnBoxes += qty;
+    else if (/^Return air box/i.test(item)) {
+      out.returnBoxes += qty;
+      const suit = /(\d{3,4})\s*[×x]\s*(\d{3,4})/.exec(detail);
+      if (suit) out.returnBoxSizes.push({ w: Number(suit[1]), h: Number(suit[2]), qty });
+    }
     else if (/^Starting collar Ø/i.test(item)) bump(out.collars, mm(item), qty);
     else if (/^Flex duct joiner Ø/i.test(item)) bump(out.joiners, mm(item), qty);
     else if (/^Motorised zone damper Ø/i.test(item)) bump(out.dampers, mm(item), qty);

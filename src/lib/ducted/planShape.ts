@@ -116,7 +116,7 @@ const bump = (o: Record<number, number>, k: number, n: number) => { if (n > 0) o
 export function planToTakeoff(r: PlanRead): DesignTakeoff {
   const t: DesignTakeoff = {
     indoor: r.unitModel?.trim() || null, outdoor: null, kw: r.unitKw > 0 ? r.unitKw : null,
-    duct: {}, runMetres: {}, takeoffs: [], transitions: 0, diffusers: {}, otherOutlets: 0, returnGrilles: [], returnBoxes: 0,
+    duct: {}, runMetres: {}, takeoffs: [], transitions: 0, diffusers: {}, otherOutlets: 0, returnGrilles: [], returnBoxes: 0, returnBoxSizes: [],
     collars: {}, joiners: {}, dampers: {}, cables: 0, zones: null, itc: 0, kitLines: 0, unread: [], checks: [...(r.checks ?? [])],
     problem: r.readable ? null : r.problem?.trim() || "The drawing couldn't be read as a duct plan.",
   };

@@ -79,6 +79,8 @@ export async function loadDuctedCatalogue(): Promise<DuctedCatalogue> {
     raGrilles: sized(/^Profiler Eggcrate .*?(\d{3,4})mm x (\d{3,4})mm/i),
     raBoxes: sized(/^Return Air Box\b.*?(\d{3,4})mm x (\d{3,4})mm/i),
     collar: bySize((s) => new RegExp(`^starting collar metal ${s}mm`, "i")),
+    joiner: bySize((s) => new RegExp(`^bradflo duct joiner ${s}mm`, "i")),
+    pickable: [...allMaterials, ...equipment.map((e) => sku(e, "Equipment"))].filter((s) => s.name).sort((a, b) => a.name.localeCompare(b.name)),
     install: svc("AC-DUCTED-2DAYS"),
     labour: svc("AC-DUCTED-LAB"),
     electrical: svc("AC-DUCTED-ELE"),

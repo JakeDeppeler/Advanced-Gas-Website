@@ -21,6 +21,7 @@ export const metadata = { title: "Daily tools · Team portal" };
 const ALL: Array<ToolTile & { gate: string }> = [
   { gate: "/portal/jobs/write-up", href: "/portal/jobs/write-up", name: "Job write-up", line: "The job summary and labour line, from the job and your notes", icon: "write", words: "quote invoice summary labour notes job" },
   { gate: "/portal/ducted", href: "/portal/ducted", name: "Ducted quote", line: "A ducted system priced from the duct plan, onto the job", icon: "duct", words: "ducted plan trust trade zones outlets quote" },
+  { gate: "/portal/ducted/design", href: "/portal/ducted/design", name: "Duct design", line: "Design the ducts for a job, and its quote builds from it", icon: "design", words: "duct design designer draw vents layout trust trade job update quote" },
   { gate: "/portal/tools/fault-codes", href: "/portal/tools/fault-codes", name: "Fault codes", line: "Look up a brand and code on site", icon: "fault", words: "error code fault brand mitsubishi brivis rinnai" },
   { gate: "/portal/tools/fault-codes", href: "/portal/tools/heat-pump-sizing", name: "Heat pump sizing", line: "Size a tank off shower draw-off", icon: "tank", words: "hot water tank size litres heat pump" },
   { gate: "/portal/tools/fault-codes", href: "/portal/tools/veu-rebate-estimator", name: "VEU rebate", line: "Ballpark the rebate before a site visit", icon: "rebate", words: "rebate veu stc solar victoria discount" },
