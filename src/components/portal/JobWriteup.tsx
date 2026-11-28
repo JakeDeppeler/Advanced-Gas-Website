@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Pill } from "@/components/portal/kit/Kit";
 import { money2 } from "@/lib/portal/format";
@@ -102,7 +102,7 @@ const Tick = () => (
   <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
 
-export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes: savedNotes, notesBy, history }: {
+export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes: savedNotes, notesBy, history, autoWrite = false }: {
   job: string;
   heading: { number: string | null; type: string | null; customer: string | null; read: string[]; missing: string[] };
   quotes: Array<{ id: number; name: string | null; status: string | null }>;
@@ -112,6 +112,8 @@ export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes:
   notes: string;
   notesBy: { by: string; at: string } | null;
   history: HistoryRow[];
+  /** Arrived from the one form with the notes just saved: write straight away. */
+  autoWrite?: boolean;
 }) {
   const router = useRouter();
   const docs = { estimate: quote, invoice } as Record<Kind, DocView | null>;
@@ -151,6 +153,17 @@ export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes:
     // The notes were saved with it: the "Saved by" line catches up.
     router.refresh();
   });
+
+  // From the one form (WriteupStart): the notes are saved, so write once, and
+  // drop the go=1 from the address so a refresh doesn't write it again.
+  const autoDone = useRef(false);
+  useEffect(() => {
+    if (!autoWrite || autoDone.current || !notes.trim()) return;
+    autoDone.current = true;
+    window.history.replaceState(null, "", `/portal/jobs/write-up?job=${encodeURIComponent(job)}`);
+    write();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoWrite]);
 
   const put = () => startPut(async () => {
     if (!d) return;

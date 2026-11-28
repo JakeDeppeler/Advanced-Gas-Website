@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { loadSchedule, loadSession, loadToolbox, saveSchedule, saveSession, saveToolbox } from "@/lib/toolbox/store";
-import { onOrAfter, type Every, type Schedule, type Session, type Topic } from "@/lib/toolbox/types";
+import { onOrAfter, type Every, type Schedule, type Session, type Talk, type Topic } from "@/lib/toolbox/types";
+import { todayMelbourne } from "@/lib/todos/store";
 
 export type ToolboxResult = { ok: boolean; error?: string; id?: string };
 
@@ -37,6 +38,38 @@ export async function removeTopic(id: string): Promise<ToolboxResult> {
   if (!r.ok) return { ok: false, error: "Couldn't take it off." };
   revalidatePath("/portal/toolbox");
   return { ok: true };
+}
+
+/**
+ * The list (Jake, 28 Nov: "the toolbox talk just needs to be a list to talk
+ * about, like the to-do"): ticking a topic says it's been talked about. It
+ * moves to the talks, dated today with who ticked it, the record the crew
+ * was told; unticking puts it back on the list as it was.
+ */
+export async function talkedAbout(id: string): Promise<ToolboxResult> {
+  const me = await getPortalUser();
+  if (!me) return { ok: false, error: "Sign in again." };
+  const s = await loadToolbox();
+  const topic = s.topics.find((x) => x.id === id);
+  if (!topic) return { ok: false, error: "That topic isn't on the list any more." };
+  const talk: Talk = { id: newId(), topicId: topic.id, title: topic.title, on: todayMelbourne(), by: first(me.name), who: [], notes: topic.points.join("\n"), actions: "", at: new Date().toISOString() };
+  const r = await saveToolbox({ topics: s.topics.filter((x) => x.id !== id), talks: [talk, ...s.talks] });
+  if (!r.ok) return { ok: false, error: "Couldn't tick it off." };
+  revalidatePath("/portal/toolbox");
+  return { ok: true, id: talk.id };
+}
+
+export async function notTalked(talkId: string): Promise<ToolboxResult> {
+  const me = await getPortalUser();
+  if (!me) return { ok: false, error: "Sign in again." };
+  const s = await loadToolbox();
+  const talk = s.talks.find((x) => x.id === talkId);
+  if (!talk) return { ok: false, error: "That talk isn't there any more." };
+  const back: Topic = { id: talk.topicId && !s.topics.some((x) => x.id === talk.topicId) ? talk.topicId : newId(), title: talk.title, points: talk.notes.split("\n").map((x) => x.trim()).filter(Boolean), addedBy: talk.by, at: new Date().toISOString() };
+  const r = await saveToolbox({ topics: [back, ...s.topics], talks: s.talks.filter((x) => x.id !== talkId) });
+  if (!r.ok) return { ok: false, error: "Couldn't put it back." };
+  revalidatePath("/portal/toolbox");
+  return { ok: true, id: back.id };
 }
 
 const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);

@@ -176,6 +176,28 @@ export const SKU = {
   splitServiceMulti: { skuId: 0, skuType: "Service", code: MULTI_SPLIT.code },
   discHeaterEvapSS: { skuId: 0, skuType: "Material", code: "DISC-HTR-EVAP-SS" },
   discHeaterEvapDS: { skuId: 0, skuType: "Material", code: "DISC-HTR-EVAP-DS" },
+  // 28 Nov: a diagnostic for every kind of system, and the common repairs.
+  evapDiag: { skuId: 301571961, skuType: "Service" }, // EVAP-DIAG
+  heaterDiag: { skuId: 301571063, skuType: "Service" }, // HTR-DUCTED-DIAG
+  ductedDiag: { skuId: 301573235, skuType: "Service" }, // AC-DUCTED-DIAG
+  multiDiag: { skuId: 301572202, skuType: "Service" }, // AC-MULTI-DIAG
+  addonDiag: { skuId: 301630514, skuType: "Service" }, // AC-ADDON-DIAG
+  racDiag: { skuId: 301631110, skuType: "Service" }, // AC-RAC-DIAG
+  heatPumpDiag: { skuId: 301572955, skuType: "Service" }, // HW-HEATPUMP-DIAG
+  gasStorageDiag: { skuId: 301572484, skuType: "Service" }, // HW-GAS-STORAGE-DIAG
+  contFlowDiag: { skuId: 301572579, skuType: "Service" }, // HW-CF-DIAG
+  elecHwDiag: { skuId: 301572584, skuType: "Service" }, // HW-ELEC-DIAG
+  cookingDiag: { skuId: 301631178, skuType: "Service" }, // GAS-COOKING-DIAG
+  spaceHeaterDiag: { skuId: 301572067, skuType: "Service" }, // HTR-SPACE-DIAG
+  gasLeakDiag: { skuId: 301572490, skuType: "Service" }, // GAS-LEAK-DIAG
+  evapPump: { skuId: 301216709, skuType: "Material" }, // Brivis Evap Cooler Water Pump
+  evapDumpValveBrivis: { skuId: 301272038, skuType: "Material" }, // Brivis Dump Valve & Winter Seal Drive Motor
+  evapFloatValve: { skuId: 301621982, skuType: "Material" }, // Vertical Float Valve Including Float
+  evapWaterSensor: { skuId: 301328838, skuType: "Material" }, // Water Sensor Assembly Contour (Rinnai)
+  evapControlBoard: { skuId: 301328984, skuType: "Material" }, // Brivis Electric Control Board NE-6
+  evapController: { skuId: 301204466, skuType: "Material" }, // Brivis Manual Evap Cooler Controller
+  evapFanBelt: { skuId: 303326764, skuType: "Material" }, // Fan Belt A54 / A1400
+  splitRemote: { skuId: 301202953, skuType: "Material" }, // Universal Split System Remote Controller
 } as const;
 
 export type Line = { skuId: number; skuType: string; quantity: number; unitPrice: number; code?: string };
@@ -206,6 +228,67 @@ export function evapTemplate(u: EvapUnit, unitSkuId: number, unitPrice: number):
     lines: [{ skuId: unitSkuId, skuType: "Equipment", quantity: 1, unitPrice }, L(SKU.evapInstall, priceOf(SKU.evapInstall.skuId)), L(SKU.compliance, 65)],
   };
 }
+
+/**
+ * Jake, 28 Nov: "we also need a template for the diagnostic". One for each
+ * kind of system with its own diagnostic service in the pricebook (the split
+ * system's is already made), at the standard call-out, $200: the customer's
+ * first visit, priced as one whatever the system (labour.ts).
+ */
+const DIAG_PRICE = 200;
+const diag = (name: string, code: string, sku: { skuId: number; skuType: string }, what: string, summary?: string): TemplateSpec => ({
+  name: `${name} - Diagnostics`, code,
+  summary: summary ?? `A visit to find the fault with your ${what}. We'll explain what we find and quote any repair before going ahead.`,
+  lines: [L(sku, DIAG_PRICE)],
+});
+export const DIAGNOSTICS: TemplateSpec[] = [
+  diag("Evaporative Cooler", "EVAP-DIAGNOSTICS", SKU.evapDiag, "evaporative cooler"),
+  diag("Ducted Gas Heater", "GAS-HTR-DIAGNOSTICS", SKU.heaterDiag, "ducted gas heater"),
+  diag("Ducted Reverse Cycle", "AC-DUCTED-DIAGNOSTICS", SKU.ductedDiag, "ducted reverse-cycle system"),
+  diag("Multi-Head Split System", "AC-MULTI-DIAGNOSTICS", SKU.multiDiag, "multi-head split system"),
+  diag("Add-on Cooling", "AC-ADDON-DIAGNOSTICS", SKU.addonDiag, "add-on cooling"),
+  diag("Wall Air Conditioner", "AC-RAC-DIAGNOSTICS", SKU.racDiag, "wall air conditioner"),
+  diag("Heat Pump Hot Water", "HW-HP-DIAGNOSTICS", SKU.heatPumpDiag, "heat pump hot water system"),
+  diag("Gas Storage Hot Water", "HW-GAS-STORAGE-DIAGNOSTICS", SKU.gasStorageDiag, "gas storage hot water system"),
+  diag("Continuous Flow Hot Water", "HW-CF-DIAGNOSTICS", SKU.contFlowDiag, "continuous flow hot water system"),
+  diag("Electric Storage Hot Water", "HW-ELEC-DIAGNOSTICS", SKU.elecHwDiag, "electric hot water system"),
+  diag("Gas Cooktop & Oven", "GAS-COOKING-DIAGNOSTICS", SKU.cookingDiag, "gas cooktop or oven"),
+  diag("Gas Space Heater", "GAS-SPACE-HTR-DIAGNOSTICS", SKU.spaceHeaterDiag, "gas space heater"),
+  diag("Gas Leak", "GAS-LEAK-DIAGNOSTICS", SKU.gasLeakDiag, "gas supply",
+    "A visit to test your gas supply and find the leak. We'll make it safe, explain what we find and quote the repair before going ahead."),
+];
+
+/**
+ * Jake, 28 Nov: "a evap repairs template and split system with the common
+ * thing we quote like remote replacement". The repairs whose part the
+ * pricebook stocks, laid out as the office's own repair templates are: the
+ * repair line, with the part at $0 under it. The repair line is the labour at
+ * the one-person repair rate ($250 an hour, an hour unless the job takes
+ * longer) plus the part at its pricebook price, so the template quotes what
+ * the job costs whichever way the office prices it.
+ */
+const REPAIR_RATE = 250;
+const repair = (name: string, code: string, service: { skuId: number; skuType: string }, part: { skuId: number; skuType: string }, partPrice: number, hours: number, summary: string): TemplateSpec => ({
+  name, code, summary, lines: [L(service, REPAIR_RATE * hours + partPrice), L(part, 0)],
+});
+export const REPAIRS_28: TemplateSpec[] = [
+  repair("Evaporative Cooler - Water Pump Replacement", "EVAP-REP-PUMP", SKU.evapRepair, SKU.evapPump, 155, 1,
+    "Replacement of the water pump on your evaporative cooler, with the pads wetted and the cooler tested on completion."),
+  repair("Evaporative Cooler - Dump Valve & Drive Motor Replacement", "EVAP-REP-DUMPVALVE-BRIVIS", SKU.evapRepair, SKU.evapDumpValveBrivis, 325, 1,
+    "Replacement of the dump valve and winter seal drive motor on your evaporative cooler, with the drain and fill cycle tested on completion."),
+  repair("Evaporative Cooler - Float Valve Replacement", "EVAP-REP-FLOATVALVE", SKU.evapRepair, SKU.evapFloatValve, 75, 1,
+    "Replacement of the float valve on your evaporative cooler, with the water level set and the cooler tested on completion."),
+  repair("Evaporative Cooler - Water Level Sensor Replacement", "EVAP-REP-WATERSENSOR", SKU.evapRepair, SKU.evapWaterSensor, 150, 1,
+    "Replacement of the water level sensor on your evaporative cooler, with the fill cycle tested on completion."),
+  repair("Evaporative Cooler - Control Board Replacement", "EVAP-REP-CONTROLBOARD", SKU.evapRepair, SKU.evapControlBoard, 515, 1.5,
+    "Replacement of the control board on your evaporative cooler, with every function tested on completion."),
+  repair("Evaporative Cooler - Wall Controller Replacement", "EVAP-REP-CONTROLLER", SKU.evapRepair, SKU.evapController, 60, 1,
+    "Replacement of the wall controller for your evaporative cooler, with the cooler tested from the new controller on completion."),
+  repair("Evaporative Cooler - Fan Belt Replacement", "EVAP-REP-FANBELT", SKU.evapRepair, SKU.evapFanBelt, 90, 1,
+    "Replacement of the fan belt on your evaporative cooler, tensioned and tested on completion."),
+  repair("Split System - Remote Replacement", "AC-SPLIT-REP-REMOTE", SKU.splitRepair, SKU.splitRemote, 38, 1,
+    "Supply of a replacement remote for your split system, set up and paired to the system and tested on completion."),
+];
 
 /**
  * Everything else, from the quotes the office built by hand (Sept to Nov).
@@ -293,6 +376,8 @@ export const OTHER_TEMPLATES: TemplateSpec[] = [
   { name: "Upright Cooker - Install Only", code: "COOKER-UPRIGHT-INSTALL",
     summary: "Installation of the upright cooker you've supplied, including its gas and electrical connections, a full test and a compliance certificate on completion.",
     lines: [L(SKU.cookingInstall, 550), L(SKU.cookerElectrical, 350), L(SKU.compliance, 65)] },
+  ...DIAGNOSTICS,
+  ...REPAIRS_28,
   // Jake, 16 Nov: two or more splits at one home are $180 each. The office
   // changes the quantity for five or more.
   ...[2, 3, 4].map((n): TemplateSpec => ({

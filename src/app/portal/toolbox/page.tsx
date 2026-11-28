@@ -1,62 +1,44 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { KpiHead } from "@/components/portal/kit/Kit";
+import { ToolboxList } from "@/components/portal/daily/ToolboxList";
 import { dayWords, inDays, shortDate } from "@/lib/daily/summary";
-import { ToolboxPlan } from "@/components/portal/ToolboxPlan";
-import { loadSchedule, loadSessions, loadToolbox } from "@/lib/toolbox/store";
-import { past, timeWords, upcoming } from "@/lib/toolbox/types";
-import { teamPeople, todayMelbourne } from "@/lib/todos/store";
-import { dbConfigured } from "@/lib/portal/db";
+import { loadSchedule, loadToolbox } from "@/lib/toolbox/store";
+import { timeWords, upcoming } from "@/lib/toolbox/types";
+import { todayMelbourne } from "@/lib/todos/store";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Toolbox talks · Team portal" };
 
 /**
- * How far back to look for talks, and how many of the latest schedule dates
- * to list even with nothing on them, so a missed talk shows as missed
- * without a year of empty weeks under it.
- */
-const LOOK_BACK = 52;
-const RECENT = 3;
-
-/**
- * To-do › Toolbox talks: a talk every week, fortnight or month. The next
- * talk and its topics, what's on hold for a later one, and the earlier
- * talks: the last few dates on the schedule and every one before them with
- * a topic or a record. A date the schedule has since moved off still shows
- * if something was saved on it.
+ * Daily tools › Toolbox talks, as a list (Jake, 28 Nov: "just needs to be a
+ * list to talk about, like the to-do"). What's to talk about, ticked off once
+ * the crew's been through it, and what's been talked about, with the day.
+ * The talk's day stays as it was set (weekly on Mondays); it only dates the
+ * cards now.
  */
 export default async function ToolboxPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   const today = todayMelbourne();
-  const [box, schedule, people] = await Promise.all([loadToolbox(), loadSchedule(today), dbConfigured() ? teamPeople().catch(() => []) : Promise.resolve([])]);
-  const [current, next] = upcoming(schedule, today, 2);
-  const back = past(schedule, current, LOOK_BACK);
-  const sessions = await loadSessions(back[back.length - 1], next).catch(() => []);
-  const earlier = [...new Set([...back.slice(0, RECENT), ...sessions.map((s) => s.on).filter((d) => d < current)])].sort().reverse();
-  const cur = sessions.find((s) => s.on === current);
-  const days = Math.round((Date.parse(`${current}T12:00:00Z`) - Date.parse(`${today}T12:00:00Z`)) / 86_400_000);
-  // Whoever's looking can always tick themselves as there.
-  const names = [...new Set([...people.map((p) => p.name), user.name])].sort();
-  const on = cur?.notes.length ?? 0;
-  const held = box.topics.length;
+  const [box, schedule] = await Promise.all([loadToolbox(), loadSchedule(today)]);
+  const [next] = upcoming(schedule, today, 1);
+  const days = next ? Math.round((Date.parse(`${next}T12:00:00Z`) - Date.parse(`${today}T12:00:00Z`)) / 86_400_000) : null;
+  const month = today.slice(0, 7);
+  const thisMonth = box.talks.filter((t) => t.on.startsWith(month)).length;
+  const monthName = new Date(`${today}T12:00:00Z`).toLocaleDateString("en-AU", { month: "long", timeZone: "UTC" });
+
   return (
     <PortalShell user={user}>
       <div className="rp">
         <KpiHead hi={`Daily tools · ${dayWords()}`} title="Toolbox talks" kpis={[
-          { icon: "calendar", fig: shortDate(current), label: schedule.time ? `Next talk, ${timeWords(schedule.time)}` : "Next talk", badge: inDays(days), tone: "gold" },
-          { icon: "doc", fig: String(on), label: on === 1 ? "Topic on it" : "Topics on it" },
-          { icon: "clock", fig: String(held), label: "On hold for a later talk" },
-        ]} info={[
-          ["Topics", "Write one with a heading and what to say, then put it on the next talk or on hold for a later one. Anyone can."],
-          ["What was said", "After the talk, open “What was said” under it: type it up or load the transcript from an AI note-taker. It stays with the date as the record the crew was told."],
+          ...(next && days != null ? [{ icon: "calendar", fig: shortDate(next), label: schedule.time ? `Next talk, ${timeWords(schedule.time)}` : "Next talk", badge: inDays(days), tone: "gold" as const }] : []),
+          { icon: "doc", fig: String(box.topics.length), label: "To talk about" },
+          { icon: "check", fig: String(thisMonth), label: `Talked about in ${monthName}` },
         ]} />
       </div>
-      <ToolboxPlan schedule={schedule} today={today} current={current} next={next} earlier={earlier} sessions={sessions}
-        topics={box.topics} people={names} me={user.name} canPlan={can(user, "overhead") || can(user, "manage_users")} />
+      <ToolboxList topics={box.topics} talks={box.talks} next={next ? shortDate(next) : null} />
     </PortalShell>
   );
 }
