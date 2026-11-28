@@ -10,6 +10,7 @@ import { addEvapProposals } from "@/lib/pricebook/evapProposals";
 import { syncQuoteWording } from "@/lib/pricebook/quoteWording";
 import { syncServiceWording } from "@/lib/pricebook/serviceWording";
 import { groupQuoteTemplates, lineUpFixes, lookAtTemplates, tidyTemplateNames } from "@/lib/pricebook/quoteTemplatesFix";
+import { snapshotCatalog } from "@/lib/proposals/snapshot";
 import type { TemplateItem } from "@/lib/pricebook/labour";
 
 export const runtime = "nodejs";
@@ -28,6 +29,9 @@ export const maxDuration = 60;
  *
  * ?look=1 changes nothing: it saves every active template's lines and prices
  * to portal_settings.quote_templates_look, to see what they really charge.
+ * ?catalog=1 changes nothing either: it saves the whole pricebook, services
+ * with their linked parts, to portal_settings.st_catalog_snapshot (snapshot.ts),
+ * for the template audit (Jake, 28 Nov).
  */
 export async function GET(req: Request) {
   if (!(await scheduledCallAuthorised(req))) return new NextResponse("Unauthorized", { status: 401 });
@@ -36,6 +40,7 @@ export async function GET(req: Request) {
   }
   try {
     if (new URL(req.url).searchParams.get("look")) return NextResponse.json({ ok: true, look: await lookAtTemplates() });
+    if (new URL(req.url).searchParams.get("catalog")) return NextResponse.json({ ok: true, catalog: await snapshotCatalog() });
     const until = Date.now() + 40_000;
     // Jake's 16 Nov service prices and the items the service templates are built on, first.
     const services = await setUpServices(until - 25_000);

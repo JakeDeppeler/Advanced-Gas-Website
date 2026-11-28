@@ -353,6 +353,89 @@ export function planDominator25(t: Tpl, prices: Prices): Edit | null {
   return did.length ? { items, did } : null;
 }
 
+/* ------------------------------------------------------------- 28 Nov */
+
+/** The zone add-on services on the ducted templates, by the duct size each one zones. */
+export const ZONE_ADDONS: ReadonlyMap<number, number> = new Map([
+  [301216534, 150], [301216282, 200], [301217346, 250], [301216290, 300], [301217119, 350], [301216726, 400], [301216670, 450],
+]);
+/** ZoneBoss Damper 24V by size, and its control cable. */
+export const ZONE_DAMPER: ReadonlyMap<number, { sku: number; name: string }> = new Map([
+  [150, { sku: 301191157, name: "ZoneBoss Damper 24V 150mm" }], [200, { sku: 301190187, name: "ZoneBoss Damper 24V 200mm" }],
+  [250, { sku: 301191052, name: "ZoneBoss Damper 24V 250mm" }], [300, { sku: 301190552, name: "ZoneBoss Damper 24V 300mm" }],
+  [350, { sku: 301191176, name: "ZoneBoss Damper 24V 350mm" }], [400, { sku: 301191771, name: "ZoneBoss Damper 24V 400mm" }],
+  [450, { sku: 301216973, name: "ZoneBoss Damper 24V 450mm" }],
+]);
+const DAMPERS = new Set([...ZONE_DAMPER.values()].map((d) => d.sku));
+/** A zone's temperature control, old or new: neither belongs on a zone add-on now. */
+const ZONE_CONTROL = new Set<number>([ZONEMATE.sensor, ITC_SKU]);
+
+export type SkuLink = { skuId: number; quantity: number };
+export type LinkEdit = { materials: SkuLink[] | null; equipment: SkuLink[] | null; did: string[] };
+
+/**
+ * Jake, 28 Nov, "go with b and add the 450 damper". Asked how the four
+ * temperature controls that come with the Mitsubishi controller should sit on
+ * a template, where a zone add-on can't tell zone 1 from zone 5, he chose (b):
+ * the add-ons carry no temperature control, and the office adds one at $90
+ * for each zone past four. So, on the zone add-on services in the pricebook:
+ *   - no ZoneMate sensor or Mitsubishi ITC linked to any of them;
+ *   - each with its own size of ZoneBoss damper. The 450 had none: it carried
+ *     the cable and a ZoneMate sensor ($150) where the others carry the cable
+ *     and their damper.
+ * An add-on that already has a damper keeps it, whatever its size.
+ */
+export function planZoneAddOn(size: number, materials: SkuLink[], equipment: SkuLink[]): LinkEdit | null {
+  const damper = ZONE_DAMPER.get(size);
+  if (!damper) return null;
+  const did: string[] = [];
+  const mats = materials.filter((l) => !ZONE_CONTROL.has(Number(l.skuId)));
+  const eq = equipment.filter((l) => !ZONE_CONTROL.has(Number(l.skuId)));
+  const off = materials.length - mats.length + equipment.length - eq.length;
+  if (off) did.push(`temperature control${off === 1 ? "" : "s"} off (${off})`);
+  const added = !mats.some((l) => DAMPERS.has(Number(l.skuId)));
+  if (added) { mats.push({ skuId: damper.sku, quantity: 1 }); did.push(`${damper.name} on`); }
+  if (!did.length) return null;
+  return { materials: added || mats.length !== materials.length ? mats : null, equipment: eq.length !== equipment.length ? eq : null, did };
+}
+
+/**
+ * The four ducted templates on option (b):
+ *   - the temperature control (ITC) on the installation comes off: the four
+ *     that come with the controller are in its box, and the office adds the
+ *     ones past four at their pricebook price ($90);
+ *   - in each zone add-on, a ZoneMate sensor or ITC comes off and the add-on's
+ *     own damper goes on if it has none (the 450 carried a sensor at $150 and
+ *     no damper), at the damper's pricebook price, as the other add-ons' are.
+ * A line ServiceTitan hands back with a negative id is the add-on service's
+ * own linked part, not a template line: the template can't take it off, so
+ * it's left for the service (planZoneAddOn), and counts as the damper if it is one.
+ */
+export function planZoningB(t: Tpl, prices: Prices): Edit | null {
+  if (!DUCTED.includes(t.id)) return null;
+  let items = t.items.map((i) => ({ ...i }));
+  const did: string[] = [];
+  const own = (i: TemplateItem) => i.id == null || i.id > 0;
+  const itcs = items.filter((i) => plain(i) && i.skuId === ITC_SKU && own(i));
+  if (itcs.length) { items = items.filter((i) => !itcs.includes(i)); did.push(`temperature control off the installation (${itcs.reduce((a, i) => a + Number(i.quantity), 0)})`); }
+  for (const addOn of items.filter((i) => i.isAddOn && ZONE_ADDONS.has(i.skuId) && i.id != null)) {
+    const size = ZONE_ADDONS.get(addOn.skuId)!;
+    const kids = items.filter((i) => i.parentItemId === addOn.id);
+    const sensors = kids.filter((i) => ZONE_CONTROL.has(i.skuId) && own(i));
+    if (sensors.length) { items = items.filter((i) => !sensors.includes(i)); did.push(`${size} mm add-on: temperature control off`); }
+    if (kids.some((i) => DAMPERS.has(i.skuId))) continue;
+    const damper = ZONE_DAMPER.get(size)!;
+    const add: TemplateItem = {
+      id: null, skuId: damper.sku, skuType: "Material", skuName: damper.name, quantity: 1, unitPrice: prices.get(damper.sku) ?? 0,
+      isAddOn: false, parentItemId: addOn.id, itemGroupParentId: addOn.itemGroupParentId ?? null,
+    };
+    const last = items.reduce((at, i, k) => (i.id === addOn.id || i.parentItemId === addOn.id ? k : at), items.indexOf(addOn));
+    items = [...items.slice(0, last + 1), add, ...items.slice(last + 1)];
+    did.push(`${size} mm add-on: ${damper.name} on ($${add.unitPrice})`);
+  }
+  return did.length ? { items, did } : null;
+}
+
 /* ------------------------------------------------------------- 24 Nov */
 
 /**

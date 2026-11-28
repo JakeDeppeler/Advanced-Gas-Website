@@ -5,7 +5,7 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
 import { SERVICE_COPY } from "./wording";
-import { DUCTED, DUCTED_HOURS, DUPLICATES, INTERNAL_ON_EXTERNAL, ITC_SKU, LAB_3P, RENAME_24, SKU, ZC10, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, type LabourLine, type Prices, type Tpl, type ZoningText } from "./templateFixPlan";
+import { DUCTED, DUCTED_HOURS, DUPLICATES, INTERNAL_ON_EXTERNAL, ITC_SKU, LAB_3P, RENAME_24, SKU, ZC10, ZONE_ADDONS, planDominator25, planDucted25, planDuctedFixed, planDuctedHourly, planFixes, planFixes24, planMitsubishiZoning, planZoneAddOn, planZoningB, type LabourLine, type Prices, type SkuLink, type Tpl, type ZoningText } from "./templateFixPlan";
 
 /**
  * Jake's 22 Nov template fixes (templateFixPlan.ts says what and why), written
@@ -309,6 +309,48 @@ export async function fixTemplates22Nov(until: number, all: Live[]): Promise<{ f
       await stSend("PATCH", path(t.id), { items: templatePatchItems(plan.items) });
       const back = await stFetch<Live>(path(t.id));
       const still = planDominator25(tpl({ ...back, id: t.id, name: back.name ?? t.name }), prices);
+      if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
+      done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
+      fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push((t.name ?? "").trim()); }
+    await save();
+  }
+  // 10. Zoning option (b), Jake 28 Nov (templateFixPlan.ts › planZoneAddOn,
+  // planZoningB): first the zone add-on services in the pricebook, then the
+  // four templates, so a line ServiceTitan rebuilds from the add-on comes back
+  // with the damper. Each read back.
+  const links = (v: unknown): SkuLink[] => (Array.isArray(v) ? (v as Raw[]) : []).map((l) => ({ skuId: Number(l.skuId), quantity: Number(l.quantity) || 1 }));
+  for (const [id, size] of ZONE_ADDONS) {
+    const key = `service:${id}:zoneb`;
+    if (done[key] || (tries[key] ?? 0) >= MAX_TRIES || Date.now() > until) continue;
+    try {
+      const svc = await readService(id);
+      if (!svc) throw new Error("not in the pricebook");
+      const name = String(svc.displayName ?? `Zone ${size}mm Add-on`).trim();
+      const plan = planZoneAddOn(size, links(svc.serviceMaterials), links(svc.serviceEquipment));
+      if (!plan) { done[key] = "nothing to do"; await save(); continue; }
+      await stSend("PATCH", stTenantPath("pricebook", `services/${id}`), {
+        ...(plan.materials ? { serviceMaterials: plan.materials } : {}), ...(plan.equipment ? { serviceEquipment: plan.equipment } : {}),
+      });
+      const back = await readService(id);
+      const still = back ? planZoneAddOn(size, links(back.serviceMaterials), links(back.serviceEquipment)) : null;
+      if (!back || still) throw new Error(`ServiceTitan answered OK but still wants: ${still?.did.join("; ") ?? "it back"}`);
+      done[key] = plan.did.join("; ");
+      fixed.push(`${name}: ${done[key]}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push(`Zone ${size}mm add-on`); }
+    await save();
+  }
+  for (const id of DUCTED) {
+    const t = byId.get(id);
+    const key = `${id}:zoneb`;
+    if (!t || done[key] || (tries[key] ?? 0) >= MAX_TRIES || Date.now() > until) continue;
+    try {
+      const now = await stFetch<Live>(path(id));
+      const plan = planZoningB(tpl({ ...now, id, name: now.name ?? t.name }), prices);
+      if (!plan) { done[key] = "nothing left to do"; await save(); continue; }
+      await stSend("PATCH", path(id), { items: templatePatchItems(plan.items) });
+      const back = await stFetch<Live>(path(id));
+      const still = planZoningB(tpl({ ...back, id, name: back.name ?? t.name }), prices);
       if (still) throw new Error(`ServiceTitan answered OK but still wants: ${still.did.join("; ")}`);
       done[key] = `${plan.did.join("; ")}; total $${now.totalPrice} → $${back.totalPrice}`;
       fixed.push(`${(t.name ?? "").trim()}: ${plan.did.join("; ")}`);

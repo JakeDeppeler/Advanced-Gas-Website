@@ -52,6 +52,8 @@ export async function snapshotCatalog(): Promise<Record<string, number | string>
     proposalTypes: proposalTypes.map((t) => ({ id: t.id, name: t.name, type: t.type ?? null, active: t.active ?? null, options: t.options ?? [] })),
     services: services.map((s) => ({
       id: s.id, code: s.code, name: s.displayName ?? s.code, active: s.active ?? null, price: s.price ?? null, cost: s.cost ?? null, hours: s.hours ?? null,
+      // Dynamic Pricing: ServiceTitan prices it from its hours and parts, not its `price`.
+      dynamic: s.useStaticPrices === false,
       categories: (Array.isArray(s.categories) ? (s.categories as Raw[]) : []).map((c) => c.name),
       materials: s.serviceMaterials ?? [], equipment: s.serviceEquipment ?? [],
     })),
