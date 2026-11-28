@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/send";
-import { photosEmail } from "@/lib/email/leadEmails";
+import { photoAttachments, photosEmail } from "@/lib/email/leadEmails";
 import { keepPhotos } from "@/lib/portal/leadPhotos";
 
 export const runtime = "nodejs";
@@ -64,7 +64,8 @@ export async function POST(req: Request) {
   const to = (process.env.LEAD_NOTIFICATION_EMAIL || "").split(",").map((s) => s.trim()).filter(Boolean);
   const recipients = to.length ? to : ["jake@advancedgas.com.au"];
   const n = photos.length;
-  const mail = photosEmail(lead, n);
+  const { attachments, cids } = photoAttachments(photos, safeName);
+  const mail = photosEmail(lead, n, cids);
 
   const out = await sendEmail("quote-lead", {
     from: process.env.RESEND_FROM_EMAIL || "Advanced Gas Website <onboarding@resend.dev>",
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
     subject: mail.subject,
     text: mail.text,
     html: mail.html,
-    attachments: photos.map((p, i) => ({ filename: safeName(p.name, i), content: p.data })),
+    attachments,
   } as Parameters<typeof sendEmail>[1], { lead: id, photos: n });
 
   // If the email failed, give the lead its count back so the customer's retry
