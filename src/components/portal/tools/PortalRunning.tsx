@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { SAVINGS_DEFAULTS, hotWaterRunningCost, type CurrentSystem } from "@/lib/tools/hotWaterSavings";
+import { Field, PanelHead, Select } from "./Fields";
 
 const NOW: { k: CurrentSystem; label: string; fuel: string }[] = [
   { k: "gas-storage", label: "Gas storage", fuel: "gas" },
@@ -34,30 +35,33 @@ export function PortalRunning() {
   const fuel = NOW.find((n) => n.k === now)?.fuel ?? "gas";
 
   return (
-    <div className="ptl-grid">
-      <section className="ptl-card ptl-card--form">
-        <h2>Heat pump vs gas, for the quote</h2>
-        <div className="ptl-two">
-          <label className="ptl-field">People in the house
+    <div className="tt-grid">
+      <section className="rp-panel rp-card tt-form" aria-labelledby="tt-run-h">
+        <PanelHead id="tt-run-h" title="Heat pump vs gas, for the quote" note="Prices off their bill, or left blank for the Melbourne average" />
+        <div className="tt-two">
+          <Field label="People in the house">
             <input type="number" min={1} max={12} value={people} onChange={(e) => setPeople(Number(e.target.value) || 1)} />
-          </label>
-          <label className="ptl-field">Current system
-            <select value={now} onChange={(e) => setNow(e.target.value as CurrentSystem)}>{NOW.map((n) => <option key={n.k} value={n.k}>{n.label}</option>)}</select>
-          </label>
-          <label className="ptl-field">Gas price (c/MJ)
-            <input type="text" inputMode="decimal" placeholder="From their bill" title={`Left blank, ${SAVINGS_DEFAULTS.gasCentsPerMJ} c/MJ, the Melbourne average`} value={gas} onChange={(e) => setGas(e.target.value)} />
-          </label>
-          <label className="ptl-field">Power price (c/kWh)
-            <input type="text" inputMode="decimal" placeholder="From their bill" title={`Left blank, ${SAVINGS_DEFAULTS.elecCentsPerKwh} c/kWh, the Melbourne average`} value={power} onChange={(e) => setPower(e.target.value)} />
-          </label>
+          </Field>
+          <Field label="Current system">
+            <Select value={now} onChange={(e) => setNow(e.target.value as CurrentSystem)}>{NOW.map((n) => <option key={n.k} value={n.k}>{n.label}</option>)}</Select>
+          </Field>
+          <Field label="Gas price (c/MJ)">
+            <input type="text" inputMode="decimal" placeholder={`${SAVINGS_DEFAULTS.gasCentsPerMJ}, the average`} value={gas} onChange={(e) => setGas(e.target.value)} />
+          </Field>
+          <Field label="Power price (c/kWh)">
+            <input type="text" inputMode="decimal" placeholder={`${SAVINGS_DEFAULTS.elecCentsPerKwh}, the average`} value={power} onChange={(e) => setPower(e.target.value)} />
+          </Field>
         </div>
       </section>
 
-      <aside className="ptl-card ptl-year">
-        <span className="ptl-year__k">A year of hot water</span>
-        <div><span>Now ({fuel})</span><strong>{$(r.currentCostYr)}</strong></div>
-        <div><span>Heat pump</span><strong>{$(r.heatPumpCostYr)}</strong></div>
-        <div className="ptl-year__save"><span>They save</span><strong>{$(r.savingYr)}</strong></div>
+      <aside className="tt-answer" aria-label="The answer">
+        <span className="tt-k">They save, a year</span>
+        <strong className="tt-big">{$(r.savingYr)}</strong>
+        <div className="tt-rows">
+          <div><span>Now ({fuel})</span><b>{$(r.currentCostYr)}</b></div>
+          <div><span>Heat pump</span><b>{$(r.heatPumpCostYr)}</b></div>
+        </div>
+        <span className="tt-k tt-k--soft">A year of hot water for {people} {people === 1 ? "person" : "people"}{gas || power ? ", at the prices on their bill" : ", at Melbourne’s average prices"}.</span>
       </aside>
     </div>
   );
