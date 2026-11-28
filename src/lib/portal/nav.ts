@@ -372,6 +372,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["month", "this month", "month so far", "cost of goods", "cogs", "gear", "break even", "cover overheads", "sold jobs", "not billed", "before the reece bill"],
     },
     { href: "/portal/kpis", label: "Our KPIs", short: "KPIs", blurb: "Every number we're measured by, against its goal", band: "hidden", icon: "target", also: ["kpi", "kpis", "scoreboard", "benchmarks", "gross margin", "overheads", "net profit", "win rate"] },
+    { href: "/portal/finance/customers", label: "Private customers", short: "Customers", blurb: "New or back, in touch, and what marketing costs a customer", band: "hidden", icon: "people", also: ["customers", "private", "domestic", "new customers", "returning", "repeat", "came back", "cost per customer", "cost to win", "acquisition", "marketing spend", "cac"] },
     { href: "/portal/sales", label: "Sales", blurb: "The month, the quotes out, the weeks", band: "hidden", icon: "trend", also: ["sales", "sold", "quotes out", "job types", "sold each week"] },
     { href: "/portal/rates", label: "Team", short: "Labour rates", blurb: "Labour rates and the leaderboard", band: "hidden", icon: "people", also: ["labour rate", "leaderboard", "cost an hour", "break even"] },
   );
