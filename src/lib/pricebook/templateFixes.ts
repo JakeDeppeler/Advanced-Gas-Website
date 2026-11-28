@@ -6,6 +6,9 @@ import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
 import { SERVICE_COPY } from "./wording";
 import { LEAK_REGAS } from "./quoteTemplateSpecs";
+import { ECOSTAR_18, HEATER_TEMPLATES } from "./reeceBuildSpecs";
+import { reeceHeaterIds } from "./reeceBuild";
+import { summaryHtml, templateSummary } from "./wording";
 
 /** The one-size leak and regas template, R410A at 2.5kg. */
 const OLD_LEAK_REGAS = 303258089;
@@ -497,6 +500,45 @@ export async function fixTemplates22Nov(until: number, all: Live[]): Promise<{ f
       done[key] = `renamed "${r.to}"`;
       fixed.push(`${r.from} → ${r.to}`);
     } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push(r.from); }
+    await save();
+  }
+  // 14. A template for each heater brought in from Reece (reeceBuildSpecs.ts ›
+  // HEATER_TEMPLATES), made from the nearest the office quotes with the unit
+  // swapped and its own summary, once the unit is in the pricebook.
+  const heaterIds = await reeceHeaterIds().catch(() => ({} as Record<string, number>));
+  for (const ht of HEATER_TEMPLATES) {
+    const key = `clone:${ht.code}`;
+    const unitId = heaterIds[ht.heater.code];
+    if (!unitId || done[key] || (tries[key] ?? 0) >= MAX_TRIES || Date.now() > until) continue;
+    try {
+      const there = all.find((t) => (t.name ?? "").trim().toLowerCase() === ht.name.toLowerCase());
+      let id = there?.id ?? (Number(notes[`${key}:id`]) || null);
+      const src = await stFetch<Live & { mode?: string }>(path(ht.from.template));
+      const unit = await stFetch<Raw>(stTenantPath("pricebook", `equipment/${unitId}`));
+      const swap = { from: ht.from.unit, to: unitId, name: String(unit.displayName ?? ht.heater.name).trim(), description: (unit.description as string | null) ?? null, price: Number(unit.price) || 0 };
+      const { flat, groups } = cloneLines(src.items ?? [], swap);
+      if (!flat.some((i) => i.skuId === unitId)) throw new Error(`the template it's made from no longer carries its unit (${ht.from.unit})`);
+      if (!id) {
+        const summary = templateSummary({ name: ht.name, kind: "heater", brand: ht.brandLine, size: `${ht.heater.kw}kW`, heater: ht.from.template === ECOSTAR_18.template ? "external" : "internal" });
+        const made = await stSend<{ id?: number } | null>("POST", stTenantPath("sales", "estimate-templates"), {
+          name: ht.name, internalName: ht.code, mode: src.mode ?? "Dynamic", summary: summaryHtml(summary), active: true,
+          items: templatePatchItems(flat).map((i) => ({ ...i, id: null })),
+        });
+        if (!made?.id) throw new Error("ServiceTitan answered without the new template's id");
+        id = made.id;
+        notes[`${key}:id`] = String(id);
+        await save();
+      }
+      const now = await stFetch<Live>(path(id));
+      const grouped = regroup(now.items ?? [], flat, groups);
+      if (!grouped) throw new Error(`made (${id}), but its lines don't match the template it came from: ${(now.items ?? []).length} of ${flat.length}`);
+      await stSend("PATCH", path(id), { items: templatePatchItems(grouped) });
+      const back = await stFetch<Live>(path(id));
+      const under = (back.items ?? []).filter((i) => i.itemGroupParentId != null).length;
+      if (under !== groups.filter((g) => g.under >= 0).length) throw new Error(`made (${id}), but ${under} lines went into their groups`);
+      done[key] = `made ${id} from ${ht.from.template}; total $${back.totalPrice}`;
+      fixed.push(`${ht.name}: ${done[key]}`);
+    } catch (e) { tries[key] = (tries[key] ?? 0) + 1; notes[key] = (e as Error).message.slice(0, 300); failed.push(ht.name); }
     await save();
   }
   // The two Brivis coolers named as the price list has them.
