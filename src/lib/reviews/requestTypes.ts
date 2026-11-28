@@ -22,7 +22,8 @@
  */
 
 import { personalAddress } from "@/lib/email/ownAddress";
-import { letterHtml, letterText, type LetterBlock, type LetterEmail, type PremiumEmail } from "@/lib/email/premium";
+import { letterText, showcaseHtml, type LetterBlock, type LetterEmail, type PremiumEmail } from "@/lib/email/premium";
+import { RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import { SIGNERS, signerKey, type SignerKey } from "@/lib/email/team";
 
 export const REVIEW_SETTINGS_KEY = "review_requests";
@@ -203,7 +204,7 @@ export function reviewEmail(s: ReviewSettings, i: ReviewEmailInput, ctx: EmailCo
   // the paragraph that names the tech, one button, and a signature.
   const stock = reviewHero(i.jobType);
   // A phone photo from the job could be tall or wide: 420 px fits either on screen whole.
-  const photo: LetterBlock = i.photo
+  const photo: Extract<LetterBlock, { kind: "photo" }> = i.photo
     ? { kind: "photo", src: i.photo, alt: `Your ${values.job}, photographed by ${values.tech} on the day`, fallback: stock.src, width: 420 }
     : { kind: "photo", src: stock.src, alt: stock.alt, width: stock.width };
   const blocks: LetterBlock[] = [];
@@ -231,5 +232,30 @@ export function reviewEmail(s: ReviewSettings, i: ReviewEmailInput, ctx: EmailCo
     // The words end "Thanks again," already.
     signoff: /\n\s*(thanks|cheers|regards|kind regards)[^\n]*,?\s*$/i.test(s.body.trim()) || /^(thanks|cheers)/i.test(paras[paras.length - 1] ?? "") ? null : "Cheers,",
   };
-  return { subject, text: letterText(mail), html: letterHtml(mail) };
+  // The designed version (Jake, 28 Nov): the photo goes up into the hero, the
+  // words keep their order with the ask drawn as a panel, and the plain-text
+  // part stays the letter it was.
+  const html = showcaseHtml({
+    preheader: mail.preheader,
+    eyebrow: "Thanks for having us",
+    headline: subject,
+    accent: values.tech === "the team" ? undefined : values.tech,
+    sub: `Your ${values.job}${(i.suburb ?? "").trim() ? ` in ${values.suburb}` : ""}`,
+    cta: { label: BUTTON_LABEL, href: i.href, note: "Takes about a minute" },
+    photo: { src: photo.src, alt: photo.alt, fallback: photo.fallback, width: photo.width },
+    blocks: blocks.filter((b) => b.kind !== "photo"),
+    points: SHOWCASE_POINTS,
+    signer: mail.signer,
+    signoff: mail.signoff,
+    base: ctx.base,
+    footer: ctx.footer,
+  });
+  return { subject, text: letterText(mail), html };
 }
+
+/** What we stand for, from the site's own words; the rating reads the same figure the site does. */
+const SHOWCASE_POINTS = [
+  { title: "Family owned", text: "A Pakenham business, twelve years trading." },
+  { title: "Our own crew", text: "The team that quotes your job installs it." },
+  { title: `${RATING_TEXT} on Google`, text: `From ${RATING_SUMMARY.count} reviews by local households.` },
+];

@@ -73,8 +73,11 @@ ok("a site name isn't greeted", firstName("Unit 092") === "there" && firstName("
 const ctx: EmailContext = { base: "https://www.advancedgas.com.au", footer: { name: "Advanced Gas & Aircon", phone: "(03) 5947 8000", phoneHref: "tel:+61359478000", address: "1 Sierra Circuit, Pakenham VIC 3810", site: "https://www.advancedgas.com.au" }, proof: "**★ 4.8** on Google" };
 const m = reviewEmail(reviewSettingsFrom({}), { customer: "Sarah Jones", techs: ["Ray Kennedy"], jobType: "Service - Split System", suburb: "Berwick", href: "https://www.advancedgas.com.au/r/abc" }, ctx);
 ok("subject", m.subject === "How did Ray go, Sarah?", m.subject);
-ok("button in the html, once", (m.html.match(/Leave a Google review/g) ?? []).length === 1 && m.html.includes('href="https://www.advancedgas.com.au/r/abc"'));
-ok("reads like an email: no card, no logo, the tech named in the words", !m.html.includes("/email/logo.jpg") && !m.html.includes(">RK<") && m.text.includes("having Ray out") && !m.text.includes("Cheers,\nJake") );
+// Designed since 28 Nov (Jake, with Poppi/Gymshark/Oura emails: "this is how the email should show"):
+// the button in the hero and again where {button} sits in the words.
+ok("button in the hero and at {button}, both to the review link", (m.html.match(/Leave a Google review/g) ?? []).length === 2 && m.html.includes('href="https://www.advancedgas.com.au/r/abc"'));
+ok("designed: logo, the tech's name coloured in the headline, the tech named in the words", m.html.includes("/email/logo.jpg") && m.html.includes('<span style="color:#2cc5ff">Ray</span> go, Sarah?') && !m.html.includes(">RK<") && m.text.includes("having Ray out") && !m.text.includes("Cheers,\nJake"));
+ok("the stars are text, so they show with images blocked", m.html.includes("&#9733;&#9733;&#9733;&#9733;&#9733;"));
 const j = reviewEmail(reviewSettingsFrom({ signer: "dean" }), { customer: "Sarah Jones", techs: ["Jye Stephens"], jobType: "Install - Heat Pump", suburb: null, href: "https://x" }, ctx);
 ok("the signer's photo, and the job photo when there is one", j.html.includes("/email/tech-dean.jpg") && reviewEmail(reviewSettingsFrom({}), { customer: "Sarah", techs: ["Jye"], jobType: null, suburb: null, href: "https://x", photo: "https://www.advancedgas.com.au/_next/image?url=x" }, ctx).html.includes("data-fallback="));
 ok("stock photo by job, showing the whole system", reviewHero("Service - Split System").src.includes("split") && reviewHero("Installation - Heat Pump").src.includes("hp-aio") && reviewHero("Installation - Heat Pump").width < 400 && reviewHero("Plumbing - Gas Leak").src.includes("team"));

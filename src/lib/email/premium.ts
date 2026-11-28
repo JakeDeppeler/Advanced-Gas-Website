@@ -342,7 +342,7 @@ function letterBlock(b: LetterBlock, base: string): string {
 }
 
 /** Our phone and website under the name; a customer's own mobile and email when the message is theirs. */
-function signatureLinks(e: LetterEmail): string {
+function signatureLinks(e: Pick<LetterEmail, "footer" | "signer">): string {
   const f = e.footer;
   const links = e.signer.contact ?? [{ text: f.phone, href: f.phoneHref }, { text: f.site.replace(/^https?:\/\/(www\.)?/, ""), href: f.site }];
   return links.map((l, n) => `<a href="${esc(l.href)}" style="color:${n === 0 ? BRAND : MUTED};${n === 0 ? "font-weight:600;" : ""}text-decoration:none">${esc(l.text)}</a>`).join(" &middot; ");
@@ -363,6 +363,119 @@ ${signoff ? `<p style="margin:0 0 10px;${LETTER_FONT};color:${INK}">${esc(signof
 <td style="vertical-align:top;font:400 14px/1.45 ${FONT};color:${MUTED}"><div style="font:700 15px/1.35 ${FONT};color:${NAVY}">${esc(e.signer.name)}</div>${esc(e.signer.role)}<br>${signatureLinks(e)}</td>
 </tr></table>
 </div></td></tr></table></body></html>`;
+}
+
+/* ------------------------------------------------------------ the showcase */
+
+/**
+ * The designed look, for the review request (Jake, 28 Nov, with Poppi, Gymshark
+ * and Oura emails beside it: "this is how the email should show"). It reverses
+ * his 8 Nov "look like a real email" for this one email only; the quote and job
+ * emails stay letters.
+ *
+ * Top to bottom: a navy hero (logo, the question as a headline with the tech's
+ * name in the site's sky blue, the stars and the button), the photo of their
+ * job, the words on white with the ask in a cream panel, a band of what we
+ * stand for, the signature, and a navy footer. The stars are text, not images,
+ * so the ask still reads in an inbox that blocks pictures. Same table-and-inline
+ * build as the others, light only (Apple Mail and iPhone honour that).
+ */
+export type ShowcaseEmail = {
+  preheader: string;
+  /** Small caps over the headline. */
+  eyebrow: string;
+  headline: string;
+  /** A word in the headline to colour (the tech's name). */
+  accent?: string;
+  sub: string;
+  cta: { label: string; href: string; note?: string };
+  photo?: { src: string; alt: string; fallback?: string; width?: number };
+  /** The words. A "button" block is drawn as the panel with the stars. */
+  blocks: LetterBlock[];
+  /** Three short "what we stand for" points. */
+  points: { title: string; text: string }[];
+  signer: LetterEmail["signer"];
+  signoff?: string | null;
+  base: string;
+  footer: PremiumEmail["footer"];
+};
+
+const SKY = "#2cc5ff";
+const CREAM = "#f3efe5";
+const GOLD = "#ffb648";
+/** The site's display face isn't in any inbox; this is the heaviest one most of them have. */
+const DISPLAY = "'Arial Black','Helvetica Neue',Helvetica,Arial,sans-serif";
+
+const starsLink = (href: string, size: number) =>
+  `<a href="${esc(href)}" style="text-decoration:none;color:${GOLD};font:400 ${size}px/1 ${FONT};letter-spacing:${Math.round(size / 6)}px">&#9733;&#9733;&#9733;&#9733;&#9733;</a>`;
+
+const pill = (label: string, href: string, solid: boolean) =>
+  `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td style="border-radius:999px;background:${solid ? BRAND : "#ffffff"}"><a href="${esc(href)}" style="display:inline-block;padding:15px 30px;font:700 16px/1 ${FONT};color:${solid ? "#ffffff" : NAVY};text-decoration:none;border-radius:999px">${esc(label)} &rarr;</a></td></tr></table>`;
+
+function showcaseBlock(b: LetterBlock, e: ShowcaseEmail): string {
+  // The letter's blocks, a size up: on a designed email the words sit in a narrower column.
+  if (b.kind !== "button") return letterBlock(b, e.base).split(LETTER_FONT).join("font:400 16px/1.65 " + FONT);
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:8px 0 22px"><tr><td align="center" style="background:${CREAM};border-radius:16px;padding:24px 18px 22px">
+<div style="padding-bottom:6px">${starsLink(b.href, 30)}</div>
+<div style="padding-bottom:16px;font:700 15px/1.4 ${FONT};color:${NAVY}">Rate your job on Google</div>
+${pill(b.label, b.href, true)}
+${e.cta.note ? `<div style="padding-top:10px;font:400 13px/1.4 ${FONT};color:${MUTED}">${esc(e.cta.note)}</div>` : ""}
+</td></tr></table>`;
+}
+
+export function showcaseHtml(e: ShowcaseEmail): string {
+  const f = e.footer;
+  const signoff = e.signoff === undefined ? "Cheers," : e.signoff;
+  // Escaped first, then the accent wrapped, so a name can't carry markup in.
+  const headline = e.accent && e.headline.includes(e.accent)
+    ? esc(e.headline).replace(esc(e.accent), `<span style="color:${SKY}">${esc(e.accent)}</span>`)
+    : esc(e.headline);
+  const photo = e.photo
+    ? `<tr><td class="sc-pad" align="center" style="background:${NAVY};padding:6px 40px 36px"><img src="${esc(abs(e.base, e.photo.src))}"${e.photo.fallback ? ` data-fallback="${esc(abs(e.base, e.photo.fallback))}"` : ""} width="${e.photo.width ?? 520}" alt="${esc(e.photo.alt)}" style="display:block;width:100%;max-width:${e.photo.width ?? 520}px;height:auto;border-radius:16px;border:0"></td></tr>`
+    : "";
+  const w = Math.floor(100 / Math.max(1, e.points.length));
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light">
+<style>
+@media (max-width:620px){
+  .sc-outer{padding:0!important}
+  .sc-shell{border-radius:0!important}
+  .sc-pad{padding-left:22px!important;padding-right:22px!important}
+  .sc-h1{font-size:32px!important}
+  .sc-pt{display:block!important;width:100%!important;padding:0 0 16px!important}
+}
+</style></head>
+<body style="margin:0;padding:0;background:${CREAM}">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(e.preheader)}&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${CREAM}"><tr><td class="sc-outer" align="center" style="padding:24px 12px">
+<table class="sc-shell" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:20px;overflow:hidden">
+<tr><td class="sc-pad" align="center" style="background:${NAVY};padding:28px 40px 8px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td style="background:#ffffff;border-radius:12px;padding:8px 12px"><img src="${esc(abs(e.base, "/email/logo.jpg"))}" width="132" alt="${esc(f.name)}" style="display:block;width:132px;height:auto;border:0"></td></tr></table>
+<div style="padding-top:30px;font:700 12px/1.4 ${FONT};letter-spacing:.18em;text-transform:uppercase;color:${BRAND_BRIGHT}">${esc(e.eyebrow)}</div>
+<div class="sc-h1" style="padding-top:12px;font:900 40px/1.08 ${DISPLAY};letter-spacing:-.02em;color:#ffffff">${headline}</div>
+<div style="padding-top:12px;font:400 17px/1.5 ${FONT};color:#c9cbe0">${esc(e.sub)}</div>
+<div style="padding:22px 0 18px">${starsLink(e.cta.href, 34)}</div>
+${pill(e.cta.label, e.cta.href, false)}
+${e.cta.note ? `<div style="padding:12px 0 26px;font:400 13px/1.4 ${FONT};color:#9fa3c4">${esc(e.cta.note)}</div>` : `<div style="padding-bottom:26px"></div>`}
+</td></tr>
+${photo}
+<tr><td class="sc-pad" style="padding:36px 40px 10px">
+${e.blocks.map((b) => showcaseBlock(b, e)).join("\n")}
+${signoff ? `<p style="margin:0 0 12px;font:400 16px/1.65 ${FONT};color:${INK}">${esc(signoff)}</p>` : ""}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 30px"><tr>
+<td style="padding-right:14px;vertical-align:middle">${avatar(e.base, e.signer.name, e.signer.photo, 52)}</td>
+<td style="vertical-align:middle;font:400 14px/1.45 ${FONT};color:${MUTED}"><div style="font:700 16px/1.35 ${FONT};color:${NAVY}">${esc(e.signer.name)}</div>${esc(e.signer.role)}<br>${signatureLinks(e)}</td>
+</tr></table>
+</td></tr>
+${e.points.length ? `<tr><td class="sc-pad" style="background:${CREAM};padding:28px 32px 14px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>${e.points
+    .map((p) => `<td class="sc-pt" width="${w}%" style="padding:0 8px 14px;vertical-align:top"><div style="width:28px;height:4px;border-radius:2px;background:${BRAND_BRIGHT};font-size:0;line-height:0">&nbsp;</div><div style="padding-top:12px;font:900 16px/1.3 ${DISPLAY};color:${NAVY}">${esc(p.title)}</div><div style="padding-top:5px;font:400 14px/1.5 ${FONT};color:${MUTED}">${esc(p.text)}</div></td>`)
+    .join("")}</tr></table></td></tr>` : ""}
+<tr><td class="sc-pad" align="center" style="background:${NAVY};padding:26px 40px 28px;font:400 13px/1.7 ${FONT};color:#9fa3c4">
+<div style="font:700 14px/1.4 ${FONT};color:#ffffff;padding-bottom:4px">${esc(f.name)}</div>
+${esc(f.address)}<br>
+<a href="${esc(f.phoneHref)}" style="color:#ffffff;text-decoration:none">${esc(f.phone)}</a> &middot; <a href="${esc(f.site)}" style="color:#ffffff;text-decoration:none">${esc(f.site.replace(/^https?:\/\/(www\.)?/, ""))}</a>
+</td></tr>
+</table>
+</td></tr></table></body></html>`;
 }
 
 export function letterText(e: LetterEmail): string {
