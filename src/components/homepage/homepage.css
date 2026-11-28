@@ -871,3 +871,63 @@ body:has(> main > .ag){padding-bottom:0 !important}
   /* At 16px the newsletter's placeholder no longer fits beside its button; the button goes under. */
   .ftr__news .bl-news__form input,.ftr__news .bl-news__form button{flex:1 1 100%}
 }
+
+/* ---------- Homepage hero on a phone ----------
+   The quote form came straight after the headline, so the first thing a phone showed was a
+   form. Here the headline, the buttons and the trust panel have the first screen to
+   themselves and the form starts below it, with the crew and vans in the photo at the fold.
+   155px is what sits above the copy: the 37px status strip, the 74px the header floats in, and
+   the hero's own 44px. svh, not vh: with the browser's bars showing, vh runs past the screen. */
+@media (max-width:600px){
+  .ag .ahero--home .ahero__copy{min-height:calc(100vh - 155px);min-height:calc(100svh - 155px)}
+  .ag .ahero--home .ahero__bg{object-position:47% 50%}
+}
+
+/* ---------- Find your system on a phone ----------
+   Full size, a step ran to 1,400-1,950px on a phone: a photo card per answer and a 160px
+   product shot per option. Here each answer is a row with a small picture, the intro paragraph
+   goes (the headline says it, and the call button is in the hero), only the step you're on is
+   named beside the headline, the answers trail keeps the first two, and an option card puts its
+   picture beside its name. The sizes below are phone sizes already, so they're off the scale. */
+@media (max-width:600px){
+  .ag .find{padding:24px 0 56px}
+  .ag .find__box{padding:20px 14px 18px}
+  .ag .find__head{flex-wrap:nowrap;align-items:center;gap:12px}
+  .ag .find__intro{min-width:0}
+  .ag .find__p{display:none}
+  .ag .find__steps{flex:none}
+  .ag .fstep{padding:0;white-space:nowrap}
+  .ag .fstep:not(.fstep--on){display:none}
+  .ag .find__bar{margin-top:14px}
+  .ag .find__crumbs{margin-top:12px;gap:6px 8px}
+  .ag .find__crumbs .crumbp:nth-of-type(n+3){display:none}
+  .ag .find__stage,.ag .find__stage--first{margin-top:16px;gap:12px}
+  .ag .find__h3{font-size:18px}
+
+  .ag .find__box .grid-cats,.ag .find__box .grid-sys,.ag .find__box .fqgrid{grid-template-columns:1fr;gap:8px}
+  .ag .find__box .atile{flex-direction:row;align-items:stretch;min-height:72px;border-radius:10px}
+  .ag .find__box .atile:hover{transform:none}
+  .ag .find__box .atile__photo,.ag .find__box .atile__img,.ag .find__box .atile__timer{flex:none;width:92px;height:auto;aspect-ratio:auto}
+  .ag .find__box .atile__img img{padding:8px}
+  .ag .find__box .atile__timer svg{width:54px;height:54px}
+  /* Decoration the thumbnail has no room for: the icon chip, the shading under it, the row
+     of figures on the household photos and the height bars. The words carry all of it. */
+  .ag .find__box .atile__shade,.ag .find__box .atile__ico,.ag .find__box .atile__ppl,.ag .find__box .atile__bars{display:none}
+  .ag .find__box .atile__foot,.ag .find__box .atile__sys,.ag .find__box .fqrow{flex:1;min-width:0;padding:10px 12px;min-height:0;border-top:0}
+  .ag .find__box .atile__sys{justify-content:center}
+  .ag .find__box .atile__txt strong,.ag .find__box .atile__sys strong,.ag .find__box .fqrow strong{font-size:16px}
+  .ag .find__box .atile__txt span,.ag .find__box .fqrow small{font-size:13px}
+  .ag .find__box .atile__go{width:30px;height:30px}
+
+  .ag .find__box .tier{display:grid;grid-template-columns:84px minmax(0,1fr);column-gap:12px;row-gap:10px;padding:14px}
+  .ag .find__box .tier > *{grid-column:1 / -1}
+  .ag .find__box .tier__tier,.ag .find__box .tier__name{grid-column:2}
+  .ag .find__box .tier__img{grid-column:1;grid-row:1 / span 2;height:84px}
+  .ag .find__box .tier__img img{padding:6px}
+  .ag .find__box .tier__n,.ag .find__box .tier__view{display:none}
+  .ag .find__box .tier__badge{top:14px;right:14px}
+  .ag .find__box .tier__name strong{font-size:17px}
+  .ag .find__box .ticks{gap:4px;font-size:13.5px}
+  .ag .find__box .tier__price{padding-top:10px}
+  .ag .find__box .tier__price strong{font-size:21px}
+}
