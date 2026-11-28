@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/send";
+import { photosEmail } from "@/lib/email/leadEmails";
 import { keepPhotos } from "@/lib/portal/leadPhotos";
 
 export const runtime = "nodejs";
@@ -62,27 +63,15 @@ export async function POST(req: Request) {
 
   const to = (process.env.LEAD_NOTIFICATION_EMAIL || "").split(",").map((s) => s.trim()).filter(Boolean);
   const recipients = to.length ? to : ["jake@advancedgas.com.au"];
-  const who = lead.name || "Website enquiry";
-  const where = lead.suburb || lead.postcode || "SE Vic";
   const n = photos.length;
-  const text = [
-    `${n} photo${n === 1 ? "" : "s"} added to ${who}'s enquiry (${lead.headline ?? "quote"}, ${where}).`,
-    lead.summary ? `\n${lead.summary}` : "",
-    lead.phone ? `\nPhone: ${lead.phone}` : "",
-    `\nThe full enquiry came through in the earlier email.`,
-  ].join("");
+  const mail = photosEmail(lead, n);
 
   const out = await sendEmail("quote-lead", {
     from: process.env.RESEND_FROM_EMAIL || "Advanced Gas Website <onboarding@resend.dev>",
     to: recipients,
-    subject: `Photos added, ${who} · ${where}`,
-    text,
-    html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:15px;line-height:1.55;color:#1a1a1d;max-width:560px">
-      <p style="margin:0 0 12px"><strong>${n} photo${n === 1 ? "" : "s"}</strong> added to <strong>${esc(who)}</strong>'s enquiry (${esc(lead.headline ?? "quote")}, ${esc(where)}). They're attached.</p>
-      ${lead.summary ? `<p style="margin:0 0 12px;color:#4a4a52">${esc(lead.summary)}</p>` : ""}
-      ${lead.phone ? `<p style="margin:0 0 12px">Phone: <a href="tel:${esc(lead.phone.replace(/\s/g, ""))}">${esc(lead.phone)}</a></p>` : ""}
-      <p style="margin:0;color:#7a7a82;font-size:13px">The full enquiry came through in the earlier email.</p>
-    </div>`,
+    subject: mail.subject,
+    text: mail.text,
+    html: mail.html,
     attachments: photos.map((p, i) => ({ filename: safeName(p.name, i), content: p.data })),
   } as Parameters<typeof sendEmail>[1], { lead: id, photos: n });
 
@@ -98,8 +87,4 @@ export async function POST(req: Request) {
 function safeName(name: string | undefined, i: number) {
   const base = (name || "").replace(/[^\w.-]+/g, "-").slice(0, 60);
   return base || `photo-${i + 1}.jpg`;
-}
-
-function esc(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

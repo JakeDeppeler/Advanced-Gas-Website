@@ -4,17 +4,24 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
-  CATS, PHOTO, ICON, SIZE_NOTE, SHOW_PRICES, SHOW_FINANCE, FINANCE_SOON, FINANCE_SOON_TEXT, FINANCE_MONTHS, FINANCE_NOTE, TONES,
-  findSystem, answerChips, shownOpts, hpPick, galleryFor, isHeatPump, isNewBuildHeatPump, productHref, bookHref, money, weekly,
-  type Answers,
+  CATS, PHOTO, ICON, SIZE_NOTE, SHOW_PRICES, SHOW_FINANCE, FINANCE_SOON, FINANCE_SOON_TEXT, FINANCE_MONTHS, FINANCE_NOTE, TONES, PHOTO_TIP,
+  findSystem, answerChips, answerMap, shownOpts, hpPick, galleryFor, isHeatPump, isNewBuildHeatPump, productHref, pickSummary, money, weekly,
+  type Answers, type Tier,
 } from "@/lib/homepage/data";
 import { onIntent, sendIntent, scrollToId } from "@/lib/homepage/intent";
-import { Svg } from "./HeroQuote";
+import { Svg } from "./Svg";
+import { QuoteDetails, type LeadDraft } from "./QuoteDetails";
 import { SHOWER_MINUTES, peopleIn, tankFor, tanksOf, FIT_TEXT } from "@/lib/homepage/hotWater";
 
 /**
  * "What do you need help with?": Type → System → a few questions about the
- * home, one per screen → three options side by side → a /find product page.
+ * home, one per screen → the options side by side → their details, here.
+ *
+ * Any number of options can go into one quote (Jake, 28 Nov 2026: "they
+ * need to be able to select both option like brands"), and the details are
+ * taken in this section rather than back up in the hero form, which used to
+ * jump the page to the top ("it shouldn't do that"). The recommended option
+ * starts ticked, so one tap still gets a quote for it.
  *
  * Back undoes one answer at a time, and every answer so far shows as a chip,
  * so nobody has to start again to change one thing.
@@ -29,6 +36,13 @@ export function Finder({ only }: { only?: string } = {}) {
   const [ci, setCi] = useState<number | null>(fixed?.ci ?? null);
   const [si, setSi] = useState<number | null>(fixed?.si ?? null);
   const [ans, setAns] = useState<Answers>({});
+  // The options ticked for the quote, once someone has changed them, kept per
+  // system so a changed answer doesn't throw away a choice they made. `models`
+  // is an exact size a /find page arrived with.
+  const [picked, setPicked] = useState<{ sys: string; slugs: string[]; models: Record<string, string> } | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  // Once their details are in, Back and "Change options" would only lead to sending it twice.
+  const [sent, setSent] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
 
   const cat = ci == null ? null : CATS[ci];
@@ -37,7 +51,7 @@ export function Finder({ only }: { only?: string } = {}) {
   let qIdx = 0;
   while (qIdx < qList.length && ans[qList[qIdx].id] != null) qIdx++;
   const curQ = qList[qIdx] ?? null;
-  const stage = ci == null ? 1 : si == null ? 2 : curQ ? 3 : 4;
+  const stage = ci == null ? 1 : si == null ? 2 : curQ ? 3 : quoting ? 5 : 4;
   const chips = sys ? answerChips(sys, ans) : [];
   const crumbs = (fixed ? chips : [cat?.label, sys?.label, ...chips]).filter((x): x is string => !!x);
   // "What matters most?" marks the option it points to as our pick, in place of "Most popular".
@@ -47,13 +61,28 @@ export function Finder({ only }: { only?: string } = {}) {
   const badgeTier = pickTier ?? sys?.pick ?? null;
   const badge = pickTier ? "Our pick for you" : sys?.pick ? "Our pick" : "Most popular";
   const size = sys && ans.size != null ? sys.sizes[ans.size] : null;
+  // Before anyone ticks or unticks, the badged option is in the quote.
+  const first = sys ? (badgeTier ?? sys.tiers[1]?.slug ?? sys.tiers[0]?.slug) : undefined;
+  const chosen = sys && picked?.sys === sys.slug ? picked.slugs : first ? [first] : [];
   // The shower check, for a tank system once its people and shower length
   // are in: everyone back to back, at Jake's 5 L of hot a minute.
   const showerQ = !!sys?.qs.some((q) => q.id === "shw");
   const need = showerQ && size && ans.shw != null ? peopleIn(size.label) * SHOWER_MINUTES[ans.shw] : null;
 
   useEffect(() => onIntent((i) => {
-    if (i.kind !== "find" || only) return false;
+    if (only) return false;
+    if (i.kind === "book") {
+      // A /find page's "Get a quote": that option ticked, and straight to the
+      // details if every question is answered, else to the first one left.
+      const ref = findSystem(i.system);
+      if (!ref || ref.si < 0 || !ref.sys.tiers.some((t) => t.slug === i.tier)) return false;
+      setCi(ref.ci); setSi(ref.si); setAns(i.answers);
+      setPicked({ sys: ref.sys.slug, slugs: [i.tier], models: i.model ? { [i.tier]: i.model } : {} });
+      setQuoting(ref.sys.qs.every((q) => i.answers[q.id] != null)); setSent(false);
+      return true;
+    }
+    if (i.kind !== "find") return false;
+    setQuoting(false); setPicked(null); setSent(false);
     if (i.system) {
       const ref = findSystem(i.system);
       if (ref && ref.si >= 0) { setCi(ref.ci); setSi(ref.si); setAns(i.answers ?? {}); return true; }
@@ -72,6 +101,7 @@ export function Finder({ only }: { only?: string } = {}) {
   }
 
   function back() {
+    if (stage === 5) { setQuoting(false); return; }
     if (stage === 4 || qIdx > 0) {
       const last = qList[(stage === 4 ? qList.length : qIdx) - 1];
       setAns((a) => { const n = { ...a }; delete n[last.id]; return n; });
@@ -80,7 +110,51 @@ export function Finder({ only }: { only?: string } = {}) {
     else setCi(null);
   }
 
-  const steps = fixed ? ["Your home", "Options"] : ["Type", "System", "Your home", "Options"];
+  function startOver() {
+    setCi(fixed?.ci ?? null); setSi(fixed?.si ?? null); setAns({}); setPicked(null); setQuoting(false); setSent(false);
+  }
+
+  function toggle(slug: string) {
+    if (!sys) return;
+    const on = chosen.includes(slug);
+    // Kept in the options' own order, whatever order they were ticked in.
+    const slugs = sys.tiers.map((t) => t.slug).filter((x) => (x === slug ? !on : chosen.includes(x)));
+    setPicked({ sys: sys.slug, slugs, models: picked?.sys === sys.slug ? picked.models : {} });
+  }
+
+  /** The exact model an option comes to: a size a /find page arrived with, else the tank that covers the showers. */
+  function modelOf(t: Tier) {
+    const real = t.same ? t.same.split(".") : [sys!.slug, t.slug];
+    const exact = need != null && size ? tankFor(real[0], real[1], need, size.min) : null;
+    const given = picked?.sys === sys?.slug ? picked?.models[t.slug] : undefined;
+    return { id: given ?? exact?.id, chip: exact?.chip ?? size?.spec ?? size?.label ?? "" };
+  }
+
+  const quoted = sys ? sys.tiers.filter((t) => chosen.includes(t.slug)).map((t) => ({ t, m: modelOf(t) })) : [];
+  const quotedNames = quoted.map(({ t }) => `${t.brand} ${t.model}`);
+
+  /** The lead as it stands when they press Send. */
+  function draft(): LeadDraft {
+    const s = sys!;
+    const pages = quoted.map(({ t, m }) => {
+      const base = productHref(s, t, ans);
+      return m.id ? `${base}${base.includes("?") ? "&" : "?"}model=${m.id}` : base;
+    });
+    return {
+      service: s.service,
+      summary: [s.label, quotedNames.join(" + "), ...answerChips(s, ans)].join(" · "),
+      details: {
+        answers: answerMap(s.qs, ans),
+        // One line per option, for the email and the portal; `pick` is the
+        // field the single-option form wrote, kept so older readers still work.
+        picks: quoted.map(({ t, m }, k) => ({ option: t.tier, brand: t.brand, model: t.model, size: m.chip, page: pages[k] })),
+        pick: quoted.map(({ t, m }) => pickSummary(s, t, ans, m.id)).join(" + "),
+        findPage: pages[0],
+      },
+    };
+  }
+
+  const steps = fixed ? ["Your home", "Options", "Your details"] : ["Type", "System", "Your home", "Options", "Your details"];
   // With the first two steps skipped, the step shown is two behind.
   const shown = fixed ? stage - 2 : stage;
   const toolHref = cat?.id === "air" ? "/tools/sizing-calculator" : cat?.id === "hw" ? "/hot-water#size" : "/tools/heating-comparator";
@@ -118,9 +192,9 @@ export function Finder({ only }: { only?: string } = {}) {
 
           {crumbs.length > 0 && (
             <div className="find__crumbs">
-              {!(fixed && stage === 3 && qIdx === 0) && <button type="button" onClick={back} className="abtn abtn--line find__back">← Back</button>}
+              {!(fixed && stage === 3 && qIdx === 0) && !sent && <button type="button" onClick={back} className="abtn abtn--line find__back">← Back</button>}
               {crumbs.map((c, i) => <span key={`${i}-${c}`} className="crumbp pop">{c}</span>)}
-              <button type="button" className="find__reset" onClick={() => { setCi(fixed?.ci ?? null); setSi(fixed?.si ?? null); setAns({}); }}>Start over</button>
+              <button type="button" className="find__reset" onClick={startOver}>Start over</button>
             </div>
           )}
 
@@ -129,7 +203,7 @@ export function Finder({ only }: { only?: string } = {}) {
               <h3 className="find__h3 anim">Start with what you need</h3>
               <div className="grid-cats">
                 {CATS.map((k, i) => (
-                  <button key={k.id} type="button" className="atile anim" style={{ animationDelay: `${i * 0.07}s` }} onClick={() => stepTo(() => { setCi(i); setSi(null); setAns({}); })}>
+                  <button key={k.id} type="button" className="atile anim" style={{ animationDelay: `${i * 0.07}s` }} onClick={() => stepTo(() => { setCi(i); setSi(null); setAns({}); setPicked(null); setQuoting(false); })}>
                     <CatTileBody photo={k.photo} alt={k.alt} pos={k.pos} fg={k.fg} icon={k.icon} label={k.label} sub={k.sub} />
                   </button>
                 ))}
@@ -145,7 +219,7 @@ export function Finder({ only }: { only?: string } = {}) {
               <h3 className="find__h3 anim">Which kind of {cat.label.toLowerCase()}?</h3>
               <div className="grid-sys">
                 {cat.systems.map((y, i) => (
-                  <button key={y.slug} type="button" className="atile anim" style={{ animationDelay: `${i * 0.07}s` }} onClick={() => stepTo(() => { setSi(i); setAns({}); })}>
+                  <button key={y.slug} type="button" className="atile anim" style={{ animationDelay: `${i * 0.07}s` }} onClick={() => stepTo(() => { setSi(i); setAns({}); setPicked(null); setQuoting(false); })}>
                     <span className="atile__img"><Image src={y.img} alt={y.label} fill sizes="(max-width: 600px) 90vw, 300px" /></span>
                     <span className="atile__sys"><strong>{y.label}</strong><span>{y.sub}</span></span>
                   </button>
@@ -248,8 +322,9 @@ export function Finder({ only }: { only?: string } = {}) {
                   const base = productHref(sys, t, ans);
                   const href = exact ? `${base}${base.includes("?") ? "&" : "?"}model=${exact.id}` : base;
                   const nPhotos = galleryFor(sys, t).length;
+                  const on = chosen.includes(t.slug);
                   return (
-                    <article key={t.slug} className={`tier${(badgeTier ? t.slug === badgeTier : i === 1) ? " tier--pop" : ""}`} style={{ animationDelay: `${(i + 1) * 0.07}s` }}>
+                    <article key={t.slug} className={`tier${on ? " tier--pop" : ""}`} style={{ animationDelay: `${(i + 1) * 0.07}s` }}>
                       {(badgeTier ? t.slug === badgeTier : i === 1) && <span className="tier__badge pop">{badge}</span>}
                       <span className="tier__tier" style={{ color: TONES[i] }}>{t.tier}</span>
                       <Link href={href} className="tier__img" aria-label={`View ${t.brand} ${t.model}`}>
@@ -283,14 +358,24 @@ export function Finder({ only }: { only?: string } = {}) {
                       </div>
                       <div className="tier__btns">
                         <Link href={href} className="abtn abtn--ghost">View details</Link>
-                        <a href={bookHref(sys, t, ans, exact?.id)} className={`abtn ${(pickTier ? t.slug === pickTier : i === 1) ? "abtn--or" : "abtn--navy"}`}
-                          onClick={(e) => { e.preventDefault(); sendIntent({ kind: "book", system: sys.slug, tier: t.slug, answers: ans }, "quote"); }}>
-                          Get a quote →
-                        </a>
+                        {/* Ticks the option into the quote; the words change with it, not just the colour. */}
+                        <button type="button" aria-pressed={on} className={`abtn ${on ? "abtn--or" : "abtn--navy"} tier__add`} onClick={() => toggle(t.slug)}>
+                          {on ? "✓ Added" : "Add to quote"}
+                        </button>
                       </div>
                     </article>
                   );
                 })}
+              </div>
+              <div className="find__go">
+                <p aria-live="polite">
+                  {quoted.length
+                    ? <><b>{quoted.length === 1 ? "In your quote:" : `${quoted.length} options in your quote:`}</b> <span className="find__gonames">{quotedNames.join(" and ")}</span></>
+                    : <>Add one or more options to your quote.</>}
+                </p>
+                <button type="button" className="abtn abtn--or abtn--flat" disabled={!quoted.length} onClick={() => stepTo(() => setQuoting(true))}>
+                  {quoted.length > 1 ? `Get a quote for ${quoted.length === 2 ? "both" : `all ${quoted.length}`} →` : "Get a quote →"}
+                </button>
               </div>
               <p className="find__fine">
                 {SHOW_PRICES
@@ -299,6 +384,28 @@ export function Finder({ only }: { only?: string } = {}) {
                 {SHOW_FINANCE ? ` Weekly figures are over ${FINANCE_MONTHS} months. ${FINANCE_NOTE}` : ""}{" "}
                 <Link href="/tools/system-comparison">Compare systems</Link>
               </p>
+            </div>
+          )}
+
+          {stage === 5 && sys && cat && (
+            <div className="find__stage find__quote">
+              <div className="find__qside">
+                <h3 className="find__h3 anim">{quoted.length > 1 ? `Your quote for ${quoted.length === 2 ? "both options" : `${quoted.length} options`}` : "Your quote"}</h3>
+                <ul className="find__picks">
+                  {quoted.map(({ t, m }) => (
+                    <li key={t.slug} className="find__pk pop">
+                      <span className="find__pkimg"><Image src={t.img} alt="" fill sizes="64px" /></span>
+                      <span className="find__pkt"><small>{t.tier}</small><strong>{t.brand} {t.model}</strong><em>{sys.label}{m.chip ? ` · ${m.chip}` : ""}</em></span>
+                    </li>
+                  ))}
+                </ul>
+                {!sent && <button type="button" className="find__change" onClick={() => setQuoting(false)}>← Change options</button>}
+                <p className="find__qnote">Free and no obligation. We confirm the size at a free site check, then send one fixed price in writing for each option.</p>
+              </div>
+              <div className="qf find__qf">
+                <QuoteDetails lead={draft} chips={[]} tip={PHOTO_TIP[cat.id]} onRestart={startOver} onSent={() => setSent(true)}
+                  about={quoted.length === 1 ? `your ${quotedNames[0]}` : `the ${quotedNames.join(" and the ")}`} />
+              </div>
             </div>
           )}
         </div>

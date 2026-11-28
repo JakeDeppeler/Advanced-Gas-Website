@@ -7,8 +7,8 @@ import { sendIntent } from "@/lib/homepage/intent";
 
 /**
  * `/?find=split-system&size=1#find` opens the finder at that system with
- * those answers; `/?book=split-system.premium&size=1#quote` fills the quote
- * form with that pick. These are what "Back to your options" and "Get a
+ * those answers; `/?book=split-system.premium&size=1#find` opens it at the
+ * details with that option ticked. These are what "Back to your options" and "Get a
  * quote" on a /find product page link to, and what the header's product
  * cards link to from any other page.
  *
@@ -27,7 +27,7 @@ export function IntentFromUrl() {
       const ref = findSystem(system);
       if (ref && ref.sys.tiers.some((t) => t.slug === tier)) {
         const model = get("model") ?? undefined;
-        sendIntent({ kind: "book", system, tier, answers: answersFrom(ref.sys, get), model }, "quote");
+        sendIntent({ kind: "book", system, tier, answers: answersFrom(ref.sys, get), model }, "find");
       }
       return;
     }
