@@ -6,7 +6,7 @@
  *   npm run check:quote-templates
  */
 import {
-  DIAGNOSTICS, EVAP_UNITS, OTHER_TEMPLATES, REPAIRS_28, evapSellPrice, evapTemplate, evapUnitPrice, findUnit, lineTotal, pricedItems, type LiveSku,
+  DIAGNOSTICS, EVAP_UNITS, LEAK_REGAS, OTHER_TEMPLATES, REPAIRS_28, SERVICES_28, evapSellPrice, leakRegasCode, evapTemplate, evapUnitPrice, findUnit, lineTotal, pricedItems, type LiveSku,
 } from "../src/lib/pricebook/quoteTemplateSpecs";
 import { groupedItems, isGrouped, isTestTemplate, tidyCode, tidyName } from "../src/lib/pricebook/templateShape";
 import { HEATER_EVAP_DISCOUNTS, SERVICE_PRICES, pricedAt, sameName } from "../src/lib/pricebook/servicePricing";
@@ -128,7 +128,7 @@ ok("no frost valve template until we know the system", !all.some((t) => /frost/i
 // Jake, 28 Nov: a diagnostic for each kind of system, and the common evap and split repairs.
 ok("a diagnostic template for each kind of system, one line at the $200 call-out", DIAGNOSTICS.length === 13 && DIAGNOSTICS.every((t) => t.lines.length === 1 && t.lines[0].unitPrice === 200 && / - Diagnostics$/.test(t.name) && OTHER_TEMPLATES.includes(t)));
 ok("…none twice, and none for the split system, which has its own", new Set(DIAGNOSTICS.map((t) => t.lines[0].skuId)).size === 13 && !DIAGNOSTICS.some((t) => /^Split System/.test(t.name)));
-ok("repairs: the repair line is an hour or more at $250 plus the part's price, the part under it at $0", REPAIRS_28.every((t) => t.lines.length === 2 && t.lines[1].unitPrice === 0 && t.lines[1].skuType === "Material" && (t.lines[0].unitPrice - 250) >= 0 && OTHER_TEMPLATES.includes(t)));
+ok("repairs: the repair line is an hour or more at $250 plus the part's price, the part under it at $0", REPAIRS_28.every((t) => t.lines.length === 2 && t.lines[1].unitPrice === 0 && ["Material", "Equipment"].includes(t.lines[1].skuType) && (t.lines[0].unitPrice - 250) >= 0 && OTHER_TEMPLATES.includes(t)));
 ok("…the water pump at $405 ($250 + $155), the control board at an hour and a half", total("EVAP-REP-PUMP") === 405 && total("EVAP-REP-CONTROLBOARD") === 375 + 515);
 ok("…and a remote for the split system", REPAIRS_28.some((t) => t.code === "AC-SPLIT-REP-REMOTE" && t.lines[1].skuId === 301202953));
 
@@ -416,7 +416,7 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
     L(181, 301358552, "Material", "Refrigerant R410A (HFC) 1KG", 0, { quantity: 2.5, itemGroupParentId: 180 }),
   ] };
   ok("…the quantity kept (2.5 kg of gas)", planRepairParts(leak, new Map([[301358552, 133]]))?.items.find((i) => i.skuId === 301358552)?.quantity === 2.5);
-  ok("…only the repair templates", planRepairParts({ ...pump, id: 5 }, new Map()) === null);
+  ok("…only the repair templates, by id or by the name of one the code made", planRepairParts({ ...pump, id: 5, name: "Something Else" }, new Map()) === null && planRepairParts({ ...pump, id: 5 }, new Map()) !== null);
 
   // Jake, 28 Nov: "build the dominator 18kw templates".
   const dom12 = [
@@ -443,8 +443,19 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
   const ev76 = rru.find((r) => r.key === "EVAP-REP-PUMP-76")!;
   ok("…evap: the repair, then the Advance, then the Contour, the same size in Charcoal; the 76 replaced by the F86DS", JSON.stringify(ev76.options.map((o) => o.ref)) === JSON.stringify([{ code: "EVAP-REP-PUMP" }, { code: "EVAP-BRIVIS-ADVANCE-F86DS-CHAR" }, { code: "EVAP-BRIVIS-CONTOUR-L76-CHAR" }]));
   ok("…every evap template it names is one the code makes", rru.filter((r) => r.key.startsWith("EVAP")).every((r) => r.options.every((o) => "code" in o.ref && all.some((t) => t.code === (o.ref as { code: string }).code))));
-  const sp = rru.find((r) => r.key === "AC-SPLIT-LEAK-REGAS-3.5")!;
-  ok("…split: the repair, then the Kaden, then the Mitsubishi Electric, back to back, by name", JSON.stringify(sp.options.map((o) => o.ref)) === JSON.stringify([{ code: "AC-SPLIT-LEAK-REGAS" }, { name: "Kaden 3.5kW Split System - Back to Back" }, { name: "Mitsubishi Electric 3.5kW Split System - Back to Back" }]));
+  const sp = rru.find((r) => r.key === "AC-SPLIT-LEAK-REGAS-R32-3.5")!;
+  ok("…split: the repair, then the Kaden, then the Mitsubishi Electric, back to back, by name", JSON.stringify(sp.options.map((o) => o.ref)) === JSON.stringify([{ code: "AC-SPLIT-LEAK-REGAS-R32-3.5" }, { name: "Kaden 3.5kW Split System - Back to Back" }, { name: "Mitsubishi Electric 3.5kW Split System - Back to Back" }]));
+  ok("…the R410A leak proposals take over the four made on the one-size template; the R32 ones are new", rru.filter((r) => r.was).map((r) => `${r.key}<${r.was}`).join() === SPLIT_REPAIR_SIZES.map((z) => `AC-SPLIT-LEAK-REGAS-R410A-${z}<AC-SPLIT-LEAK-REGAS-${z}`).join());
+  ok("…and every split repair it names is one the code makes", rru.filter((r) => r.key.startsWith("AC-SPLIT")).every((r) => all.some((t) => t.code === (r.options[0].ref as { code: string }).code)));
+  // Jake, 28 Nov: "the split leak & regas should be off r32 and r410A … small split have 1-1.5kg and larger can go from 2-4kg".
+  const lr = (gas: string, size: string) => LEAK_REGAS.find((t) => t.code === leakRegasCode(gas, size))!;
+  ok("leak and regas: one for each gas and split size, and the ducted, the gas by the kilo on its own line", LEAK_REGAS.length === 10 && LEAK_REGAS.every((t) => t.lines.length === 2 && t.lines[1].unitPrice === 0 && OTHER_TEMPLATES.includes(t)));
+  ok("…1kg for a 2.5kW, 1.5kg a 3.5kW, 2kg a 5kW, 3kg a 7.1kW, 4kg a ducted", ["2.5", "3.5", "5", "7.1", "DUCTED"].map((z) => lr("R32", z).lines[1].quantity).join() === "1,1.5,2,3,4");
+  ok("…R32 on the R32 ones, R410A on the R410A", lr("R32", "3.5").lines[1].skuId === 301358054 && lr("R410A", "3.5").lines[1].skuId === 301358552 && /R32 \(3\.5kW\)$/.test(lr("R32", "3.5").name));
+  ok("…laid out as the other repairs once made: the gas comes out from under the repair line", planRepairParts({ id: 77, name: lr("R410A", "7.1").name, items: [
+    L(210, 301620463, "Service", "Split System – Repair", 330, { itemGroupName: "Split System – Repair" }),
+    L(211, 301358552, "Material", "Refrigerant R410A (HFC) 1KG", 0, { quantity: 3, itemGroupParentId: 210 })] }, new Map([[301358552, 133]]))?.items.find((i) => i.skuId === 301358552)?.itemGroupParentId == null);
+  ok("services that had no template: ducted reverse cycle, gas log fire, space heater, wall air conditioner", SERVICES_28.map((t) => t.lines[0].unitPrice).join() === "300,240,220,250");
   ok("…on ServiceTitan's Repair, Replace, Upgrade type", REPAIR_REPLACE_UPGRADE.typeId === 1805 && REPAIR_REPLACE_UPGRADE.optionIds[1] === 1806 && REPAIR_REPLACE_UPGRADE.optionIds[3] === 1808);
 
   // Jake, 24 Nov.

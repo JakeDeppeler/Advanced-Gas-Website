@@ -1,4 +1,5 @@
 import type { TemplateItem } from "./labour";
+import { REPAIRS_28 } from "./quoteTemplateSpecs";
 
 /**
  * Jake's template fixes of 22 Nov, after the review of every quote template
@@ -512,8 +513,11 @@ export const REPAIR_TEMPLATES = [
   303258053, 303258056, 303258089, 303506304, // split system
 ] as const;
 
+/** The repair templates made since, by name: laid out the same way once ServiceTitan has made them. */
+const REPAIR_NAMES = new Set(REPAIRS_28.map((r) => r.name.toLowerCase()));
+
 export function planRepairParts(t: Tpl, prices: Prices): Edit | null {
-  if (!(REPAIR_TEMPLATES as readonly number[]).includes(t.id)) return null;
+  if (!(REPAIR_TEMPLATES as readonly number[]).includes(t.id) && !REPAIR_NAMES.has(t.name.trim().toLowerCase())) return null;
   const head = t.items.find((i) => plain(i) && i.skuType === "Service" && !!i.itemGroupName && i.skuId !== SKU.bpc && i.id != null);
   if (!head) return null;
   const parts = t.items.filter((i) => i.itemGroupParentId === head.id && i.skuType === "Material" && !i.isAddOn && i.parentItemId == null && Number(i.unitPrice) >= 0);

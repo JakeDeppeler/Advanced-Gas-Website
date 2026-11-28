@@ -12,6 +12,8 @@ import { syncQuoteWording } from "@/lib/pricebook/quoteWording";
 import { syncServiceWording } from "@/lib/pricebook/serviceWording";
 import { groupQuoteTemplates, lineUpFixes, lookAtTemplates, tidyTemplateNames } from "@/lib/pricebook/quoteTemplatesFix";
 import { snapshotCatalog } from "@/lib/proposals/snapshot";
+import { saveSettings } from "@/lib/portal/db";
+import { reeceConfigured, reeceConnection, reeceSearch } from "@/lib/pricebook/reece";
 import type { TemplateItem } from "@/lib/pricebook/labour";
 
 export const runtime = "nodejs";
@@ -33,6 +35,11 @@ export const maxDuration = 60;
  * ?catalog=1 changes nothing either: it saves the whole pricebook, services
  * with their linked parts, to portal_settings.st_catalog_snapshot (snapshot.ts),
  * for the template audit (Jake, 28 Nov).
+ * ?reece=<phrase> changes nothing: it searches Reece's catalogue (the phrases
+ * separated by |, three to thirty characters each) and saves what comes back,
+ * our price, the market price, the codes and the images, to
+ * portal_settings.reece_probe, for choosing the heaters and duct fittings to
+ * add to the pricebook (Jake, 28 Nov).
  */
 export async function GET(req: Request) {
   if (!(await scheduledCallAuthorised(req))) return new NextResponse("Unauthorized", { status: 401 });
@@ -42,6 +49,18 @@ export async function GET(req: Request) {
   try {
     if (new URL(req.url).searchParams.get("look")) return NextResponse.json({ ok: true, look: await lookAtTemplates() });
     if (new URL(req.url).searchParams.get("catalog")) return NextResponse.json({ ok: true, catalog: await snapshotCatalog() });
+    const reece = new URL(req.url).searchParams.get("reece");
+    if (reece) {
+      if (!reeceConfigured() || (await reeceConnection()).status !== "ready") return NextResponse.json({ ok: false, error: "Reece isn't connected" });
+      const phrases = reece.split("|").map((x) => x.trim()).filter((x) => x.length >= 3).slice(0, 12);
+      const found: Record<string, unknown> = {};
+      for (const phrase of phrases) {
+        const r = await reeceSearch(phrase, 50).catch((e: Error) => ({ error: e.message.slice(0, 200) }));
+        found[phrase] = "error" in r ? r : { total: r.totalResults, gstRate: r.gstRate, items: r.items };
+      }
+      const saved = await saveSettings("reece_probe", { at: new Date().toISOString(), found });
+      return NextResponse.json({ ok: true, phrases: phrases.length, saved: saved.ok });
+    }
     const until = Date.now() + 40_000;
     // Jake's 16 Nov service prices and the items the service templates are built on, first.
     const services = await setUpServices(until - 25_000);

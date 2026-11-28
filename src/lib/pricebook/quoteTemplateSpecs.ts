@@ -198,6 +198,24 @@ export const SKU = {
   evapController: { skuId: 301204466, skuType: "Material" }, // Brivis Manual Evap Cooler Controller
   evapFanBelt: { skuId: 303326764, skuType: "Material" }, // Fan Belt A54 / A1400
   splitRemote: { skuId: 301202953, skuType: "Material" }, // Universal Split System Remote Controller
+  // 28 Nov, second round: the gas per refrigerant, the gas heater and ducted split repairs and services.
+  r32: { skuId: 301358054, skuType: "Material" }, // Refrigerant R32 (HFC) 1kg
+  heaterRepair: { skuId: 301620831, skuType: "Service" }, // HTR-DUCTED-REPAIR
+  ductedRepair: { skuId: 301620827, skuType: "Service" }, // AC-DUCTED-REPAIR
+  ductedService: { skuId: 301621019, skuType: "Service" }, // AC-DUCTED-SERVICE
+  logFireService: { skuId: 209600195, skuType: "Service" }, // HTG-LOGFIRE-SVC
+  spaceHeaterService: { skuId: 209600185, skuType: "Service" }, // HTG-WALLFURN-SVC
+  racService: { skuId: 301629934, skuType: "Service" }, // AC-RAC-SERVICE
+  heaterFanMotorBrivis: { skuId: 301265526, skuType: "Material" }, // Brivis GDH Fan Motor 250w
+  heaterFanMotorBraemar: { skuId: 303161984, skuType: "Material" }, // Braemar Fan Motor Single SP 315 Watt
+  heaterGasValve: { skuId: 301176177, skuType: "Material" }, // White Rodgers Gas Valve 1 Stage 24V
+  heaterBoardBraemar: { skuId: 301177027, skuType: "Material" }, // Braemar TQ 3 Main Printed Circuit Board
+  heaterPressureSwitch: { skuId: 301280118, skuType: "Material" }, // Braemar Pressure Switch 100pa
+  heaterFanWheelWombat: { skuId: 301265437, skuType: "Material" }, // Brivis Wombat 20kw Fan Wheel
+  heaterControllerBraemar: { skuId: 301204438, skuType: "Material" }, // Braemar Magiqtouch Controller
+  zoneController: { skuId: 303100757, skuType: "Equipment" }, // Mitsubishi Electric Zone Controller (PAC-ZC10)
+  itc: { skuId: 303100775, skuType: "Equipment" }, // Mitsubishi Electric Individual Temperature Control
+  ductedOutdoorFanMotor: { skuId: 303116451, skuType: "Material" }, // Brivis Condenser Fan Motor DONSC15Z7
 } as const;
 
 export type Line = { skuId: number; skuType: string; quantity: number; unitPrice: number; code?: string };
@@ -271,6 +289,33 @@ const REPAIR_RATE = 250;
 const repair = (name: string, code: string, service: { skuId: number; skuType: string }, part: { skuId: number; skuType: string }, partPrice: number, hours: number, summary: string): TemplateSpec => ({
   name, code, summary, lines: [L(service, REPAIR_RATE * hours + partPrice), L(part, 0)],
 });
+/**
+ * Jake, 28 Nov: "the split leak & regas should be off r32 and r410A and what
+ * its based off small split have 1-1.5kg and larger can go from 2-4kg". One
+ * for each gas and size the split repair proposals carry, the gas by the
+ * kilo at its pricebook price: 1kg for a 2.5kW, 1.5kg for a 3.5kW, 2kg for a
+ * 5kW, 3kg for a 7.1kW, and 4kg for a ducted system. The office changes the
+ * kilos on the job.
+ */
+export const REFRIGERANTS = [
+  { gas: "R32", sku: SKU.r32, price: 136 },
+  { gas: "R410A", sku: SKU.r410a, price: 133 },
+] as const;
+export const SPLIT_GAS_KG: { size: string; kg: number }[] = [
+  { size: "2.5", kg: 1 }, { size: "3.5", kg: 1.5 }, { size: "5", kg: 2 }, { size: "7.1", kg: 3 },
+];
+export const DUCTED_GAS_KG = 4;
+export const leakRegasCode = (gas: string, size: string | "DUCTED") => (size === "DUCTED" ? `AC-DUCTED-LEAK-REGAS-${gas}` : `AC-SPLIT-LEAK-REGAS-${gas}-${size}`);
+const regas = (name: string, code: string, service: { skuId: number; skuType: string }, gas: (typeof REFRIGERANTS)[number], kg: number, what: string): TemplateSpec => ({
+  name, code,
+  summary: `Finding the refrigerant leak on your ${what}, repairing it where it can be reached, then pressure-testing, vacuuming and regassing it with ${gas.gas} and testing that it heats and cools as it should.`,
+  lines: [L(service, REPAIR_RATE + Math.round(gas.price * kg * 100) / 100), L(gas.sku, 0, kg)],
+});
+export const LEAK_REGAS: TemplateSpec[] = REFRIGERANTS.flatMap((g) => [
+  ...SPLIT_GAS_KG.map((s) => regas(`Split System - Leak Detection & Regas ${g.gas} (${s.size}kW)`, leakRegasCode(g.gas, s.size), SKU.splitRepair, g, s.kg, "split system")),
+  regas(`Ducted Reverse Cycle - Leak Detection & Regas ${g.gas}`, leakRegasCode(g.gas, "DUCTED"), SKU.ductedRepair, g, DUCTED_GAS_KG, "ducted system"),
+]);
+
 export const REPAIRS_28: TemplateSpec[] = [
   repair("Evaporative Cooler - Water Pump Replacement", "EVAP-REP-PUMP", SKU.evapRepair, SKU.evapPump, 155, 1,
     "Replacement of the water pump on your evaporative cooler, with the pads wetted and the cooler tested on completion."),
@@ -288,6 +333,45 @@ export const REPAIRS_28: TemplateSpec[] = [
     "Replacement of the fan belt on your evaporative cooler, tensioned and tested on completion."),
   repair("Split System - Remote Replacement", "AC-SPLIT-REP-REMOTE", SKU.splitRepair, SKU.splitRemote, 38, 1,
     "Supply of a replacement remote for your split system, set up and paired to the system and tested on completion."),
+  ...LEAK_REGAS,
+  // The ducted gas heater repairs whose part the pricebook stocks, by make where the part is the make's own.
+  repair("Ducted Gas Heater - Fan Motor Replacement (Brivis)", "GAS-HTR-REP-FANMOTOR-BRIVIS", SKU.heaterRepair, SKU.heaterFanMotorBrivis, 670, 1.5,
+    "Replacement of the fan motor in your Brivis ducted gas heater, with the heater safety-checked and tested on completion."),
+  repair("Ducted Gas Heater - Fan Motor Replacement (Braemar)", "GAS-HTR-REP-FANMOTOR-BRAEMAR", SKU.heaterRepair, SKU.heaterFanMotorBraemar, 670, 1.5,
+    "Replacement of the fan motor in your Braemar ducted gas heater, with the heater safety-checked and tested on completion."),
+  repair("Ducted Gas Heater - Gas Valve Replacement", "GAS-HTR-REP-GASVALVE", SKU.heaterRepair, SKU.heaterGasValve, 250, 1.5,
+    "Replacement of the gas valve in your ducted gas heater, with the gas pressure set and the heater safety-checked and tested on completion."),
+  repair("Ducted Gas Heater - Control Board Replacement (Braemar)", "GAS-HTR-REP-BOARD-BRAEMAR", SKU.heaterRepair, SKU.heaterBoardBraemar, 400, 1.5,
+    "Replacement of the control board in your Braemar ducted gas heater, with the heater safety-checked and tested on completion."),
+  repair("Ducted Gas Heater - Pressure Switch Replacement (Braemar)", "GAS-HTR-REP-PRESSURESWITCH", SKU.heaterRepair, SKU.heaterPressureSwitch, 105, 1,
+    "Replacement of the pressure switch in your Braemar ducted gas heater, with the heater safety-checked and tested on completion."),
+  repair("Ducted Gas Heater - Fan Wheel Replacement (Brivis Wombat)", "GAS-HTR-REP-FANWHEEL-WOMBAT", SKU.heaterRepair, SKU.heaterFanWheelWombat, 180, 1.5,
+    "Replacement of the fan wheel in your Brivis Wombat ducted gas heater, with the heater safety-checked and tested on completion."),
+  repair("Ducted Gas Heater - Wall Controller Replacement (Braemar)", "GAS-HTR-REP-CONTROLLER-BRAEMAR", SKU.heaterRepair, SKU.heaterControllerBraemar, 190, 1,
+    "Replacement of the wall controller for your Braemar ducted gas heater, with the heater tested from the new controller on completion."),
+  // The ducted split repairs.
+  repair("Ducted Reverse Cycle - Zone Controller Replacement (Mitsubishi Electric)", "AC-DUCTED-REP-ZONECONTROLLER", SKU.ductedRepair, SKU.zoneController, 1550, 1.5,
+    "Replacement of the Mitsubishi Electric zone controller for your ducted system, set up for each zone and tested on completion."),
+  repair("Ducted Reverse Cycle - Temperature Control Replacement (Mitsubishi Electric)", "AC-DUCTED-REP-ITC", SKU.ductedRepair, SKU.itc, 90, 1,
+    "Replacement of a zone's temperature control for your ducted system, paired to the zone controller and tested on completion."),
+  repair("Ducted Reverse Cycle - Outdoor Fan Motor Replacement (Brivis)", "AC-DUCTED-REP-FANMOTOR-BRIVIS", SKU.ductedRepair, SKU.ductedOutdoorFanMotor, 950, 2,
+    "Replacement of the fan motor in the outdoor unit of your Brivis ducted system, with the system tested on completion."),
+];
+
+/** The services the pricebook prices that had no template, at their pricebook prices. */
+export const SERVICES_28: TemplateSpec[] = [
+  { name: "Ducted Reverse Cycle Service", code: "AC-DUCTED-SVC",
+    summary: "A full service of your ducted reverse-cycle system: filters, coils, drains and the outdoor unit cleaned and checked, and the system tested in heating and cooling. What's included is set out below.",
+    lines: [L(SKU.ductedService, 300)] },
+  { name: "Gas Log Fire Service", code: "GAS-LOGFIRE-SVC",
+    summary: "A full service and safety check of your gas log fire. What's included is set out below.",
+    lines: [L(SKU.logFireService, 240)] },
+  { name: "Gas Space Heater Service", code: "GAS-SPACE-HTR-SVC",
+    summary: "A full service and safety check of your gas space heater or wall furnace. What's included is set out below.",
+    lines: [L(SKU.spaceHeaterService, 220)] },
+  { name: "Wall Air Conditioner Service", code: "AC-RAC-SVC",
+    summary: "A clean and service of your wall air conditioner. What's included is set out below.",
+    lines: [L(SKU.racService, 250)] },
 ];
 
 /**
@@ -378,6 +462,7 @@ export const OTHER_TEMPLATES: TemplateSpec[] = [
     lines: [L(SKU.cookingInstall, 550), L(SKU.cookerElectrical, 350), L(SKU.compliance, 65)] },
   ...DIAGNOSTICS,
   ...REPAIRS_28,
+  ...SERVICES_28,
   // Jake, 16 Nov: two or more splits at one home are $180 each. The office
   // changes the quantity for five or more.
   ...[2, 3, 4].map((n): TemplateSpec => ({
